@@ -1,13 +1,14 @@
 package asistenciarfid.modelo;
 
-import java.time.LocalDate;
+
+import java.sql.Date;
 
 public class Periodo {
 
     private int id;
     private String nombre;
-    private LocalDate fechaInicio;
-    private LocalDate fechaFin;
+    private Date fechaInicio;
+    private Date fechaFin;
     private boolean activo;
     private boolean matriculaAbierta;
 
@@ -20,11 +21,11 @@ public class Periodo {
     public String getNombre() { return nombre; }
     public void setNombre(String nombre) { this.nombre = nombre; }
 
-    public LocalDate getFechaInicio() { return fechaInicio; }
-    public void setFechaInicio(LocalDate fechaInicio) { this.fechaInicio = fechaInicio; }
+    public Date getFechaInicio() { return fechaInicio; }
+    public void setFechaInicio(Date fechaInicio) { this.fechaInicio = fechaInicio; }
 
-    public LocalDate getFechaFin() { return fechaFin; }
-    public void setFechaFin(LocalDate fechaFin) { this.fechaFin = fechaFin; }
+    public Date getFechaFin() { return fechaFin; }
+    public void setFechaFin(Date fechaFin) { this.fechaFin = fechaFin; }
 
     public boolean isActivo() { return activo; }
     public void setActivo(boolean activo) { this.activo = activo; }
