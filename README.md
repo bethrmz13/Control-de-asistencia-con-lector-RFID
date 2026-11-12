@@ -2,7 +2,7 @@
 
 Sistema de escritorio para registrar la asistencia de estudiantes por clase, usando un lector RFID USB (125 kHz) que funciona como teclado. Proyecto de la asignatura **Computación Visual**, Carrera de Software, FISEI, Universidad Técnica de Ambato.
 
-Desarrollado en **Java con Swing**, **JDBC** (patrón DAO) y **MySQL** (XAMPP). Sin frameworks.
+Desarrollado en **Java con Swing**, con arquitectura **MVC y DAO**, **JDBC** y **MySQL** (XAMPP). Sin frameworks.
 
 ## Requisitos
 
@@ -10,10 +10,9 @@ Desarrollado en **Java con Swing**, **JDBC** (patrón DAO) y **MySQL** (XAMPP). 
 - Apache NetBeans
 - XAMPP (módulos **Apache** y **MySQL**)
 - Git
-- JasperReports (diseño de reportes con iReport o Jaspersoft Studio; los .jar van en src/plugins)
-- iReport (para diseñar los reportes).
+- iReport (solo para diseñar los reportes)
 
-El conector de MySQL (`mysql-connector-j`) ya está incluido en el repositorio, en `src/plugins`. No hay que descargarlo.
+El conector de MySQL y las librerías de JasperReports ya están incluidos en el repositorio, en `src/plugins`. No hay que descargarlos.
 
 ## Cómo probar el proyecto
 
@@ -22,7 +21,7 @@ El conector de MySQL (`mysql-connector-j`) ya está incluido en el repositorio, 
    git clone https://github.com/bethrmz13/Control-de-asistencia-con-lector-RFID.git
    ```
 2. Abrir XAMPP e iniciar **Apache** y **MySQL**.
-3. Entrar a `http://localhost/phpmyadmin` y **crear la base de datos** importando `db/schema.sql` (pestaña *Importar*). Si ya existía una versión anterior, borrar antes la BD `asistencia_rfid`.
+3. Entrar a `http://localhost/phpmyadmin` y **crear la base de datos** importando `db/schema.sql` (pestaña *Importar*). Si ya existía una versión anterior, borrar antes la BD `asistencia_rfid`. Deben quedar **10 tablas**.
 4. En NetBeans: **File → Open Project** y elegir la carpeta clonada.
 5. Clic derecho sobre el proyecto → **Clean and Build** → debe decir `BUILD SUCCESSFUL`.
 6. Clic derecho sobre el proyecto → **Run**.
@@ -31,20 +30,38 @@ El conector de MySQL (`mysql-connector-j`) ya está incluido en el repositorio, 
 
 Definida en `asistenciarfid.db.Conexion`: `jdbc:mysql://localhost/asistencia_rfid`, usuario `root`, sin contraseña (configuración por defecto de XAMPP).
 
+### Usuarios de prueba
+
+| Usuario | Clave | Perfil |
+|---|---|---|
+| `admin` | `admin123` | ADMIN |
+| `coordsw` | `coord123` | COORDINADOR (Software) |
+| `docente1` | `docente123` | DOCENTE |
+| `registro` | `registro123` | REGISTRO |
+| `maria` | `est123` | ESTUDIANTE |
+| `luis` | `est123` | ESTUDIANTE |
+
+Códigos de tarjeta de prueba (de mentira): María `0001234567`, Luis `0007654321`.
+
 ### Probar sin lector RFID
 
 El lector escribe el código de la tarjeta y presiona Enter, igual que un teclado. Quien no tenga lector puede **escribir el código a mano** en el campo de lectura y pulsar Enter.
 
+## Estructura del proyecto
+
+```
 src/asistenciarfid/
 ├── modelo/        (M) Clases de datos
-├── vista/         (V) Ventanas Swing
+├── vista/         (V) Ventanas Swing (JFrame Form)
 ├── controlador/   (C) Reglas del sistema, llaman a los DAO
 ├── dao/           Acceso a la base de datos (interfaz y su Impl)
 ├── db/            Conexion
 └── util/          Parametros y Fechas
+src/plugins/       Librerías .jar (conector MySQL y JasperReports)
 reportes/          Reportes de iReport (.jrxml)
 db/                Script de la base de datos (schema.sql)
-
+docs/              Reparto de tareas
+```
 
 ## Reglas de negocio
 
@@ -58,7 +75,7 @@ db/                Script de la base de datos (schema.sql)
 
 - La abre y la cierra el administrador por periodo.
 - El estudiante se matricula en **máximo 5 materias** por periodo, eligiendo materia y paralelo.
-- Solo ve materias de su carrera, de su nivel o inferiores, con estado `AUN_NO CURSA` o `REPROBADA`. No puede tomar dos horarios que se choquen.
+- Solo ve materias de su carrera, de su nivel o inferiores, con estado `AUN_NO_CURSA` o `REPROBADA`. No puede tomar dos horarios que se choquen.
 
 ### Notas y niveles
 
@@ -70,7 +87,7 @@ db/                Script de la base de datos (schema.sql)
 
 | Perfil | Qué puede hacer |
 |---|---|
-| ADMIN | Todo: usuarios, estudiantes, carreras, periodos, matrículas, cierre de periodo |
+| ADMIN | Todo: usuarios, estudiantes, periodos, asignaturas, grupos, notas y cierre de periodo |
 | COORDINADOR | Gestiona estudiantes, materias y horarios **solo de su carrera** |
 | DOCENTE | Registra notas y ve reportes de sus grupos |
 | REGISTRO | Solo la pantalla de lectura de tarjetas |
@@ -88,44 +105,82 @@ git pull
 git checkout -b feature/nombre-de-la-tarea
 ```
 
-Antes de empezar cada día: `git pull` en `develop` y mezclar `develop` en tu rama. Commits cortos y en español (ej. `Agrega validación de código vacío`). Cada PR usa la plantilla de `.github/pull_request_template.md` y necesita al menos una aprobación.
+Antes de empezar cada día, trae lo nuevo de `develop` a tu rama:
+
+```
+git checkout develop
+git pull
+git checkout feature/nombre-de-la-tarea
+git merge develop
+```
+
+Cada PR usa la plantilla de `.github/pull_request_template.md` y necesita al menos una aprobación.
 
 **Regla de oro:** cada persona trabaja en sus archivos. Si necesitas cambiar una clase de otra persona o la base de datos, avisa en el grupo antes.
 
-## Cómo crear una ventana (Swing)
+### Formato de commits
 
-Las ventanas se diseñan con el editor visual de NetBeans, como en clase.
+`tipo(donde): descripción`
 
-1. Clic derecho sobre el paquete `vista` → **New → Other → Swing GUI Forms** →
-   **JInternalFrame Form** (ventanas internas) o **JFrame Form** (login y principal).
-2. Arrastra los componentes desde la paleta.
-3. Ponle nombre a cada componente (clic derecho → *Change Variable Name*) con prefijo:
-   `jtxt` (cajas de texto), `jbtn` (botones), `jtb` (tablas), `jcmb` (combos),
-   `jlbl` (etiquetas). Ejemplo: `jtxtNombre`, `jbtnGuardar`.
-4. Los métodos (cargar la tabla, guardar...) se escriben **fuera** del bloque gris
-   "Generated Code", que no se toca. Si la ventana necesita al usuario, el constructor
-   queda `public FrmXxx(Usuario usuario)`.
-5. Al subir tu trabajo, sube **los dos archivos**: `FrmXxx.java` y `FrmXxx.form`.
+| Tipo | Cuándo se usa |
+|---|---|
+| `feat` | Una funcionalidad nueva |
+| `fix` | Corrección de un error |
+| `refactor` | Cambio de código que no cambia lo que hace |
+| `docs` | README, comentarios o documentación |
+| `chore` | Configuración, archivos del proyecto |
+
+Ejemplos: `feat(login): valida campos vacíos`, `fix(matricula): corrige el límite de 5 materias`, `docs(readme): agrega guía de revisión`.
+
+## Cómo trabajar tu ventana (Swing)
+
+Las ventanas se diseñan con el editor visual de NetBeans, como en clase. Las 9 ventanas del sistema **ya existen vacías** en el paquete `vista` (`FrmXxx`), con su constructor que recibe el `Usuario`. No hay que crearlas.
+
+1. Abre tu ventana con doble clic y entra a la pestaña **Design**. Arrastra los componentes desde la paleta.
+2. Ponle nombre a cada componente (clic derecho → *Change Variable Name*) con prefijo:
+   `jtxt` (cajas de texto), `jbtn` (botones), `jtb` (tablas), `jcmb` (combos), `jlbl` (etiquetas),
+   `jchk` (casillas), `jspn` (spinner), `jpwd` (clave). Ejemplo: `jtxtNombre`, `jbtnGuardar`.
+3. Los métodos (cargar la tabla, guardar...) se escriben **fuera** del bloque gris "Generated Code", que no se toca.
+4. Al subir tu trabajo, sube **los dos archivos**: `FrmXxx.java` y `FrmXxx.form`.
+
+Si necesitas una ventana nueva: clic derecho sobre `vista` → **New → Other → Swing GUI Forms → JFrame Form**, solo se le pone el nombre. Después agrega el constructor que recibe el usuario, debajo del que genera NetBeans:
+
+```java
+    private Usuario usuario;
+
+    public FrmXxx(Usuario usuario) {
+        initComponents();
+        this.usuario = usuario;
+        setLocationRelativeTo(null);
+        setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
+    }
+```
+
+La línea `DISPOSE_ON_CLOSE` es necesaria: un `JFrame` nuevo trae `EXIT_ON_CLOSE`, que cerraría todo el programa al cerrar la ventana.
 
 ## Estado del proyecto
 
-- [x] Estructura del proyecto y paquetes
+- [x] Estructura MVC y paquetes
 - [x] Conexión a la base de datos
-- [ ] Clases del modelo (en progreso)
-- [ ] DAO y servicios
-- [ ] Ventanas (login, principal y ventanas internas)
+- [x] Contrato: modelo, interfaces DAO, controladores (cuerpo pendiente) y ventanas vacías
+- [ ] Implementación de los DAO
+- [ ] Controladores (reglas de asistencia, matrícula y cierre de periodo)
+- [ ] Ventanas (login, principal y pantallas del sistema)
+- [ ] Reportes con iReport
 - [ ] Pruebas con el lector RFID real
 
 ## Integrantes y reparto de tareas
 
-| Integrante | Rol | Archivos propios |
-|---|---|---|
-| Ali | Líder e integración | `AsistenciaRFID`, `VentanaLogin`, `VentanaPrincipal`, `UsuarioDAO`, `FrmUsuarios`, `Parametros`, `db/schema.sql` |
-| Damaris | Lógica central | `HorarioDAO`, `AsistenciaDAO`, `MatriculaDAO`, `AsistenciaServicio`, `MatriculaServicio`, `CierrePeriodoServicio` |
-| Evelyn | Estudiantes | `EstudianteDAO`, `RegistroAcademicoDAO`, `FrmEstudiantes` |
-| Tatiana | Pantallas de uso diario | `FrmRegistro`, `FrmMatricula` |
-| Brayan | Gestión académica | `CarreraDAO`, `PeriodoDAO`, `AsignaturaDAO`, `GrupoDAO`, `FrmAsignaturas`, `FrmGrupos`, `FrmPeriodos` |
-| Victoria | Notas y reportes | `FrmNotas`, `ReporteServicio`, `FrmReportes`, reportes de JasperReports, `docs/` |
+Quién hace qué, el orden de trabajo, los casos de prueba y cómo se cubre la guía del ingeniero están en [docs/REPARTO.md](docs/REPARTO.md). Los prompts para la IA están en [docs/PROMPTS.md](docs/PROMPTS.md).
+
+| Integrante | Rol |
+|---|---|
+| Ali | Líder e integración |
+| Damaris | Lógica central |
+| Evelyn | Estudiantes |
+| Tatiana | Pantallas de uso diario |
+| Brayan | Gestión académica |
+| Victoria | Notas, reportes y documentación |
 
 ### Revisión de código
 
@@ -180,10 +235,11 @@ git clone https://github.com/bethrmz13/Control-de-asistencia-con-lector-RFID.git
    - [ ] Compila sin errores
    - [ ] Hace lo que dice el PR
    - [ ] Solo toca los archivos de su autor
-   - [ ] No cambia las firmas del contrato (DAO y servicios)
-   - [ ] Usa `PreparedStatement` y `try-with-resources`
+   - [ ] No cambia el contrato (modelo, interfaces DAO, firmas de los controladores)
+   - [ ] Usa `PreparedStatement` y cierra la conexión (`cc.close()`)
    - [ ] No hay contraseñas ni rutas como `C:\Users\...`
    - [ ] No sube `build/`, `dist/` ni `nbproject/private/`
+   - [ ] Los commits siguen el formato `tipo(donde): descripción`
    - [ ] El autor puede explicar su código
 5. **Deja tu opinión en GitHub:** en **Files changed**, el `+` junto a una línea permite comentarla. Luego pulsa **Review changes** y elige **Approve** o **Request changes**.
 6. **Si aprobaste:** pulsa **Merge pull request** y confirma.
