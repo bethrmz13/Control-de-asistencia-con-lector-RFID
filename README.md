@@ -11,6 +11,7 @@ Desarrollado en **Java con Swing**, **JDBC** (patrón DAO) y **MySQL** (XAMPP). 
 - XAMPP (módulos **Apache** y **MySQL**)
 - Git
 - JasperReports (diseño de reportes con iReport o Jaspersoft Studio; los .jar van en src/plugins)
+- iReport (para diseñar los reportes).
 
 El conector de MySQL (`mysql-connector-j`) ya está incluido en el repositorio, en `src/plugins`. No hay que descargarlo.
 
@@ -34,18 +35,16 @@ Definida en `asistenciarfid.db.Conexion`: `jdbc:mysql://localhost/asistencia_rfi
 
 El lector escribe el código de la tarjeta y presiona Enter, igual que un teclado. Quien no tenga lector puede **escribir el código a mano** en el campo de lectura y pulsar Enter.
 
-## Estructura del proyecto
-
-```
 src/asistenciarfid/
-├── modelo/     Clases de datos (Estudiante, Asignatura, Periodo...)
-├── db/         Conexion
-├── dao/        Acceso a datos (interfaces y su implementación con JDBC)
-├── servicio/   Reglas de negocio (asistencia, matrícula, reportes)
-├── ui/         Ventanas Swing (login, principal, ventanas internas)
-└── util/       Parámetros y utilidades
-db/             Script de la base de datos (schema.sql)
-```
+├── modelo/        (M) Clases de datos
+├── vista/         (V) Ventanas Swing
+├── controlador/   (C) Reglas del sistema, llaman a los DAO
+├── dao/           Acceso a la base de datos (interfaz y su Impl)
+├── db/            Conexion
+└── util/          Parametros y Fechas
+reportes/          Reportes de iReport (.jrxml)
+db/                Script de la base de datos (schema.sql)
+
 
 ## Reglas de negocio
 
@@ -92,6 +91,21 @@ git checkout -b feature/nombre-de-la-tarea
 Antes de empezar cada día: `git pull` en `develop` y mezclar `develop` en tu rama. Commits cortos y en español (ej. `Agrega validación de código vacío`). Cada PR usa la plantilla de `.github/pull_request_template.md` y necesita al menos una aprobación.
 
 **Regla de oro:** cada persona trabaja en sus archivos. Si necesitas cambiar una clase de otra persona o la base de datos, avisa en el grupo antes.
+
+## Cómo crear una ventana (Swing)
+
+Las ventanas se diseñan con el editor visual de NetBeans, como en clase.
+
+1. Clic derecho sobre el paquete `vista` → **New → Other → Swing GUI Forms** →
+   **JInternalFrame Form** (ventanas internas) o **JFrame Form** (login y principal).
+2. Arrastra los componentes desde la paleta.
+3. Ponle nombre a cada componente (clic derecho → *Change Variable Name*) con prefijo:
+   `jtxt` (cajas de texto), `jbtn` (botones), `jtb` (tablas), `jcmb` (combos),
+   `jlbl` (etiquetas). Ejemplo: `jtxtNombre`, `jbtnGuardar`.
+4. Los métodos (cargar la tabla, guardar...) se escriben **fuera** del bloque gris
+   "Generated Code", que no se toca. Si la ventana necesita al usuario, el constructor
+   queda `public FrmXxx(Usuario usuario)`.
+5. Al subir tu trabajo, sube **los dos archivos**: `FrmXxx.java` y `FrmXxx.form`.
 
 ## Estado del proyecto
 
