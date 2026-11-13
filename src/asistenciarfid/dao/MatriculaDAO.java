@@ -1,33 +1,48 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
 package asistenciarfid.dao;
 
-/**
- *
- * @author USER
- */
-
 import asistenciarfid.modelo.Matricula;
+import java.util.ArrayList;
 import java.util.List;
 
-public interface MatriculaDAO {
+public class MatriculaDAO {
 
-    boolean matricular(int estudianteId, int grupoId);
+    // PENDIENTE (Damaris): reemplazar el cuerpo de cada método con JDBC.
+    // No cambiar los nombres ni los parámetros.
 
-    boolean anular(int estudianteId, int grupoId);
+    public static boolean matricular(int estudianteId, int grupoId) {
+        return false;
+    }
 
-    List<Matricula> listarPorEstudiante(int estudianteId);   // del periodo activo
+    public static boolean anular(int estudianteId, int grupoId) {
+        return false;
+    }
 
-    List<Matricula> listarPorGrupo(int grupoId);             // con nombre y nota
+    // Del periodo activo
+    public static List<Matricula> listarPorEstudiante(int estudianteId) {
+        return new ArrayList<>();
+    }
 
-    int contarEnPeriodoActivo(int estudianteId);
+    // Con el nombre del estudiante y su nota
+    public static List<Matricula> listarPorGrupo(int grupoId) {
+        return new ArrayList<>();
+    }
 
-    // true si ya esta matriculado en algun paralelo de esa asignatura (periodo activo)
-    boolean existeEnAsignatura(int estudianteId, int asignaturaId);
+    public static int contarEnPeriodoActivo(int estudianteId) {
+        return 0;
+    }
 
-    boolean actualizarNota(int estudianteId, int grupoId, Double nota);   // nota null = borrar
+    // true si ya está matriculado en algún paralelo de esa asignatura (periodo activo)
+    public static boolean existeEnAsignatura(int estudianteId, int asignaturaId) {
+        return false;
+    }
 
-    List<Matricula> listarSinNota();                         // del periodo activo
+    // nota null = borrar la nota
+    public static boolean actualizarNota(int estudianteId, int grupoId, Double nota) {
+        return false;
+    }
+
+    // Matrículas del periodo activo que todavía no tienen nota
+    public static List<Matricula> listarSinNota() {
+        return new ArrayList<>();
+    }
 }

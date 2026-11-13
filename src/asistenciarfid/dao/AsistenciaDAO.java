@@ -1,27 +1,30 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
 package asistenciarfid.dao;
-
-/**
- *
- * @author USER
- */
 
 import asistenciarfid.modelo.Asistencia;
 import java.sql.Date;
 import java.sql.Time;
+import java.util.ArrayList;
 import java.util.List;
 
-public interface AsistenciaDAO {
+public class AsistenciaDAO {
 
-    boolean existe(int estudianteId, int horarioId, Date fecha);
+    // PENDIENTE (Damaris): reemplazar el cuerpo de cada método con JDBC.
+    // No cambiar los nombres ni los parámetros.
 
-    boolean registrar(int estudianteId, int horarioId, Date fecha, Time hora);
+    public static boolean existe(int estudianteId, int horarioId, Date fecha) {
+        return false;
+    }
 
-    List<Asistencia> listarPorHorarioYFecha(int horarioId, Date fecha);
+    public static boolean registrar(int estudianteId, int horarioId, Date fecha, Time hora) {
+        return false;
+    }
 
-    // Cuenta las asistencias del estudiante en los horarios de ese grupo, entre dos fechas
-    int contarPresentes(int estudianteId, int grupoId, Date desde, Date hasta);
+    public static List<Asistencia> listarPorHorarioYFecha(int horarioId, Date fecha) {
+        return new ArrayList<>();
+    }
+
+    // Asistencias del estudiante en los horarios de ese grupo, entre dos fechas
+    public static int contarPresentes(int estudianteId, int grupoId, Date desde, Date hasta) {
+        return 0;
+    }
 }

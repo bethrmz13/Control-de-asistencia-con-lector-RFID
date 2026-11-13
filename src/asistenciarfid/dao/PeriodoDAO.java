@@ -1,28 +1,37 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
 package asistenciarfid.dao;
 
-/**
- *
- * @author USER
- */
-
 import asistenciarfid.modelo.Periodo;
+import java.util.ArrayList;
 import java.util.List;
 
-public interface PeriodoDAO {
+public class PeriodoDAO {
 
-    Periodo obtenerActivo();                       // null si no hay periodo activo
+    // PENDIENTE (Brayan): reemplazar el cuerpo de cada método con JDBC.
+    // No cambiar los nombres ni los parámetros.
 
-    List<Periodo> listar();
+    // null si no hay periodo activo
+    public static Periodo obtenerActivo() {
+        return null;
+    }
 
-    boolean insertar(Periodo p);
+    public static List<Periodo> listar() {
+        return new ArrayList<>();
+    }
 
-    boolean actualizar(Periodo p);
+    public static boolean insertar(Periodo p) {
+        return false;
+    }
 
-    boolean activar(int id);                       // deja solo este periodo con activo = 1
+    public static boolean actualizar(Periodo p) {
+        return false;
+    }
 
-    boolean cambiarMatricula(int id, boolean abierta);
+    // Deja solo este periodo con activo = 1 y los demás con 0
+    public static boolean activar(int id) {
+        return false;
+    }
+
+    public static boolean cambiarMatricula(int id, boolean abierta) {
+        return false;
+    }
 }

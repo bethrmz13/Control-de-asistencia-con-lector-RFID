@@ -1,26 +1,32 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
 package asistenciarfid.dao;
 
-/**
- *
- * @author USER
- */
-
 import asistenciarfid.modelo.Asignatura;
+import java.util.ArrayList;
 import java.util.List;
 
-public interface AsignaturaDAO {
+public class AsignaturaDAO {
 
-    List<Asignatura> listar(Integer carreraId);        // null = todas las carreras
+    // PENDIENTE (Brayan): reemplazar el cuerpo de cada método con JDBC.
+    // No cambiar los nombres ni los parámetros.
 
-    Asignatura buscarPorId(int id);
+    // carreraId null = todas las carreras
+    public static List<Asignatura> listar(Integer carreraId) {
+        return new ArrayList<>();
+    }
 
-    boolean insertar(Asignatura a);
+    public static Asignatura buscarPorId(int id) {
+        return null;
+    }
 
-    boolean actualizar(Asignatura a);
+    public static boolean insertar(Asignatura a) {
+        return false;
+    }
 
-    boolean eliminar(int id);
+    public static boolean actualizar(Asignatura a) {
+        return false;
+    }
+
+    public static boolean eliminar(int id) {
+        return false;
+    }
 }

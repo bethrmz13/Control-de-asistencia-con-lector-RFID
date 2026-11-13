@@ -1,30 +1,37 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
 package asistenciarfid.dao;
 
-/**
- *
- * @author USER
- */
-
 import asistenciarfid.modelo.Horario;
+import java.util.ArrayList;
 import java.util.List;
 
-public interface HorarioDAO {
+public class HorarioDAO {
 
-    List<Horario> listarPorGrupo(int grupoId);
+    // PENDIENTE (Damaris): reemplazar el cuerpo de cada método con JDBC.
+    // No cambiar los nombres ni los parámetros.
 
-    // Horarios de los grupos donde el estudiante esta matriculado, del periodo activo
-    List<Horario> listarDeEstudiante(int estudianteId);
+    public static List<Horario> listarPorGrupo(int grupoId) {
+        return new ArrayList<>();
+    }
 
-    // Lo mismo, pero solo de un dia de la semana (1 = lunes ... 7 = domingo)
-    List<Horario> listarDeEstudianteEnDia(int estudianteId, int diaSemana);
+    // Horarios de los grupos donde el estudiante está matriculado, del periodo activo
+    public static List<Horario> listarDeEstudiante(int estudianteId) {
+        return new ArrayList<>();
+    }
 
-    boolean insertar(Horario h);
+    // Lo mismo, pero solo de un día de la semana (1 = lunes ... 7 = domingo)
+    public static List<Horario> listarDeEstudianteEnDia(int estudianteId, int diaSemana) {
+        return new ArrayList<>();
+    }
 
-    boolean actualizar(Horario h);
+    public static boolean insertar(Horario h) {
+        return false;
+    }
 
-    boolean eliminar(int id);
+    public static boolean actualizar(Horario h) {
+        return false;
+    }
+
+    public static boolean eliminar(int id) {
+        return false;
+    }
 }

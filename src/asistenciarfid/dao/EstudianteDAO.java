@@ -1,34 +1,53 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
 package asistenciarfid.dao;
-
-/**
- *
- * @author USER
- */
 
 import asistenciarfid.modelo.Estudiante;
 import asistenciarfid.modelo.RegistroAcademico;
+import java.util.ArrayList;
 import java.util.List;
 
-public interface EstudianteDAO {
+public class EstudianteDAO {
 
-    Estudiante buscarPorCodigo(String codigoRfid);     // null si no existe
+    // PENDIENTE (Evelyn): reemplazar el cuerpo de cada método con JDBC.
+    // No cambiar los nombres ni los parámetros.
 
-    Estudiante buscarPorUsuarioId(int usuarioId);      // null si no existe
+    // null si no existe
+    public static Estudiante buscarPorCodigo(String codigoRfid) {
+        return null;
+    }
 
-    boolean existeCodigo(String codigoRfid);
+    // null si no existe
+    public static Estudiante buscarPorUsuarioId(int usuarioId) {
+        return null;
+    }
 
-    // Si carreraId es null no filtra por carrera
-    List<Estudiante> listar(Integer carreraId);
+    // null si no existe
+    public static Estudiante buscarPorId(int id) {
+        return null;
+    }
 
-    // En UNA transaccion: crea el usuario (perfil ESTUDIANTE), el estudiante y su tabla de materias
-    boolean insertarConUsuario(Estudiante e, String username, String passwordPlano,
-                               List<RegistroAcademico> materias);
+    public static boolean existeCodigo(String codigoRfid) {
+        return false;
+    }
 
-    boolean actualizar(Estudiante e);
+    // carreraId null = todas las carreras
+    public static List<Estudiante> listar(Integer carreraId) {
+        return new ArrayList<>();
+    }
 
-    boolean eliminar(int id);                          // tambien elimina su usuario
+    // Guarda, en este orden y con consultas simples: el usuario (perfil ESTUDIANTE), el estudiante
+    // y las filas de su tabla de materias. Si un paso falla, borra lo que ya había guardado y
+    // devuelve false.
+    public static boolean insertarConUsuario(Estudiante e, String username, String passwordPlano,
+                                             List<RegistroAcademico> materias) {
+        return false;
+    }
+
+    public static boolean actualizar(Estudiante e) {
+        return false;
+    }
+
+    // También elimina su usuario
+    public static boolean eliminar(int id) {
+        return false;
+    }
 }

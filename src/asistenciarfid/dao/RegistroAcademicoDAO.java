@@ -1,26 +1,30 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
 package asistenciarfid.dao;
 
-/**
- *
- * @author USER
- */
-
 import asistenciarfid.modelo.RegistroAcademico;
+import java.util.ArrayList;
 import java.util.List;
 
-public interface RegistroAcademicoDAO {
+public class RegistroAcademicoDAO {
 
-    List<RegistroAcademico> listarPorEstudiante(int estudianteId);
+    // PENDIENTE (Evelyn): reemplazar el cuerpo de cada método con JDBC.
+    // No cambiar los nombres ni los parámetros.
+
+    public static List<RegistroAcademico> listarPorEstudiante(int estudianteId) {
+        return new ArrayList<>();
+    }
 
     // NO guarda nada: arma la lista de materias de la carrera. Nivel menor al de inicio
-    // = APROBADA, las demas = AUN_NO_CURSA. Sirve para mostrarla en FrmEstudiantes.
-    List<RegistroAcademico> generarParaCarrera(int carreraId, int nivelInicio);
+    // = APROBADA, las demás = AUN_NO_CURSA. Sirve para mostrarla en FrmEstudiantes.
+    public static List<RegistroAcademico> generarParaCarrera(int carreraId, int nivelInicio) {
+        return new ArrayList<>();
+    }
 
-    String estadoDe(int estudianteId, int asignaturaId);   // null si no existe
+    // null si no existe
+    public static String estadoDe(int estudianteId, int asignaturaId) {
+        return null;
+    }
 
-    boolean actualizarEstado(int estudianteId, int asignaturaId, String estado);
+    public static boolean actualizarEstado(int estudianteId, int asignaturaId, String estado) {
+        return false;
+    }
 }

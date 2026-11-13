@@ -1,29 +1,37 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
 package asistenciarfid.dao;
 
-/**
- *
- * @author USER
- */
-
 import asistenciarfid.modelo.Grupo;
+import java.util.ArrayList;
 import java.util.List;
 
-public interface GrupoDAO {
+public class GrupoDAO {
 
-    // Grupos del periodo ACTIVO. Los filtros en null no se aplican.
-    List<Grupo> listar(Integer carreraId, Integer docenteId);
+    // PENDIENTE (Victoria): reemplazar el cuerpo de cada método con JDBC.
+    // No cambiar los nombres ni los parámetros.
 
-    List<Grupo> listarPorAsignatura(int asignaturaId); // del periodo activo
+    // Grupos del periodo ACTIVO. Si carreraId o docenteId son null, no se filtra por ellos.
+    public static List<Grupo> listar(Integer carreraId, Integer docenteId) {
+        return new ArrayList<>();
+    }
 
-    Grupo buscarPorId(int id);
+    // Del periodo activo
+    public static List<Grupo> listarPorAsignatura(int asignaturaId) {
+        return new ArrayList<>();
+    }
 
-    boolean insertar(Grupo g);
+    public static Grupo buscarPorId(int id) {
+        return null;
+    }
 
-    boolean actualizar(Grupo g);
+    public static boolean insertar(Grupo g) {
+        return false;
+    }
 
-    boolean eliminar(int id);
+    public static boolean actualizar(Grupo g) {
+        return false;
+    }
+
+    public static boolean eliminar(int id) {
+        return false;
+    }
 }
