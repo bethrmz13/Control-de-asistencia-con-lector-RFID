@@ -17,7 +17,7 @@ El ingeniero califica que sea **sencillo y con lo visto en clase**, y pregunta l
 7. Si hay errores, usa la plantilla de la sección 6.
 8. Antes de abrir el PR, pídele que te explique tu código (sección 6).
 
-Si la IA propone **cambiar una clase del contrato** (un modelo, una interfaz, la firma de un controlador), **se ignora** y se avisa a Ali.
+Si la IA propone **cambiar una clase del contrato** (un modelo, el nombre o los parámetros de un método de un DAO o controlador), **se ignora** y se avisa a Ali.
 
 ## 2. Archivos del contrato que se pegan (todos, los mismos)
 
@@ -26,7 +26,7 @@ Abre cada uno en NetBeans, copia todo su contenido y pégalo:
 - `db/schema.sql`
 - `db/Conexion.java`
 - Todo el paquete `modelo`
-- Todas las interfaces del paquete `dao`
+- Todas las clases del paquete `dao`
 - Todo el paquete `controlador`
 - `util/Parametros.java` y `util/Fechas.java`
 
@@ -44,18 +44,27 @@ ENTORNO (respétalo exactamente):
 - Base de datos MySQL (XAMPP) con JDBC puro.
 - Arquitectura MVC con DAO. Paquetes: asistenciarfid.modelo, asistenciarfid.vista,
   asistenciarfid.controlador, asistenciarfid.dao, asistenciarfid.db, asistenciarfid.util.
-- Cada interfaz XxxDAO tiene su clase XxxDAOImpl en el paquete dao.
+- Los DAO son clases con métodos static, como en clase (por ejemplo EstudianteDAO.listar(null)).
+  NO hay interfaces ni clases Impl. Los controladores también tienen métodos static
+  (por ejemplo AsistenciaControlador.registrarPorCodigo(codigo, new java.util.Date())).
 - Prohibido usar frameworks, Hibernate, Lombok o librerías externas.
 
 ESTILO DE CLASE (el ingeniero califica que sea sencillo y con lo que enseñó):
-- La conexión se obtiene así: Connection cc = new Conexion().conectar();
+- La conexión se obtiene así: Conexion cn = new Conexion(); Connection cc = cn.conectar();
   Si falla, conectar() muestra un JOptionPane y devuelve null: revisa eso antes de usarla.
 - Consultas con PreparedStatement y ResultSet. Los errores se manejan con try/catch y
   JOptionPane.showMessageDialog(null, ex). La conexión se cierra con cc.close() al terminar.
-- Las tablas (JTable) se llenan con un DefaultTableModel con un arreglo de títulos y un
-  método cargarXxx(), así: String titulos[] = {"codigo","nombre"}; String registros[] = new String[2];
-  DefaultTableModel modelo = new DefaultTableModel(null, titulos); ... modelo.addRow(registros);
-  jtbXxx.setModel(modelo);
+- Las tablas (JTable) se llenan como en clase: la ventana pide la lista al DAO y arma el modelo.
+  Ejemplo: String titulos[] = {"cedula","nombre"};
+  DefaultTableModel modelo = new DefaultTableModel(null, titulos);
+  List<Estudiante> lista = EstudianteDAO.listar(null);
+  for (Estudiante est : lista) { modelo.addRow(new Object[]{est.getCedula(), est.getNombre()}); }
+  jtbEstudiantes.setModel(modelo);
+- Al seleccionar una fila se llenan las cajas de texto, como en clase:
+  jtbXxx.getSelectionModel().addListSelectionListener(new ListSelectionListener(){ ... }) y
+  getValueAt(fila, columna).
+- Para guardar: se arma el objeto con los datos de las cajas (con los setters), se llama al DAO
+  (EstudianteDAO.insertar(est)), se muestra un JOptionPane con el resultado y se recarga la tabla.
 - FECHAS Y HORAS: se usa java.sql.Date y java.sql.Time (NO java.time, NO LocalDate).
   Se guardan con ps.setDate(...) y ps.setTime(...) y se leen con rs.getDate(...) y rs.getTime(...).
   Para convertir texto: java.sql.Date.valueOf("2026-11-09") y java.sql.Time.valueOf("16:00:00").
@@ -65,8 +74,8 @@ ESTILO DE CLASE (el ingeniero califica que sea sencillo y con lo que enseñó):
 - NO uses streams, lambdas complejas, var, try-with-resources ni genéricos avanzados.
 - Código de nivel estudiante universitario: nombres en español, comentarios breves y
   naturales (no excesivos).
-- Si debes usar una transacción, usa cc.setAutoCommit(false), cc.commit() y cc.rollback()
-  en el catch, y explícame en tres líneas qué hace.
+- NO uses transacciones (setAutoCommit, commit, rollback): todo se hace con consultas simples,
+  una tras otra, como en clase. Si un paso falla, se borra lo que ya se había guardado.
 
 VENTANAS (diseñador de NetBeans):
 - Todas las ventanas son JFrame Form (NO uses JInternalFrame, JDialog, JDesktopPane ni
@@ -123,7 +132,7 @@ Cada tarea se pega en `MI TAREA:` del bloque fijo. Si una tarea sale muy larga, 
 ```text
 Haz estas tareas, una por una, en este orden:
 
-TAREA 1 - UsuarioDAOImpl (implementa UsuarioDAO):
+TAREA 1 - UsuarioDAO (ya existe con el cuerpo pendiente: reemplaza el cuerpo de cada método, sin cambiar su nombre ni sus parámetros):
 - validar(username, passwordPlano): WHERE username=? AND clave=? AND activo=1.
   Devuelve un Usuario SIN la contraseña, o null si no coincide.
 - listar(), listarPorPerfil(perfil).
@@ -133,7 +142,7 @@ TAREA 1 - UsuarioDAOImpl (implementa UsuarioDAO):
 
 TAREA 2 - VentanaLogin (JFrame con el diseñador). Componentes: jtxtUsuario, jpwdClave
 (JPasswordField), jbtnIngresar. Método ingresar(): valida que no haya campos vacíos, llama a
-UsuarioDAOImpl.validar; si da un usuario abre new VentanaPrincipal(usuario).setVisible(true)
+UsuarioDAO.validar; si da un usuario abre new VentanaPrincipal(usuario).setVisible(true)
 y cierra el login con dispose(); si no, muestra un JOptionPane.
 
 TAREA 3 - VentanaPrincipal (JFrame con una barra de menú, sin JDesktopPane). Su constructor
@@ -153,7 +162,7 @@ TAREA 4 - FrmRegistro (JFrame, constructor con el Usuario), la pantalla de lectu
 tarjeta. Dibuja la ventana en el diseñador y dame la lista de componentes. Funciones:
 - Una caja de texto grande que SIEMPRE mantiene el foco (llama a requestFocus() al terminar
   cada lectura y cuando la ventana se activa).
-- Al pulsar Enter, llama a new AsistenciaControlador().registrarPorCodigo(codigo, new
+- Al pulsar Enter, llama a AsistenciaControlador.registrarPorCodigo(codigo, new
   java.util.Date()), limpia la caja y muestra el resultado en letras grandes: nombre del
   estudiante, asignatura, paralelo y hora.
 - El panel del resultado cambia de color: verde si REGISTRADO, amarillo si YA_REGISTRADO, rojo
@@ -179,8 +188,7 @@ TAREA 6 - AsistenciaRFID (clase con main): abre VentanaLogin, como en el ejemplo
 ```text
 Haz estas tareas, una por una, en este orden:
 
-TAREA 1 - HorarioDAOImpl, AsistenciaDAOImpl y MatriculaDAOImpl (implementan las interfaces que
-te pegué). Usa los nombres de columnas exactos de schema.sql.
+TAREA 1 - HorarioDAO, AsistenciaDAO y MatriculaDAO (ya existe con el cuerpo pendiente: reemplaza el cuerpo de cada método, sin cambiar su nombre ni sus parámetros). Usa los nombres de columnas exactos de schema.sql.
 - HorarioDAO.listarDeEstudianteEnDia(estudianteId, diaSemana): horarios de los grupos donde el
   estudiante está matriculado, del periodo con activo=1, en ese día. Cada Horario debe traer
   asignaturaNombre y paralelo (con JOIN).
@@ -212,13 +220,21 @@ bien o el mensaje del primer error, revisando en este orden:
 También gruposDisponibles(Estudiante): los grupos del periodo activo que cumplen 3 y 4.
 
 TAREA 4 - CierrePeriodoControlador. notasFaltantes() devuelve las matrículas del periodo activo
-sin nota. cerrarPeriodo() (solo si no faltan notas), en UNA transacción:
-- nota >= Parametros.NOTA_APROBACION: registro_academico pasa a APROBADA; si no, a REPROBADA.
-- Si el estudiante aprobó TODO lo que matriculó, su nivel sube 1 (sin pasar del nivel máximo de
-  su carrera). Si reprobó algo o no matriculó nada, su nivel no cambia y se agrega a la lista
+sin nota. cerrarPeriodo() hace los cambios con consultas simples, una tras otra (SIN transacciones):
+- Primero revisa notasFaltantes(): si falta alguna nota, no cambia nada y devuelve null.
+- Recorre los grupos del periodo activo (GrupoDAO.listar(null, null)) y las matrículas de cada
+  grupo (MatriculaDAO.listarPorGrupo). Si nota >= Parametros.NOTA_APROBACION, el
+  registro_academico de esa asignatura pasa a APROBADA; si no, a REPROBADA
+  (RegistroAcademicoDAO.actualizarEstado).
+- Para cada estudiante que tenía matrículas: si aprobó TODO lo que matriculó, su nivel sube 1
+  (sin pasar del nivel más alto de las asignaturas de su carrera, que se saca con
+  AsignaturaDAO.listar(carreraId)); se guarda con EstudianteDAO.buscarPorId y
+  EstudianteDAO.actualizar. Si reprobó algo, su nivel no cambia y se agrega a la lista
   "por revisar" que devuelve el método.
-- El periodo queda con activo=0 y matricula_abierta=0.
-Si algo falla, rollback y devuelve null.
+- Al final de todo, el periodo queda con activo=0 y matricula_abierta=0
+  (PeriodoDAO.obtenerActivo y PeriodoDAO.actualizar).
+Si algo falla a la mitad, muestra el error con un JOptionPane; el admin corrige el nivel desde
+FrmEstudiantes.
 
 TAREA 5 - PruebaLogica (paquete util, con main). Con los datos de prueba de schema.sql, ejecuta
 estos casos y muestra OK o FALLA comparando con lo esperado. Las horas se crean con
@@ -233,15 +249,24 @@ código 9999999999 NO_ENCONTRADO; María el martes 2026-11-10 SIN_CLASES_HOY.
 ```text
 Haz estas tareas, una por una, en este orden:
 
-TAREA 1 - EstudianteDAOImpl y RegistroAcademicoDAOImpl (implementan las interfaces que te pegué).
+TAREA 1 - EstudianteDAO y RegistroAcademicoDAO (ya existe con el cuerpo pendiente: reemplaza el cuerpo de cada método, sin cambiar su nombre ni sus parámetros).
 - Los listados reciben carreraId como Integer: si es null no filtran por carrera.
 - RegistroAcademicoDAO.generarParaCarrera(carreraId, nivelInicio) NO guarda nada: devuelve la
   lista de RegistroAcademico de las asignaturas de esa carrera, con estado APROBADA si el nivel
   de la asignatura es menor al nivel de inicio, y AUN_NO_CURSA en los demás casos. Cada uno trae
   asignaturaNombre y asignaturaNivel.
-- EstudianteDAO.insertarConUsuario(...) hace TODO en una transacción: (a) crea el usuario con
-  perfil Perfil.ESTUDIANTE (la clave va tal cual en la columna clave), (b) crea el estudiante con ese usuario_id,
-  (c) inserta todas las filas de registro_academico de la lista. Si algo falla, rollback.
+- EstudianteDAO.buscarPorId(id): devuelve el Estudiante o null.
+- EstudianteDAO.insertarConUsuario(...) guarda con consultas simples, una tras otra (SIN
+  transacciones), en este orden:
+  (a) antes de guardar nada, revisa que el username y el código RFID no existan ya; si existen,
+      devuelve false;
+  (b) INSERT del usuario con perfil Perfil.ESTUDIANTE (la clave va tal cual en la columna clave) y
+      luego SELECT id FROM usuario WHERE username=? para saber su id;
+  (c) INSERT del estudiante con ese usuario_id y luego SELECT id FROM estudiante WHERE
+      codigo_rfid=? para saber su id;
+  (d) INSERT de cada fila de registro_academico de la lista (con un ciclo for).
+  Si un paso falla, borra lo que ya se había guardado (DELETE del estudiante y luego del
+  usuario) y devuelve false.
 - EstudianteDAO.eliminar(id) también elimina su usuario.
 
 TAREA 2 - FrmEstudiantes (JFrame, constructor con el Usuario). Dibuja la ventana en el
@@ -289,8 +314,7 @@ COORDINADOR solo ve su carrera (usuario.getCarreraId()).
 ```text
 Haz estas tareas, una por una, en este orden. Son sencillas: una consulta por método.
 
-TAREA 1 - CarreraDAOImpl, AsignaturaDAOImpl y PeriodoDAOImpl (implementan las interfaces que te
-pegué).
+TAREA 1 - CarreraDAO, AsignaturaDAO y PeriodoDAO (ya existe con el cuerpo pendiente: reemplaza el cuerpo de cada método, sin cambiar su nombre ni sus parámetros).
 - CarreraDAO: listar() y buscarPorId(id).
 - AsignaturaDAO: listar(carreraId) recibe un Integer: si es null trae todas las asignaturas; si no,
   solo las de esa carrera. También buscarPorId, insertar, actualizar y eliminar.
@@ -301,7 +325,7 @@ pegué).
 TAREA 2 - FrmUsuarios (JFrame, constructor con el Usuario): tabla de usuarios y formulario con usuario, clave,
 nombre, perfil (combo con las constantes de Perfil), carrera (combo, solo se habilita si el
 perfil es COORDINADOR) y activo (casilla). Botones Nuevo, Guardar, Modificar, Eliminar.
-Las carreras salen de CarreraDAOImpl. Valida campos obligatorios.
+Las carreras salen de CarreraDAO. Valida campos obligatorios.
 
 TAREA 3 - FrmHorarios (JFrame, constructor con el Usuario). Dibuja la ventana en el diseñador y
 dame la lista de componentes. Arriba un combo con los grupos del periodo activo (GrupoDAO.listar;
@@ -318,7 +342,7 @@ pide la guía del ingeniero.
 ```text
 Haz estas tareas, una por una, en este orden:
 
-TAREA 1 - GrupoDAOImpl (implementa GrupoDAO). Los listados de grupos reciben carreraId y
+TAREA 1 - GrupoDAO (ya existe con el cuerpo pendiente: reemplaza el cuerpo de cada método, sin cambiar su nombre ni sus parámetros). Los listados de grupos reciben carreraId y
 docenteId como Integer: si es null no filtran. Los grupos se listan del periodo activo y traen
 asignaturaNombre, asignaturaNivel y el nombre del docente (con JOIN). insertar usa el periodo
 activo (PeriodoDAO.obtenerActivo) como periodo_id.
