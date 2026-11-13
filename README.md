@@ -60,7 +60,7 @@ src/asistenciarfid/
 src/plugins/       Librerías .jar (conector MySQL y JasperReports)
 reportes/          Reportes de iReport (.jrxml)
 db/                Script de la base de datos (schema.sql)
-docs/              Reparto de tareas
+docs/              Reparto de tareas y prompts para la IA
 ```
 
 ## Reglas de negocio
@@ -178,7 +178,7 @@ Quién hace qué, el orden de trabajo, los casos de prueba y cómo se cubre la g
 | Ali | Líder e integración |
 | Damaris | Lógica central |
 | Evelyn | Estudiantes |
-| Tatiana | Pantallas de uso diario |
+| Tatiana | Ventana de asignaturas |
 | Brayan | Gestión académica |
 | Victoria | Notas, reportes y documentación |
 
@@ -192,7 +192,7 @@ Todos programan y todos revisan. Cada PR tiene un revisor principal y uno de res
 | Damaris | Ali | Victoria |
 | Evelyn | Damaris | Ali |
 | Tatiana | Evelyn | Damaris |
-| Brayan | Tatiana | Evelyn |
+| Brayan | Victoria | Evelyn |
 | Victoria | Brayan | Tatiana |
 
 - Nadie aprueba ni mezcla su propio PR.
@@ -200,12 +200,22 @@ Todos programan y todos revisan. Cada PR tiene un revisor principal y uno de res
 - Quien aprueba el PR y comprueba que compila y funciona, hace el merge a `develop`.
 - Un PR debe ser pequeño: una sola funcionalidad.
 
+## Issues y dependencias
+
+Cada entrega (un `DAOImpl`, una ventana, un controlador) tiene un **issue** en la pestaña *Issues* de GitHub, asignado a su dueño y con la línea **Depende de**. Así se sabe de quién depende cada uno.
+
+- **Antes de empezar**, lee en tu issue la línea *Depende de*. Si lo que necesitas todavía no está en `develop`, ponle la etiqueta `bloqueado` y avisa en ese issue con @mención a la persona de la que dependes. Mientras tanto, avanza con datos de ejemplo.
+- **Cuando tu PR se mezcla** y desbloquea a otras personas, comenta en sus issues que ya pueden seguir y quita la etiqueta `bloqueado`.
+- **En la descripción de tu PR** escribe `Closes #N` (el número de tu issue). Al mezclarlo en `develop`, el issue se cierra solo.
+- **Etiquetas:** `dao`, `controlador`, `vista`, `reportes`, `docs`, `bloqueado`, `en-revision`.
+- Para crear un issue, usa la plantilla *Tarea*.
+
 ## Cómo abrir un Pull Request
 
 1. Sube tu rama: `git push -u origin feature/nombre-de-la-tarea`
 2. En GitHub aparece el botón **Compare & pull request**. Pulsa ahí.
 3. Verifica que diga **base: `develop`** ← **compare: tu rama**. Nunca `main`.
-4. Llena la plantilla (sobre todo "Cómo probarlo").
+4. Llena la plantilla (sobre todo "Cómo probarlo") y escribe `Closes #N` con el número de tu issue.
 5. En el panel derecho, **Reviewers**, elige a tu revisor principal y avisa en el grupo.
 6. Si te piden cambios, haz commit y push a la misma rama: el PR se actualiza solo.
 
