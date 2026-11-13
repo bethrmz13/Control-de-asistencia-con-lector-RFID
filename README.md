@@ -134,7 +134,7 @@ Ejemplos: `feat(login): valida campos vacíos`, `fix(matricula): corrige el lím
 
 ## Cómo trabajar tu ventana (Swing)
 
-Las ventanas se diseñan con el editor visual de NetBeans, como en clase. Las 9 ventanas del sistema **ya existen vacías** en el paquete `vista` (`FrmXxx`), con su constructor que recibe el `Usuario`. No hay que crearlas.
+Las ventanas se diseñan con el editor visual de NetBeans, como en clase. Las 10 ventanas del sistema **ya existen vacías** en el paquete `vista` (`FrmXxx`), con su constructor que recibe el `Usuario`. No hay que crearlas.
 
 1. Abre tu ventana con doble clic y entra a la pestaña **Design**. Arrastra los componentes desde la paleta.
 2. Ponle nombre a cada componente (clic derecho → *Change Variable Name*) con prefijo:
@@ -177,10 +177,10 @@ Quién hace qué, el orden de trabajo, los casos de prueba y cómo se cubre la g
 |---|---|
 | Ali | Líder e integración |
 | Damaris | Lógica central |
-| Evelyn | Estudiantes |
+| Evelyn | Estudiantes y matrícula |
 | Tatiana | Ventana de asignaturas |
-| Brayan | Gestión académica |
-| Victoria | Notas, reportes y documentación |
+| Brayan | DAO sencillos, usuarios, horarios y documentación |
+| Victoria | Grupos, notas y reportes |
 
 ### Revisión de código
 

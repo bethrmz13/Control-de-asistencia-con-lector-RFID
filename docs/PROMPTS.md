@@ -124,10 +124,10 @@ Cada tarea se pega en `MI TAREA:` del bloque fijo. Si una tarea sale muy larga, 
 Haz estas tareas, una por una, en este orden:
 
 TAREA 1 - UsuarioDAOImpl (implementa UsuarioDAO):
-- validar(username, passwordPlano): WHERE username=? AND password_hash=SHA2(?,256) AND activo=1.
+- validar(username, passwordPlano): WHERE username=? AND clave=? AND activo=1.
   Devuelve un Usuario SIN la contraseña, o null si no coincide.
 - listar(), listarPorPerfil(perfil).
-- insertar(u, passwordPlano): la clave se guarda con SHA2(?,256) dentro de la consulta.
+- insertar(u, passwordPlano): la clave se guarda tal cual en la columna clave.
 - actualizar(u, passwordPlano): si passwordPlano es null o vacío, NO cambia la clave.
 - eliminar(id).
 
@@ -138,23 +138,18 @@ y cierra el login con dispose(); si no, muestra un JOptionPane.
 
 TAREA 3 - VentanaPrincipal (JFrame con una barra de menú, sin JDesktopPane). Su constructor
 recibe el Usuario. Método configurarMenuSegunPerfil() que muestra u oculta las opciones:
-- ADMIN: Usuarios, Estudiantes, Periodos, Asignaturas, Grupos y horarios, Notas,
+- ADMIN: Usuarios, Estudiantes, Periodos, Asignaturas, Grupos, Horarios, Notas,
   Registro de asistencia, Reportes.
-- COORDINADOR: Estudiantes, Asignaturas, Grupos y horarios, Reportes.
+- COORDINADOR: Estudiantes, Asignaturas, Grupos, Horarios, Reportes.
 - DOCENTE: Notas, Reportes.
 - REGISTRO: solo Registro de asistencia.
 - ESTUDIANTE: solo Matrícula.
 Cada opción del menú abre su ventana con new FrmXxx(usuario).setVisible(true). Incluye
 "Cerrar sesión" (hace dispose() y abre de nuevo el login) y "Salir".
-Las ventanas FrmUsuarios, FrmEstudiantes, FrmAsignaturas, FrmGrupos, FrmPeriodos, FrmNotas,
-FrmRegistro, FrmReportes y FrmMatricula ya existen vacías en el paquete vista.
+Las ventanas FrmUsuarios, FrmEstudiantes, FrmAsignaturas, FrmGrupos, FrmHorarios, FrmPeriodos,
+FrmNotas, FrmRegistro, FrmReportes y FrmMatricula ya existen vacías en el paquete vista.
 
-TAREA 4 - FrmUsuarios (JFrame, constructor con el Usuario): tabla de usuarios y formulario con usuario, clave,
-nombre, perfil (combo con las constantes de Perfil), carrera (combo, solo se habilita si el
-perfil es COORDINADOR) y activo (casilla). Botones Nuevo, Guardar, Modificar, Eliminar.
-Las carreras salen de CarreraDAOImpl. Valida campos obligatorios.
-
-TAREA 5 - FrmRegistro (JFrame, constructor con el Usuario), la pantalla de lectura de
+TAREA 4 - FrmRegistro (JFrame, constructor con el Usuario), la pantalla de lectura de
 tarjeta. Dibuja la ventana en el diseñador y dame la lista de componentes. Funciones:
 - Una caja de texto grande que SIEMPRE mantiene el foco (llama a requestFocus() al terminar
   cada lectura y cuando la ventana se activa).
@@ -167,6 +162,14 @@ tarjeta. Dibuja la ventana en el diseñador y dame la lista de componentes. Func
 - Modo prueba: una casilla "Simular fecha y hora" y un campo con formato yyyy-MM-dd HH:mm. Si la
   casilla está marcada, se pasa esa fecha (convertida con SimpleDateFormat en un try/catch) en
   lugar de la actual. Si el formato es inválido, muestra un mensaje.
+
+TAREA 5 - FrmPeriodos (JFrame, constructor con el Usuario). Dibuja la ventana en el
+diseñador y dame la lista de componentes. Tabla de periodos y formulario (nombre, fecha de
+inicio y de fin como texto yyyy-MM-dd, que se convierte con java.sql.Date.valueOf). Botones:
+Crear, Modificar, Activar periodo, Abrir matrícula, Cerrar matrícula y Cerrar periodo. Cerrar
+periodo primero llama a CierrePeriodoControlador.notasFaltantes(): si hay faltantes muestra la
+lista y no continúa; si no, pide confirmación, llama a cerrarPeriodo() y muestra la lista de
+estudiantes "por revisar".
 
 TAREA 6 - AsistenciaRFID (clase con main): abre VentanaLogin, como en el ejemplo de clase.
 ```
@@ -237,7 +240,7 @@ TAREA 1 - EstudianteDAOImpl y RegistroAcademicoDAOImpl (implementan las interfac
   de la asignatura es menor al nivel de inicio, y AUN_NO_CURSA en los demás casos. Cada uno trae
   asignaturaNombre y asignaturaNivel.
 - EstudianteDAO.insertarConUsuario(...) hace TODO en una transacción: (a) crea el usuario con
-  perfil Perfil.ESTUDIANTE (clave con SHA2(?,256)), (b) crea el estudiante con ese usuario_id,
+  perfil Perfil.ESTUDIANTE (la clave va tal cual en la columna clave), (b) crea el estudiante con ese usuario_id,
   (c) inserta todas las filas de registro_academico de la lista. Si algo falla, rollback.
 - EstudianteDAO.eliminar(id) también elimina su usuario.
 
@@ -256,6 +259,18 @@ diseñador y dame la lista de componentes. Funciones:
 - Validaciones: campos obligatorios, correo con formato válido, código sin espacios.
 - Si el usuario es COORDINADOR, solo ve y registra estudiantes de su carrera
   (usuario.getCarreraId()) y el combo de carrera queda bloqueado.
+
+TAREA 3 - FrmMatricula (JFrame, constructor con el Usuario), la vista del ESTUDIANTE.
+Dibuja la ventana en el diseñador y dame la lista de componentes. Funciones:
+- Al abrirse busca el Estudiante del usuario que inició sesión (buscarPorUsuarioId) y muestra su
+  nombre, su nivel y un contador "Matriculadas: X de 5" (MatriculaDAO.contarEnPeriodoActivo).
+- Si el periodo no tiene la matrícula abierta (PeriodoDAO.obtenerActivo), muestra un aviso y
+  bloquea los botones.
+- Tabla 1: grupos disponibles (MatriculaControlador.gruposDisponibles), con asignatura, nivel y
+  paralelo. Botón Matricular: llama a MatriculaControlador.matricular y muestra con JOptionPane
+  el mensaje de error si lo hay (null significa que salió bien).
+- Tabla 2: sus materias matriculadas en el periodo (listarPorEstudiante), con botón Anular.
+- Después de cada acción se actualizan las dos tablas y el contador.
 ```
 
 ### Tatiana
@@ -272,44 +287,30 @@ COORDINADOR solo ve su carrera (usuario.getCarreraId()).
 ### Brayan
 
 ```text
-Haz estas tareas, una por una, en este orden:
+Haz estas tareas, una por una, en este orden. Son sencillas: una consulta por método.
 
-TAREA 1 - CarreraDAOImpl, PeriodoDAOImpl, AsignaturaDAOImpl y GrupoDAOImpl (implementan las
-interfaces que te pegué).
-- Los listados de asignaturas y grupos reciben carreraId (y docenteId) como Integer: si es null no
-  filtran.
-- Los grupos se listan del periodo activo y traen asignaturaNombre, asignaturaNivel y el nombre
-  del docente (con JOIN).
-- PeriodoDAOImpl.activar(id): deja solo ese periodo con activo=1 y los demás con 0.
+TAREA 1 - CarreraDAOImpl, AsignaturaDAOImpl y PeriodoDAOImpl (implementan las interfaces que te
+pegué).
+- CarreraDAO: listar() y buscarPorId(id).
+- AsignaturaDAO: listar(carreraId) recibe un Integer: si es null trae todas las asignaturas; si no,
+  solo las de esa carrera. También buscarPorId, insertar, actualizar y eliminar.
+- PeriodoDAO: obtenerActivo() (WHERE activo=1), listar(), insertar, actualizar,
+  cambiarMatricula(id, abierta) y activar(id): deja solo ese periodo con activo=1 y los demás
+  con 0 (dos UPDATE seguidos).
 
-TAREA 2 - FrmGrupos (JFrame, constructor con el Usuario). Dibuja la ventana en el
-diseñador y dame la lista de componentes. Arriba, la tabla de grupos del periodo activo con su
-formulario (asignatura en combo, paralelo, docente en combo de usuarios con perfil DOCENTE).
-Abajo, la tabla de horarios del grupo seleccionado (HorarioDAO) con su formulario: día (combo de
-Lunes a Domingo que guarda 1 a 7), hora de inicio y fin (texto "HH:mm", se convierte con
-java.sql.Time.valueOf(texto + ":00") dentro de un try/catch), y aula. Botones Agregar, Modificar
-y Eliminar para los dos. Valida que la hora de inicio sea menor que la de fin. Este horario es el
-"evento" que pide la guía del ingeniero.
+TAREA 2 - FrmUsuarios (JFrame, constructor con el Usuario): tabla de usuarios y formulario con usuario, clave,
+nombre, perfil (combo con las constantes de Perfil), carrera (combo, solo se habilita si el
+perfil es COORDINADOR) y activo (casilla). Botones Nuevo, Guardar, Modificar, Eliminar.
+Las carreras salen de CarreraDAOImpl. Valida campos obligatorios.
 
-TAREA 3 - FrmPeriodos (JFrame, constructor con el Usuario). Dibuja la ventana en el
-diseñador y dame la lista de componentes. Tabla de periodos y formulario (nombre, fecha de
-inicio y de fin como texto yyyy-MM-dd, que se convierte con java.sql.Date.valueOf). Botones:
-Crear, Modificar, Activar periodo, Abrir matrícula, Cerrar matrícula y Cerrar periodo. Cerrar
-periodo primero llama a CierrePeriodoControlador.notasFaltantes(): si hay faltantes muestra la
-lista y no continúa; si no, pide confirmación, llama a cerrarPeriodo() y muestra la lista de
-estudiantes "por revisar".
-
-TAREA 4 - FrmMatricula (JFrame, constructor con el Usuario), la vista del ESTUDIANTE.
-Dibuja la ventana en el diseñador y dame la lista de componentes. Funciones:
-- Al abrirse busca el Estudiante del usuario que inició sesión (buscarPorUsuarioId) y muestra su
-  nombre, su nivel y un contador "Matriculadas: X de 5" (MatriculaDAO.contarEnPeriodoActivo).
-- Si el periodo no tiene la matrícula abierta (PeriodoDAO.obtenerActivo), muestra un aviso y
-  bloquea los botones.
-- Tabla 1: grupos disponibles (MatriculaControlador.gruposDisponibles), con asignatura, nivel y
-  paralelo. Botón Matricular: llama a MatriculaControlador.matricular y muestra con JOptionPane
-  el mensaje de error si lo hay (null significa que salió bien).
-- Tabla 2: sus materias matriculadas en el periodo (listarPorEstudiante), con botón Anular.
-- Después de cada acción se actualizan las dos tablas y el contador.
+TAREA 3 - FrmHorarios (JFrame, constructor con el Usuario). Dibuja la ventana en el diseñador y
+dame la lista de componentes. Arriba un combo con los grupos del periodo activo (GrupoDAO.listar;
+el COORDINADOR solo ve los de su carrera con usuario.getCarreraId()). Al elegir un grupo se llena
+la tabla con sus horarios (HorarioDAO.listarPorGrupo). Formulario: día (combo de Lunes a Domingo
+que guarda 1 a 7), hora de inicio y fin (texto "HH:mm", se convierte con
+java.sql.Time.valueOf(texto + ":00") dentro de un try/catch) y aula. Botones Agregar, Modificar y
+Eliminar. Valida que la hora de inicio sea menor que la de fin. Este horario es el "evento" que
+pide la guía del ingeniero.
 ```
 
 ### Victoria
@@ -317,7 +318,19 @@ Dibuja la ventana en el diseñador y dame la lista de componentes. Funciones:
 ```text
 Haz estas tareas, una por una, en este orden:
 
-TAREA 1 - FrmNotas (JFrame, constructor con el Usuario). Dibuja la ventana en el
+TAREA 1 - GrupoDAOImpl (implementa GrupoDAO). Los listados de grupos reciben carreraId y
+docenteId como Integer: si es null no filtran. Los grupos se listan del periodo activo y traen
+asignaturaNombre, asignaturaNivel y el nombre del docente (con JOIN). insertar usa el periodo
+activo (PeriodoDAO.obtenerActivo) como periodo_id.
+
+TAREA 2 - FrmGrupos (JFrame, constructor con el Usuario). Dibuja la ventana en el diseñador y dame
+la lista de componentes. Tabla de grupos del periodo activo (GrupoDAO.listar) y formulario:
+asignatura (combo, de AsignaturaDAO.listar), paralelo (texto corto) y docente (combo de usuarios
+con perfil DOCENTE, UsuarioDAO.listarPorPerfil). Botones Agregar, Modificar y Eliminar. Valida que
+el paralelo no esté vacío y que no se repita la misma asignatura con el mismo paralelo. El
+COORDINADOR solo ve y crea grupos de las asignaturas de su carrera (usuario.getCarreraId()).
+
+TAREA 3 - FrmNotas (JFrame, constructor con el Usuario). Dibuja la ventana en el
 diseñador y dame la lista de componentes. El docente elige uno de sus grupos en un combo
 (GrupoDAO.listar(null, usuario.getId()) si es DOCENTE; todos los grupos si es ADMIN). Se
 llena una tabla con los estudiantes matriculados (MatriculaDAO.listarPorGrupo) y su nota. La
@@ -325,7 +338,7 @@ columna Nota es editable. Botón Guardar: valida que cada nota esté vacía o en
 a MatriculaDAO.actualizarNota (nota null si está vacía). Guarda una lista paralela de las
 matrículas para saber a qué estudiante corresponde cada fila.
 
-TAREA 2 - FrmReportes (JFrame, constructor con el Usuario). Dibuja la ventana en el
+TAREA 4 - FrmReportes (JFrame, constructor con el Usuario). Dibuja la ventana en el
 diseñador y dame la lista de componentes. Tiene un combo de grupos (el DOCENTE ve los suyos, el
 COORDINADOR los de su carrera con GrupoDAO.listar(usuario.getCarreraId(), null), el ADMIN
 todos), una caja de fecha (texto yyyy-MM-dd, con la de hoy por defecto) y dos botones: "Asistencia

@@ -1,7 +1,7 @@
 # Reparto de tareas
 
 **Proyecto:** Control de asistencia con lector RFID · Computación Visual · FISEI, UTA
-**Plazo:** 4 días · **Equipo:** Ali, Damaris, Evelyn, Tatiana, Brayan, Victoria
+**Entrega:** martes 17 de noviembre (4 días de trabajo + 1 de colchón) · **Equipo:** Ali, Damaris, Evelyn, Tatiana, Brayan, Victoria
 
 Todos programan y todos revisan. Este archivo dice quién hace qué, en qué orden y cómo se prueba. Los prompts para la IA están en [PROMPTS.md](PROMPTS.md).
 
@@ -59,25 +59,27 @@ Cada interfaz del `dao` tiene su clase `XxxDAOImpl`, que escribe su dueño. El c
 
 | Integrante | Rol | Archivos propios |
 |---|---|---|
-| **Ali** | Líder e integración | `UsuarioDAOImpl`, `VentanaLogin`, `VentanaPrincipal`, `FrmUsuarios`, `FrmRegistro` (lectura de tarjeta), `AsistenciaRFID` (main), `db/schema.sql` |
+| **Ali** | Líder e integración | `UsuarioDAOImpl`, `VentanaLogin`, `VentanaPrincipal`, `FrmRegistro` (lectura de tarjeta), `FrmPeriodos`, `AsistenciaRFID` (main), `db/schema.sql` |
 | **Damaris** | Lógica central | `HorarioDAOImpl`, `AsistenciaDAOImpl`, `MatriculaDAOImpl`, `AsistenciaControlador`, `MatriculaControlador`, `CierrePeriodoControlador`, `PruebaLogica` |
-| **Evelyn** | Estudiantes | `EstudianteDAOImpl`, `RegistroAcademicoDAOImpl`, `FrmEstudiantes` |
+| **Evelyn** | Estudiantes y matrícula | `EstudianteDAOImpl`, `RegistroAcademicoDAOImpl`, `FrmEstudiantes`, `FrmMatricula` (vista del estudiante) |
 | **Tatiana** | Ventana de asignaturas | `FrmAsignaturas` |
-| **Brayan** | Gestión académica | `CarreraDAOImpl`, `PeriodoDAOImpl`, `AsignaturaDAOImpl`, `GrupoDAOImpl`, `FrmGrupos`, `FrmPeriodos`, `FrmMatricula` (vista del estudiante) |
-| **Victoria** | Notas, reportes y documentación | `FrmNotas`, `FrmReportes`, reportes de iReport (`reportes/*.jrxml`), `docs/` y la guía APE |
+| **Brayan** | DAO sencillos, usuarios, horarios y documentación | `CarreraDAOImpl`, `AsignaturaDAOImpl`, `PeriodoDAOImpl`, `FrmUsuarios`, `FrmHorarios`, capturas y guía APE |
+| **Victoria** | Grupos, notas y reportes | `GrupoDAOImpl`, `FrmGrupos`, `FrmNotas`, `FrmReportes`, reportes de iReport (`reportes/*.jrxml`) |
 
 ### Quién necesita a quién
 
 | Para... | Necesita que exista... |
 |---|---|
 | Las ventanas con datos reales | Los `DAOImpl` de su tema (cada uno hace los suyos primero) |
-| `FrmUsuarios` (Ali) | `CarreraDAOImpl` (Brayan) |
-| Los controladores (Damaris) | `EstudianteDAOImpl` y `RegistroAcademicoDAOImpl` (Evelyn), `PeriodoDAOImpl`, `GrupoDAOImpl` y `AsignaturaDAOImpl` (Brayan) |
-| `FrmRegistro` (Ali) | `AsistenciaControlador` (Damaris) |
-| `FrmMatricula` (Brayan) | `MatriculaControlador` (Damaris) |
+| `FrmUsuarios` (Brayan) | `UsuarioDAOImpl` (Ali) y `CarreraDAOImpl` (Brayan) |
 | `FrmAsignaturas` (Tatiana) | `AsignaturaDAOImpl` y `CarreraDAOImpl` (Brayan) |
-| `FrmNotas` (Victoria) | `MatriculaDAOImpl` (Damaris) y `GrupoDAOImpl` (Brayan) |
-| `FrmPeriodos` (Brayan) | `CierrePeriodoControlador` (Damaris) |
+| `FrmHorarios` (Brayan) | `HorarioDAOImpl` (Damaris) y `GrupoDAOImpl` (Victoria) |
+| `FrmGrupos` (Victoria) | `GrupoDAOImpl` (Victoria), `AsignaturaDAOImpl` (Brayan) y `UsuarioDAOImpl` (Ali) |
+| `FrmPeriodos` (Ali) | `PeriodoDAOImpl` (Brayan) y `CierrePeriodoControlador` (Damaris) |
+| `FrmRegistro` (Ali) | `AsistenciaControlador` (Damaris) |
+| `FrmMatricula` (Evelyn) | `MatriculaControlador` (Damaris) y `PeriodoDAOImpl` (Brayan) |
+| `FrmNotas` (Victoria) | `MatriculaDAOImpl` (Damaris) y `GrupoDAOImpl` (Victoria) |
+| Los controladores (Damaris) | `EstudianteDAOImpl` y `RegistroAcademicoDAOImpl` (Evelyn), `PeriodoDAOImpl` y `AsignaturaDAOImpl` (Brayan), `GrupoDAOImpl` (Victoria) |
 
 **Por eso los `DAOImpl` se suben primero**, en PR pequeños, el día 2 por la mañana. Mientras llegan los demás, cada quien diseña su ventana y la prueba con datos de ejemplo.
 
@@ -85,18 +87,18 @@ Cada interfaz del `dao` tiene su clase `XxxDAOImpl`, que escribe su dueño. El c
 
 ### Ali: líder e integración
 
-- **`UsuarioDAOImpl`:** `validar` compara la clave con `SHA2(?,256)` y devuelve el usuario sin la clave (o `null`). Al insertar o cambiar la clave también se usa `SHA2`.
+- **`UsuarioDAOImpl`:** `validar` busca por usuario y clave (y que esté activo) y devuelve el usuario sin la clave (o `null`). La clave se guarda tal cual en la columna `clave`.
 - **`VentanaLogin`:** campos usuario y clave, botón Ingresar. Si los datos son válidos abre `VentanaPrincipal` con el usuario; si no, muestra un mensaje.
 - **`VentanaPrincipal`:** ventana principal (`JFrame` con barra de menú) cuyo menú **cambia según el perfil**. Cada opción abre la ventana correspondiente con `new FrmXxx(usuario).setVisible(true)`.
-- **`FrmUsuarios`:** agregar, modificar y eliminar usuarios (usuario, clave, nombre, perfil, carrera si es coordinador, activo).
+- **`FrmPeriodos`:** crear y modificar periodos, activar uno, abrir y cerrar matrículas, y **Cerrar periodo**. Antes de cerrar muestra las notas que faltan (si hay, no cierra); luego pide confirmación y al terminar muestra la lista de estudiantes "por revisar".
 - **`FrmRegistro`** (lectura de tarjeta): una caja de texto que siempre mantiene el foco. Al pulsar Enter llama a `AsistenciaControlador.registrarPorCodigo(codigo, new Date())`, limpia la caja y muestra nombre, asignatura, paralelo y hora, con color: **verde** si `REGISTRADO`, **amarillo** si `YA_REGISTRADO`, **rojo** en los demás casos.
   - **Modo prueba:** una casilla "Simular fecha y hora" con un campo `yyyy-MM-dd HH:mm`. Si está marcada, se usa esa hora en lugar de la actual. Sirve para mostrar el funcionamiento sin esperar a la hora de clase.
 - **`AsistenciaRFID`:** el `main`, que abre el login.
 - **Integración:** mezcla los PR aprobados, prueba todo junto y **prueba con el lector real**. Anota en el README qué código escribe el lector (longitud y ceros a la izquierda).
 
-PR sugeridos: `feat(usuarios): implementa UsuarioDAOImpl`, `feat(login): agrega ventana de login`, `feat(principal): agrega ventana principal con menú por perfil`, `feat(usuarios): agrega ventana de usuarios`, `feat(registro): agrega pantalla de lectura de tarjeta`.
+PR sugeridos: `feat(usuarios): implementa UsuarioDAOImpl`, `feat(login): agrega ventana de login`, `feat(principal): agrega ventana principal con menú por perfil`, `feat(registro): agrega pantalla de lectura de tarjeta`, `feat(periodos): agrega ventana de periodos`.
 
-**Debe poder explicar:** cómo se valida el login, qué ve cada perfil, por qué la clave se guarda con `SHA2`, y qué pasa desde que se acerca la tarjeta hasta que sale el mensaje.
+**Debe poder explicar:** cómo se valida el login, qué ve cada perfil, qué pasa desde que se acerca la tarjeta hasta que sale el mensaje y qué pasa al cerrar un periodo.
 
 ### Damaris: lógica central
 
@@ -144,7 +146,7 @@ Para crear horas de prueba se usa `Fechas.crear(2026, 11, 9, 16, 10)` (lunes 9 d
 
 **Debe poder explicar:** la regla de los 15 minutos, por qué la hora llega como parámetro, el orden de las reglas de matrícula y qué es una transacción.
 
-### Evelyn: estudiantes
+### Evelyn: estudiantes y matrícula
 
 - **`EstudianteDAOImpl`:** incluye `insertarConUsuario`, que en **una transacción** crea el usuario (perfil `ESTUDIANTE`), el estudiante y todas las filas de su tabla de materias.
 - **`RegistroAcademicoDAOImpl`:** `generarParaCarrera` **no guarda nada**: arma la lista de materias de la carrera (nivel menor al de inicio = `APROBADA`, el resto `AUN_NO_CURSA`) para mostrarla en la ventana.
@@ -153,10 +155,11 @@ Para crear horas de prueba se usa `Fechas.crear(2026, 11, 9, 16, 10)` (lunes 9 d
   - Al elegir carrera y nivel se muestra la tabla de materias generada, con el estado editable en cada fila (combo con `APROBADA`, `REPROBADA`, `AUN_NO_CURSA`). El admin la corrige antes de guardar.
   - El coordinador solo ve y registra estudiantes de su carrera.
   - Validaciones: campos obligatorios, correo con formato válido, código sin espacios.
+- **`FrmMatricula`** (vista del estudiante): busca al estudiante del usuario que inició sesión y muestra su nivel y un contador "Matriculadas: X de 5". Si la matrícula está cerrada, avisa y bloquea los botones. Tiene una tabla con los grupos disponibles (botón Matricular) y otra con sus materias matriculadas (botón Anular).
 
-PR sugeridos: `feat(dao): implementa DAO de estudiantes y registro académico`, `feat(estudiantes): agrega ventana de registro de estudiantes`.
+PR sugeridos: `feat(dao): implementa DAO de estudiantes y registro académico`, `feat(estudiantes): agrega ventana de registro de estudiantes`, `feat(matricula): agrega ventana de matrícula del estudiante`.
 
-**Debe poder explicar:** cómo se crea un estudiante con su usuario, cómo se genera la tabla de materias y por qué se usa una transacción.
+**Debe poder explicar:** cómo se crea un estudiante con su usuario, cómo se genera la tabla de materias, por qué se usa una transacción y por qué la ventana de matrícula no decide las reglas (las decide el controlador).
 
 ### Tatiana: ventana de asignaturas
 
@@ -167,25 +170,29 @@ PR sugerido: `feat(asignaturas): agrega ventana de asignaturas`.
 
 **Debe poder explicar:** cómo se agrega, modifica y elimina una asignatura, y de dónde sale la lista de carreras.
 
-### Brayan: gestión académica
+### Brayan: DAO sencillos, usuarios, horarios y documentación
 
-- **`CarreraDAOImpl`, `PeriodoDAOImpl`, `AsignaturaDAOImpl`, `GrupoDAOImpl`:** los listados reciben `carreraId` y `docenteId` como `Integer` (si es `null`, no filtran). Al activar un periodo, los demás quedan inactivos.
-- **`FrmGrupos`:** arriba los grupos del periodo activo (asignatura, paralelo, docente). Abajo los **horarios del grupo seleccionado**: día, hora de inicio, hora de fin y aula, con Agregar, Modificar y Eliminar. **Este horario es el "evento" que pide la guía.** Valida que la hora de inicio sea menor que la de fin.
-- **`FrmPeriodos`:** crear y modificar periodos, activar uno, abrir y cerrar matrículas, y **Cerrar periodo**. Antes de cerrar muestra las notas que faltan (si hay, no cierra); luego pide confirmación y al terminar muestra la lista de estudiantes "por revisar".
-- **`FrmMatricula`** (vista del estudiante): busca al estudiante del usuario que inició sesión y muestra su nivel y un contador "Matriculadas: X de 5". Si la matrícula está cerrada, avisa y bloquea los botones. Tiene una tabla con los grupos disponibles (botón Matricular) y otra con sus materias matriculadas (botón Anular).
+Tareas cortas y de una sola tabla, para que salgan rápido y se revisen fácil.
 
-PR sugeridos: `feat(dao): implementa DAO de carrera, periodo, asignatura y grupo`, `feat(grupos): agrega ventana de grupos y horarios`, `feat(periodos): agrega ventana de periodos`, `feat(matricula): agrega ventana de matrícula del estudiante`.
+- **`CarreraDAOImpl`, `AsignaturaDAOImpl`, `PeriodoDAOImpl`:** consultas sencillas, una por método. Los listados reciben `carreraId` como `Integer` (si es `null`, no filtran). Al activar un periodo, los demás quedan inactivos. **Se suben primero**, porque varias personas los usan.
+- **`FrmUsuarios`:** agregar, modificar y eliminar usuarios (usuario, clave, nombre, perfil, carrera si es coordinador, activo).
+- **`FrmHorarios`:** se elige un grupo del periodo activo y se ven sus horarios: día, hora de inicio, hora de fin y aula, con Agregar, Modificar y Eliminar. **Este horario es el "evento" que pide la guía.** Valida que la hora de inicio sea menor que la de fin.
+- **Documentación:** capturas de pantalla y la guía APE en el formato del ingeniero (resultados, conclusiones y recomendaciones, con aportes de todos).
 
-**Debe poder explicar:** cómo se agregan, modifican y eliminan horarios, qué pasa al cerrar un periodo y por qué la ventana de matrícula no decide las reglas (las decide el controlador).
+PR sugeridos: `feat(dao): implementa DAO de carrera, asignatura y periodo`, `feat(usuarios): agrega ventana de usuarios`, `feat(horarios): agrega ventana de horarios`, `docs(guia): agrega guía APE y capturas`.
 
-### Victoria: notas, reportes y documentación
+**Debe poder explicar:** cómo se agrega, modifica y elimina un usuario o un horario.
 
+### Victoria: grupos, notas y reportes
+
+- **`GrupoDAOImpl`:** los listados reciben `carreraId` y `docenteId` como `Integer` (si es `null`, no filtran). Los grupos se listan del periodo activo y traen el nombre y el nivel de la asignatura y el nombre del docente (con `JOIN`). **Se sube primero**, porque otras personas lo usan.
+- **`FrmGrupos`:** tabla de grupos del periodo activo con formulario (asignatura, paralelo, docente) y Agregar, Modificar y Eliminar. Los horarios de cada grupo se manejan en `FrmHorarios` (Brayan).
 - **`FrmNotas`:** el docente elige uno de sus grupos y ve la tabla de estudiantes con la nota editable. Al guardar valida que cada nota esté vacía o entre 0 y 10. El admin ve todos los grupos.
 - **Reportes con iReport:** el reporte trae **su propia consulta SQL**, recibe parámetros de texto y se abre con la conexión, igual que en clase. Son dos, guardados en `reportes/`:
   1. **Asistencia de una clase en una fecha** (`P_GRUPO_ID`, `P_FECHA` con formato `yyyy-MM-dd`): lista cada estudiante matriculado como `PRESENTE` o `FALTA`.
   2. **Total de asistencias por estudiante en un grupo** (`P_GRUPO_ID`).
 - **`FrmReportes`:** combo de grupos (el docente ve los suyos, el coordinador los de su carrera, el admin todos), una caja para la fecha y un botón por reporte. Abre el reporte con `JasperViewer.viewReport(imprimir, false)`, igual que en clase, y con **ruta relativa** (`reportes/archivo.jrxml`), nunca una ruta de `C:\`.
-- **Documentación:** capturas de pantalla, la guía APE en el formato del ingeniero (resultados, conclusiones y recomendaciones, con aportes de todos) y la revisión final del README.
+- **Documentación:** la revisión final del README (las capturas y la guía APE las lleva Brayan).
 - **Día 1: probar iReport y Jasper** con un reporte mínimo en el JDK del proyecto, y avisar al grupo si funciona. Si Jasper falla, el plan de respaldo es mostrar los datos en una tabla dentro de `FrmReportes`.
 
 Consultas de los reportes (parámetros de tipo `String`):
@@ -215,19 +222,23 @@ GROUP BY e.id, e.apellido, e.nombre
 ORDER BY e.apellido
 ```
 
-PR sugeridos: `feat(notas): agrega ventana de notas`, `feat(reportes): agrega reportes de asistencia con iReport`, `docs(guia): agrega guía APE y capturas`.
+PR sugeridos: `feat(dao): implementa DAO de grupos`, `feat(grupos): agrega ventana de grupos`, `feat(notas): agrega ventana de notas`, `feat(reportes): agrega reportes de asistencia con iReport`.
 
-**Debe poder explicar:** cómo se pasa un parámetro a un reporte de iReport y cómo se registra una nota.
+**Debe poder explicar:** cómo se pasa un parámetro a un reporte de iReport, cómo se registra una nota y cómo se crea un grupo.
 
-## 7. Orden de trabajo (4 días)
+## 7. Orden de trabajo (4 días + colchón)
 
 | Día | Qué pasa |
 |---|---|
-| **1** | Todos clonan, importan la base y compilan. Cada quien crea su rama y empieza su primer `DAOImpl` o su diseño de ventana. Victoria prueba iReport y Jasper. Ali revisa que el contrato compile para todos. |
-| **2 (mañana)** | Cada quien sube sus `DAOImpl` en **PR pequeños**. Se revisan y se mezclan antes del mediodía. |
-| **2 (tarde)** | Ventanas con datos reales y controladores de Damaris (ahora que los DAO ya están en `develop`: `git pull` en `develop` y mezclarlo en tu rama). |
-| **3** | Controladores terminados, ventanas conectadas, Ali integra el menú. **Pruebas con el lector real.** Revisiones cruzadas. |
-| **4** | Corrección de errores, pruebas de todos los casos, README final, capturas, guía APE, merge de `develop` a `main` y ensayo de la presentación. |
+| **1** (jueves 12) | Todos clonan, importan la base y compilan. Cada quien crea su rama y empieza su primer `DAOImpl` o su diseño de ventana. Victoria prueba iReport y Jasper. Ali revisa que el contrato compile para todos. |
+| **2** (viernes 13, mañana) | Cada quien sube sus `DAOImpl` en **PR pequeños**. Se revisan y se mezclan antes del mediodía. |
+| **2** (viernes 13, tarde) | Ventanas con datos reales y controladores de Damaris (ahora que los DAO ya están en `develop`: `git pull` en `develop` y mezclarlo en tu rama). |
+| **3** (sábado 14) | Controladores terminados, ventanas conectadas, Ali integra el menú. **Pruebas con el lector real.** Revisiones cruzadas. |
+| **4** (domingo 15) | Corrección de errores, pruebas de todos los casos, README final, capturas, guía APE, merge de `develop` a `main` y ensayo de la presentación. |
+| **Colchón** (lunes 16) | **Solo se corrigen errores y se ensaya.** No se agregan funciones nuevas. Si algo del plan quedó atrasado, se termina aquí. |
+| **Entrega** (martes 17) | Última prueba en limpio (clonar el repo en otra carpeta y compilar) y entrega. |
+
+Las fechas suponen que el equipo empieza el jueves 12. Si el equipo empieza más tarde, se corre todo un día y el colchón se acorta.
 
 ## 8. Revisión de código
 
@@ -271,10 +282,10 @@ Tarjetas de prueba (de mentira): María `0001234567`, Luis `0007654321`. Se camb
 | Datos guardados en la base de datos | MySQL con DAO |
 | Componentes según el tipo de dato | `JSpinner` (nivel), `JComboBox` (carrera, perfil, día), `JCheckBox` (activo), `JPasswordField` (clave), `JTable`, `JTextField` con validación |
 | Perfiles | 5 perfiles con menús distintos |
-| Agregar, modificar, eliminar y actualizar un evento | Horarios de clase en `FrmGrupos` (Brayan) |
+| Agregar, modificar, eliminar y actualizar un evento | Horarios de clase en `FrmHorarios` (Brayan) |
 | Reporte con iReport, MVC, DAO, login | `FrmReportes`, estructura de paquetes, `dao`, `VentanaLogin` |
 
-## 11. Entrega final (día 4)
+## 11. Entrega final (día 4, antes del colchón)
 
 - [ ] `develop` compila (`BUILD SUCCESSFUL`) y se probaron todos los casos de Damaris
 - [ ] Se probó con el lector RFID real y se anotó su formato en el README
