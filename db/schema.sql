@@ -36,7 +36,7 @@ CREATE TABLE IF NOT EXISTS periodo (
 CREATE TABLE IF NOT EXISTS usuario (
   id INT AUTO_INCREMENT PRIMARY KEY,
   username VARCHAR(30) NOT NULL UNIQUE,
-  password_hash CHAR(64) NOT NULL,
+  clave VARCHAR(50) NOT NULL,
   nombre VARCHAR(80) NOT NULL,
   perfil ENUM('ADMIN','COORDINADOR','DOCENTE','REGISTRO','ESTUDIANTE') NOT NULL,
   carrera_id INT NULL COMMENT 'solo para COORDINADOR',
@@ -132,14 +132,14 @@ INSERT IGNORE INTO carrera (nombre) VALUES ('Software'), ('Telecomunicaciones');
 INSERT IGNORE INTO periodo (nombre, fecha_inicio, fecha_fin, activo, matricula_abierta)
 VALUES ('Periodo de prueba', '2026-09-28', '2027-02-26', 1, 1);
 
--- Usuarios (la clave se guarda con SHA2). Ver tabla de claves en docs/REPARTO.md
-INSERT IGNORE INTO usuario (username, password_hash, nombre, perfil, carrera_id) VALUES
-('admin',    SHA2('admin123',256),    'Administrador',        'ADMIN',       NULL),
-('coordsw',  SHA2('coord123',256),    'Coordinador Software', 'COORDINADOR', (SELECT id FROM carrera WHERE nombre='Software')),
-('docente1', SHA2('docente123',256),  'Docente Prueba',       'DOCENTE',     NULL),
-('registro', SHA2('registro123',256), 'Puesto de lectura',    'REGISTRO',    NULL),
-('maria',    SHA2('est123',256),      'María Torres',         'ESTUDIANTE',  NULL),
-('luis',     SHA2('est123',256),      'Luis Gómez',           'ESTUDIANTE',  NULL);
+-- Usuarios (la clave se guarda tal cual). Ver la tabla de claves en el README
+INSERT IGNORE INTO usuario (username, clave, nombre, perfil, carrera_id) VALUES
+('admin',    'admin123',    'Administrador',        'ADMIN',       NULL),
+('coordsw',  'coord123',    'Coordinador Software', 'COORDINADOR', (SELECT id FROM carrera WHERE nombre='Software')),
+('docente1', 'docente123',  'Docente Prueba',       'DOCENTE',     NULL),
+('registro', 'registro123', 'Puesto de lectura',    'REGISTRO',    NULL),
+('maria',    'est123',      'María Torres',         'ESTUDIANTE',  NULL),
+('luis',     'est123',      'Luis Gómez',           'ESTUDIANTE',  NULL);
 
 -- Asignaturas de Software. Las tres de nivel 2 al final (Estadistica, Redes y
 -- Sistemas Operativos) existen para probar el limite de 5 materias y el choque de horarios.
