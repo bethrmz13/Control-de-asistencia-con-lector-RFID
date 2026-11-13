@@ -59,11 +59,11 @@ Cada interfaz del `dao` tiene su clase `XxxDAOImpl`, que escribe su dueño. El c
 
 | Integrante | Rol | Archivos propios |
 |---|---|---|
-| **Ali** | Líder e integración | `UsuarioDAOImpl`, `VentanaLogin`, `VentanaPrincipal`, `FrmUsuarios`, `AsistenciaRFID` (main), `db/schema.sql` |
+| **Ali** | Líder e integración | `UsuarioDAOImpl`, `VentanaLogin`, `VentanaPrincipal`, `FrmUsuarios`, `FrmRegistro` (lectura de tarjeta), `AsistenciaRFID` (main), `db/schema.sql` |
 | **Damaris** | Lógica central | `HorarioDAOImpl`, `AsistenciaDAOImpl`, `MatriculaDAOImpl`, `AsistenciaControlador`, `MatriculaControlador`, `CierrePeriodoControlador`, `PruebaLogica` |
 | **Evelyn** | Estudiantes | `EstudianteDAOImpl`, `RegistroAcademicoDAOImpl`, `FrmEstudiantes` |
-| **Tatiana** | Pantallas de uso diario | `FrmRegistro` (lectura de tarjeta), `FrmMatricula` (vista del estudiante) |
-| **Brayan** | Gestión académica | `CarreraDAOImpl`, `PeriodoDAOImpl`, `AsignaturaDAOImpl`, `GrupoDAOImpl`, `FrmAsignaturas`, `FrmGrupos`, `FrmPeriodos` |
+| **Tatiana** | Ventana de asignaturas | `FrmAsignaturas` |
+| **Brayan** | Gestión académica | `CarreraDAOImpl`, `PeriodoDAOImpl`, `AsignaturaDAOImpl`, `GrupoDAOImpl`, `FrmGrupos`, `FrmPeriodos`, `FrmMatricula` (vista del estudiante) |
 | **Victoria** | Notas, reportes y documentación | `FrmNotas`, `FrmReportes`, reportes de iReport (`reportes/*.jrxml`), `docs/` y la guía APE |
 
 ### Quién necesita a quién
@@ -73,7 +73,9 @@ Cada interfaz del `dao` tiene su clase `XxxDAOImpl`, que escribe su dueño. El c
 | Las ventanas con datos reales | Los `DAOImpl` de su tema (cada uno hace los suyos primero) |
 | `FrmUsuarios` (Ali) | `CarreraDAOImpl` (Brayan) |
 | Los controladores (Damaris) | `EstudianteDAOImpl` y `RegistroAcademicoDAOImpl` (Evelyn), `PeriodoDAOImpl`, `GrupoDAOImpl` y `AsignaturaDAOImpl` (Brayan) |
-| `FrmRegistro` y `FrmMatricula` (Tatiana) | `AsistenciaControlador` y `MatriculaControlador` (Damaris) |
+| `FrmRegistro` (Ali) | `AsistenciaControlador` (Damaris) |
+| `FrmMatricula` (Brayan) | `MatriculaControlador` (Damaris) |
+| `FrmAsignaturas` (Tatiana) | `AsignaturaDAOImpl` y `CarreraDAOImpl` (Brayan) |
 | `FrmNotas` (Victoria) | `MatriculaDAOImpl` (Damaris) y `GrupoDAOImpl` (Brayan) |
 | `FrmPeriodos` (Brayan) | `CierrePeriodoControlador` (Damaris) |
 
@@ -87,12 +89,14 @@ Cada interfaz del `dao` tiene su clase `XxxDAOImpl`, que escribe su dueño. El c
 - **`VentanaLogin`:** campos usuario y clave, botón Ingresar. Si los datos son válidos abre `VentanaPrincipal` con el usuario; si no, muestra un mensaje.
 - **`VentanaPrincipal`:** ventana principal (`JFrame` con barra de menú) cuyo menú **cambia según el perfil**. Cada opción abre la ventana correspondiente con `new FrmXxx(usuario).setVisible(true)`.
 - **`FrmUsuarios`:** agregar, modificar y eliminar usuarios (usuario, clave, nombre, perfil, carrera si es coordinador, activo).
+- **`FrmRegistro`** (lectura de tarjeta): una caja de texto que siempre mantiene el foco. Al pulsar Enter llama a `AsistenciaControlador.registrarPorCodigo(codigo, new Date())`, limpia la caja y muestra nombre, asignatura, paralelo y hora, con color: **verde** si `REGISTRADO`, **amarillo** si `YA_REGISTRADO`, **rojo** en los demás casos.
+  - **Modo prueba:** una casilla "Simular fecha y hora" con un campo `yyyy-MM-dd HH:mm`. Si está marcada, se usa esa hora en lugar de la actual. Sirve para mostrar el funcionamiento sin esperar a la hora de clase.
 - **`AsistenciaRFID`:** el `main`, que abre el login.
 - **Integración:** mezcla los PR aprobados, prueba todo junto y **prueba con el lector real**. Anota en el README qué código escribe el lector (longitud y ceros a la izquierda).
 
-PR sugeridos: `feat(usuarios): implementa UsuarioDAOImpl`, `feat(login): agrega ventana de login`, `feat(principal): agrega ventana principal con menú por perfil`, `feat(usuarios): agrega ventana de usuarios`.
+PR sugeridos: `feat(usuarios): implementa UsuarioDAOImpl`, `feat(login): agrega ventana de login`, `feat(principal): agrega ventana principal con menú por perfil`, `feat(usuarios): agrega ventana de usuarios`, `feat(registro): agrega pantalla de lectura de tarjeta`.
 
-**Debe poder explicar:** cómo se valida el login, qué ve cada perfil y por qué la clave se guarda con `SHA2`.
+**Debe poder explicar:** cómo se valida el login, qué ve cada perfil, por qué la clave se guarda con `SHA2`, y qué pasa desde que se acerca la tarjeta hasta que sale el mensaje.
 
 ### Damaris: lógica central
 
@@ -154,26 +158,25 @@ PR sugeridos: `feat(dao): implementa DAO de estudiantes y registro académico`, 
 
 **Debe poder explicar:** cómo se crea un estudiante con su usuario, cómo se genera la tabla de materias y por qué se usa una transacción.
 
-### Tatiana: pantallas de uso diario
+### Tatiana: ventana de asignaturas
 
-- **`FrmRegistro`** (lectura de tarjeta): una caja de texto que siempre mantiene el foco. Al pulsar Enter llama a `AsistenciaControlador.registrarPorCodigo(codigo, new Date())`, limpia la caja y muestra nombre, asignatura, paralelo y hora, con color: **verde** si `REGISTRADO`, **amarillo** si `YA_REGISTRADO`, **rojo** en los demás casos.
-  - **Modo prueba:** una casilla "Simular fecha y hora" con un campo `yyyy-MM-dd HH:mm`. Si está marcada, se usa esa hora en lugar de la actual. Sirve para mostrar el funcionamiento sin esperar a la hora de clase.
-- **`FrmMatricula`** (vista del estudiante): busca al estudiante del usuario que inició sesión y muestra su nivel y un contador "Matriculadas: X de 5". Si la matrícula está cerrada, avisa y bloquea los botones. Tiene una tabla con los grupos disponibles (botón Matricular) y otra con sus materias matriculadas (botón Anular).
+- **`FrmAsignaturas`:** agregar, modificar y eliminar asignaturas (nombre, nivel de 1 a 10, carrera). El coordinador solo ve la de su carrera. Es una ventana independiente: nadie necesita su resultado para avanzar, y las asignaturas también vienen del script de la base de datos.
+- **Opcional:** apoyar con las pruebas (probar en `develop` los casos de la tabla de Damaris) y con las capturas de pantalla para la documentación.
 
-PR sugeridos: `feat(registro): agrega pantalla de lectura de tarjeta`, `feat(matricula): agrega ventana de matrícula del estudiante`.
+PR sugerido: `feat(asignaturas): agrega ventana de asignaturas`.
 
-**Debe poder explicar:** qué pasa desde que se acerca la tarjeta hasta que sale el mensaje, y por qué la ventana no decide las reglas (las decide el controlador).
+**Debe poder explicar:** cómo se agrega, modifica y elimina una asignatura, y de dónde sale la lista de carreras.
 
 ### Brayan: gestión académica
 
 - **`CarreraDAOImpl`, `PeriodoDAOImpl`, `AsignaturaDAOImpl`, `GrupoDAOImpl`:** los listados reciben `carreraId` y `docenteId` como `Integer` (si es `null`, no filtran). Al activar un periodo, los demás quedan inactivos.
-- **`FrmAsignaturas`:** agregar, modificar y eliminar asignaturas (nombre, nivel de 1 a 10, carrera). El coordinador solo ve la suya.
 - **`FrmGrupos`:** arriba los grupos del periodo activo (asignatura, paralelo, docente). Abajo los **horarios del grupo seleccionado**: día, hora de inicio, hora de fin y aula, con Agregar, Modificar y Eliminar. **Este horario es el "evento" que pide la guía.** Valida que la hora de inicio sea menor que la de fin.
 - **`FrmPeriodos`:** crear y modificar periodos, activar uno, abrir y cerrar matrículas, y **Cerrar periodo**. Antes de cerrar muestra las notas que faltan (si hay, no cierra); luego pide confirmación y al terminar muestra la lista de estudiantes "por revisar".
+- **`FrmMatricula`** (vista del estudiante): busca al estudiante del usuario que inició sesión y muestra su nivel y un contador "Matriculadas: X de 5". Si la matrícula está cerrada, avisa y bloquea los botones. Tiene una tabla con los grupos disponibles (botón Matricular) y otra con sus materias matriculadas (botón Anular).
 
-PR sugeridos: `feat(dao): implementa DAO de carrera, periodo, asignatura y grupo`, `feat(asignaturas): agrega ventana de asignaturas`, `feat(grupos): agrega ventana de grupos y horarios`, `feat(periodos): agrega ventana de periodos`.
+PR sugeridos: `feat(dao): implementa DAO de carrera, periodo, asignatura y grupo`, `feat(grupos): agrega ventana de grupos y horarios`, `feat(periodos): agrega ventana de periodos`, `feat(matricula): agrega ventana de matrícula del estudiante`.
 
-**Debe poder explicar:** cómo se agregan, modifican y eliminan horarios, y qué pasa al cerrar un periodo.
+**Debe poder explicar:** cómo se agregan, modifican y eliminan horarios, qué pasa al cerrar un periodo y por qué la ventana de matrícula no decide las reglas (las decide el controlador).
 
 ### Victoria: notas, reportes y documentación
 
@@ -236,10 +239,14 @@ Todos programan y todos revisan. Nadie aprueba ni mezcla su propio PR.
 | Damaris | Ali | Victoria |
 | Evelyn | Damaris | Ali |
 | Tatiana | Evelyn | Damaris |
-| Brayan | Tatiana | Evelyn |
+| Brayan | Victoria | Evelyn |
 | Victoria | Brayan | Tatiana |
 
 El revisor principal tiene unas 3 horas para revisar. Si no puede, avisa en el grupo y entra el respaldo. Quien aprueba hace el merge a `develop`. La guía paso a paso está en el README.
+
+### Issues y dependencias
+
+Cada entrega (un `DAOImpl`, una ventana, un controlador) tiene su **issue** en GitHub, asignado a su dueño, con la línea **Depende de**. Cómo se usan está en el README, sección *Issues y dependencias*.
 
 ## 9. Usuarios y datos de prueba
 

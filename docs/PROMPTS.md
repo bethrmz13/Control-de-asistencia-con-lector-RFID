@@ -154,7 +154,21 @@ nombre, perfil (combo con las constantes de Perfil), carrera (combo, solo se hab
 perfil es COORDINADOR) y activo (casilla). Botones Nuevo, Guardar, Modificar, Eliminar.
 Las carreras salen de CarreraDAOImpl. Valida campos obligatorios.
 
-TAREA 5 - AsistenciaRFID (clase con main): abre VentanaLogin, como en el ejemplo de clase.
+TAREA 5 - FrmRegistro (JFrame, constructor con el Usuario), la pantalla de lectura de
+tarjeta. Dibuja la ventana en el diseñador y dame la lista de componentes. Funciones:
+- Una caja de texto grande que SIEMPRE mantiene el foco (llama a requestFocus() al terminar
+  cada lectura y cuando la ventana se activa).
+- Al pulsar Enter, llama a new AsistenciaControlador().registrarPorCodigo(codigo, new
+  java.util.Date()), limpia la caja y muestra el resultado en letras grandes: nombre del
+  estudiante, asignatura, paralelo y hora.
+- El panel del resultado cambia de color: verde si REGISTRADO, amarillo si YA_REGISTRADO, rojo
+  para NO_ENCONTRADO, SIN_CLASES_HOY y FUERA_DE_HORARIO. El mensaje queda en pantalla hasta la
+  siguiente lectura.
+- Modo prueba: una casilla "Simular fecha y hora" y un campo con formato yyyy-MM-dd HH:mm. Si la
+  casilla está marcada, se pasa esa fecha (convertida con SimpleDateFormat en un try/catch) en
+  lugar de la actual. Si el formato es inválido, muestra un mensaje.
+
+TAREA 6 - AsistenciaRFID (clase con main): abre VentanaLogin, como en el ejemplo de clase.
 ```
 
 ### Damaris
@@ -247,33 +261,12 @@ diseñador y dame la lista de componentes. Funciones:
 ### Tatiana
 
 ```text
-Haz estas tareas, una por una, en este orden:
+Haz esta tarea:
 
-TAREA 1 - FrmRegistro (JFrame, constructor con el Usuario), la pantalla de lectura de
-tarjeta. Dibuja la ventana en el diseñador y dame la lista de componentes. Funciones:
-- Una caja de texto grande que SIEMPRE mantiene el foco (llama a requestFocus() al terminar
-  cada lectura y cuando la ventana se activa).
-- Al pulsar Enter, llama a new AsistenciaControlador().registrarPorCodigo(codigo, new
-  java.util.Date()), limpia la caja y muestra el resultado en letras grandes: nombre del
-  estudiante, asignatura, paralelo y hora.
-- El panel del resultado cambia de color: verde si REGISTRADO, amarillo si YA_REGISTRADO, rojo
-  para NO_ENCONTRADO, SIN_CLASES_HOY y FUERA_DE_HORARIO. El mensaje queda en pantalla hasta la
-  siguiente lectura.
-- Modo prueba: una casilla "Simular fecha y hora" y un campo con formato yyyy-MM-dd HH:mm. Si la
-  casilla está marcada, se pasa esa fecha (convertida con SimpleDateFormat en un try/catch) en
-  lugar de la actual. Si el formato es inválido, muestra un mensaje.
-
-TAREA 2 - FrmMatricula (JFrame, constructor con el Usuario), la vista del ESTUDIANTE.
-Dibuja la ventana en el diseñador y dame la lista de componentes. Funciones:
-- Al abrirse busca el Estudiante del usuario que inició sesión (buscarPorUsuarioId) y muestra su
-  nombre, su nivel y un contador "Matriculadas: X de 5" (MatriculaDAO.contarEnPeriodoActivo).
-- Si el periodo no tiene la matrícula abierta (PeriodoDAO.obtenerActivo), muestra un aviso y
-  bloquea los botones.
-- Tabla 1: grupos disponibles (MatriculaControlador.gruposDisponibles), con asignatura, nivel y
-  paralelo. Botón Matricular: llama a MatriculaControlador.matricular y muestra con JOptionPane
-  el mensaje de error si lo hay (null significa que salió bien).
-- Tabla 2: sus materias matriculadas en el periodo (listarPorEstudiante), con botón Anular.
-- Después de cada acción se actualizan las dos tablas y el contador.
+TAREA 1 - FrmAsignaturas (JFrame, constructor con el Usuario). Dibuja la ventana en el
+diseñador y dame la lista de componentes. Tabla y formulario (nombre, nivel con JSpinner de 1 a
+10, carrera en combo) con Agregar, Modificar y Eliminar. Valida que el nombre no esté vacío. El
+COORDINADOR solo ve su carrera (usuario.getCarreraId()).
 ```
 
 ### Brayan
@@ -289,12 +282,7 @@ interfaces que te pegué).
   del docente (con JOIN).
 - PeriodoDAOImpl.activar(id): deja solo ese periodo con activo=1 y los demás con 0.
 
-TAREA 2 - FrmAsignaturas (JFrame, constructor con el Usuario). Dibuja la ventana en el
-diseñador y dame la lista de componentes. Tabla y formulario (nombre, nivel con JSpinner de 1 a
-10, carrera en combo) con Agregar, Modificar y Eliminar. Valida que el nombre no esté vacío. El
-COORDINADOR solo ve su carrera (usuario.getCarreraId()).
-
-TAREA 3 - FrmGrupos (JFrame, constructor con el Usuario). Dibuja la ventana en el
+TAREA 2 - FrmGrupos (JFrame, constructor con el Usuario). Dibuja la ventana en el
 diseñador y dame la lista de componentes. Arriba, la tabla de grupos del periodo activo con su
 formulario (asignatura en combo, paralelo, docente en combo de usuarios con perfil DOCENTE).
 Abajo, la tabla de horarios del grupo seleccionado (HorarioDAO) con su formulario: día (combo de
@@ -303,13 +291,25 @@ java.sql.Time.valueOf(texto + ":00") dentro de un try/catch), y aula. Botones Ag
 y Eliminar para los dos. Valida que la hora de inicio sea menor que la de fin. Este horario es el
 "evento" que pide la guía del ingeniero.
 
-TAREA 4 - FrmPeriodos (JFrame, constructor con el Usuario). Dibuja la ventana en el
+TAREA 3 - FrmPeriodos (JFrame, constructor con el Usuario). Dibuja la ventana en el
 diseñador y dame la lista de componentes. Tabla de periodos y formulario (nombre, fecha de
 inicio y de fin como texto yyyy-MM-dd, que se convierte con java.sql.Date.valueOf). Botones:
 Crear, Modificar, Activar periodo, Abrir matrícula, Cerrar matrícula y Cerrar periodo. Cerrar
 periodo primero llama a CierrePeriodoControlador.notasFaltantes(): si hay faltantes muestra la
 lista y no continúa; si no, pide confirmación, llama a cerrarPeriodo() y muestra la lista de
 estudiantes "por revisar".
+
+TAREA 4 - FrmMatricula (JFrame, constructor con el Usuario), la vista del ESTUDIANTE.
+Dibuja la ventana en el diseñador y dame la lista de componentes. Funciones:
+- Al abrirse busca el Estudiante del usuario que inició sesión (buscarPorUsuarioId) y muestra su
+  nombre, su nivel y un contador "Matriculadas: X de 5" (MatriculaDAO.contarEnPeriodoActivo).
+- Si el periodo no tiene la matrícula abierta (PeriodoDAO.obtenerActivo), muestra un aviso y
+  bloquea los botones.
+- Tabla 1: grupos disponibles (MatriculaControlador.gruposDisponibles), con asignatura, nivel y
+  paralelo. Botón Matricular: llama a MatriculaControlador.matricular y muestra con JOptionPane
+  el mensaje de error si lo hay (null significa que salió bien).
+- Tabla 2: sus materias matriculadas en el periodo (listarPorEstudiante), con botón Anular.
+- Después de cada acción se actualizan las dos tablas y el contador.
 ```
 
 ### Victoria
