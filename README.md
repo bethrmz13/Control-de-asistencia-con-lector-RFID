@@ -54,7 +54,7 @@ src/asistenciarfid/
 ├── modelo/        (M) Clases de datos
 ├── vista/         (V) Ventanas Swing (JFrame Form)
 ├── controlador/   (C) Reglas del sistema, llaman a los DAO
-├── dao/           Acceso a la base de datos (interfaz y su Impl)
+├── dao/           Acceso a la base de datos (clases con métodos static, como en clase)
 ├── db/            Conexion
 └── util/          Parametros y Fechas
 src/plugins/       Librerías .jar (conector MySQL y JasperReports)
@@ -162,7 +162,7 @@ La línea `DISPOSE_ON_CLOSE` es necesaria: un `JFrame` nuevo trae `EXIT_ON_CLOSE
 
 - [x] Estructura MVC y paquetes
 - [x] Conexión a la base de datos
-- [x] Contrato: modelo, interfaces DAO, controladores (cuerpo pendiente) y ventanas vacías
+- [x] Contrato: modelo, clases DAO y controladores (cuerpo pendiente) y ventanas vacías
 - [ ] Implementación de los DAO
 - [ ] Controladores (reglas de asistencia, matrícula y cierre de periodo)
 - [ ] Ventanas (login, principal y pantallas del sistema)
@@ -202,7 +202,7 @@ Todos programan y todos revisan. Cada PR tiene un revisor principal y uno de res
 
 ## Issues y dependencias
 
-Cada entrega (un `DAOImpl`, una ventana, un controlador) tiene un **issue** en la pestaña *Issues* de GitHub, asignado a su dueño y con la línea **Depende de**. Así se sabe de quién depende cada uno.
+Cada entrega (un `DAO`, una ventana, un controlador) tiene un **issue** en la pestaña *Issues* de GitHub, asignado a su dueño y con la línea **Depende de**. Así se sabe de quién depende cada uno.
 
 - **Antes de empezar**, lee en tu issue la línea *Depende de*. Si lo que necesitas todavía no está en `develop`, ponle la etiqueta `bloqueado` y avisa en ese issue con @mención a la persona de la que dependes. Mientras tanto, avanza con datos de ejemplo.
 - **Cuando tu PR se mezcla** y desbloquea a otras personas, comenta en sus issues que ya pueden seguir y quita la etiqueta `bloqueado`.
@@ -245,7 +245,7 @@ git clone https://github.com/bethrmz13/Control-de-asistencia-con-lector-RFID.git
    - [ ] Compila sin errores
    - [ ] Hace lo que dice el PR
    - [ ] Solo toca los archivos de su autor
-   - [ ] No cambia el contrato (modelo, interfaces DAO, firmas de los controladores)
+   - [ ] No cambia el contrato (modelo, nombres y parámetros de los métodos de `dao` y `controlador`)
    - [ ] Usa `PreparedStatement` y cierra la conexión (`cc.close()`)
    - [ ] No hay contraseñas ni rutas como `C:\Users\...`
    - [ ] No sube `build/`, `dist/` ni `nbproject/private/`
