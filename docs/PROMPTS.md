@@ -172,7 +172,7 @@ recibe el Usuario. Método configurarMenuSegunPerfil() que muestra u oculta las 
 - COORDINADOR: Estudiantes, Asignaturas, Grupos, Horarios, Reportes.
 - DOCENTE: Notas, Reportes.
 - REGISTRO: solo Registro de asistencia.
-- ESTUDIANTE: solo Matrícula.
+- ESTUDIANTE: Matrícula y Mis notas y asistencias.
 Cada opción del menú abre su ventana como en clase: FrmXxx ventana = new FrmXxx(usuario);
 jdskPrincipal.add(ventana); ventana.setVisible(true); Haz un método abrirVentana(JInternalFrame
 ventana) que, si ya hay abierta una ventana de esa misma clase (recorre jdskPrincipal.getAllFrames()),
@@ -180,7 +180,7 @@ la trae al frente en lugar de abrir otra. Cada opción tiene un atajo de teclado
 como en clase (por ejemplo Ctrl+E para Estudiantes). Incluye "Cerrar sesión" (hace dispose() y abre
 de nuevo el login) y "Salir".
 Las ventanas FrmUsuarios, FrmEstudiantes, FrmAsignaturas, FrmGrupos, FrmHorarios, FrmPeriodos,
-FrmNotas, FrmRegistro, FrmReportes y FrmMatricula ya existen vacías en el paquete vista.
+FrmNotas, FrmRegistro, FrmReportes, FrmMatricula y FrmConsultaEstudiante ya existen vacías en el paquete vista.
 
 TAREA 4 - FrmRegistro (JInternalFrame, constructor con el Usuario), la pantalla de lectura de
 tarjeta. Dibuja la ventana en el diseñador y dame la lista de componentes. Funciones:
@@ -325,12 +325,32 @@ Dibuja la ventana en el diseñador y dame la lista de componentes. Funciones:
 ### Tatiana
 
 ```text
-Haz esta tarea:
+Haz estas tareas, una por una, en este orden:
 
 TAREA 1 - FrmAsignaturas (JInternalFrame, constructor con el Usuario). Dibuja la ventana en el
 diseñador y dame la lista de componentes. Tabla y formulario (nombre, nivel con JSpinner de 1 a
 10, carrera en combo) con Agregar, Modificar y Eliminar. Valida que el nombre no esté vacío. El
 COORDINADOR solo ve su carrera (usuario.getCarreraId()).
+
+TAREA 2 - FrmConsultaEstudiante (JInternalFrame, constructor con el Usuario), la ventana donde el
+ESTUDIANTE consulta sus notas y asistencias. Es de SOLO LECTURA: no hay botones para guardar ni
+modificar nada. Dibuja la ventana en el diseñador y dame la lista de componentes. Funciones:
+- Al abrirse busca el Estudiante del usuario que inició sesión
+  (EstudianteDAO.buscarPorUsuarioId(usuario.getId())). Nunca pidas una cédula ni un código: solo
+  se muestran los datos de ese estudiante. Si no lo encuentra, muestra un JOptionPane y cierra la
+  ventana con dispose().
+- Muestra su nombre y su nivel en etiquetas (JLabel).
+- Tabla 1, "Mis notas y asistencias del periodo": una fila por cada matrícula del periodo activo
+  (MatriculaDAO.listarPorEstudiante). Columnas: Asignatura, Paralelo, Asistencias y Nota. Las
+  asistencias de cada fila salen de AsistenciaDAO.contarPresentes(estudianteId, grupoId,
+  periodo.getFechaInicio(), periodo.getFechaFin()), con el periodo de PeriodoDAO.obtenerActivo().
+  Si la nota es null, muestra "Sin nota". Si no hay periodo activo, la tabla queda vacía y una
+  etiqueta dice "No hay un periodo activo".
+- Tabla 2, "Mi récord académico": una fila por materia (RegistroAcademicoDAO.listarPorEstudiante).
+  Columnas: Nivel, Asignatura y Estado (APROBADA, REPROBADA o AUN_NO_CURSA).
+- Las dos tablas son de solo lectura: las celdas no se pueden editar
+  (jtblXxx.setDefaultEditor(Object.class, null);).
+- Un botón Actualizar que vuelve a cargar las dos tablas.
 ```
 
 ### Brayan
