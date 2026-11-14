@@ -24,7 +24,7 @@ Reglas del sistema (resumen):
 2. **El contrato no se toca.** No se cambian las clases del `modelo` ni los **nombres y parámetros** de los métodos de las clases del `dao` y del `controlador`. Si necesitas un cambio, avisa en el grupo a Ali, que lo hace en `develop`.
 3. **Sencillo y con lo visto en clase.** Sin frameworks, sin librerías nuevas, sin `java.time` (usamos `java.sql.Date` y `java.sql.Time`), sin `enum`, sin streams. El ingeniero pregunta lo que no enseñó.
 4. **Cada quien trabaja en sus archivos.** Si necesitas tocar los de otra persona, avisa antes.
-5. **Ventanas con el diseñador de NetBeans, solo `JFrame Form`**, como en clase: se crea con *New → Other → Swing GUI Forms → JFrame Form*, se le pone el nombre al archivo y no se toca nada más en la configuración. Se suben juntos el `.java` y el `.form`. **Una excepción:** un `JFrame` nuevo trae `EXIT_ON_CLOSE`, que cierra todo el programa al cerrar la ventana. Por eso cada `FrmXxx` lleva en su constructor `setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);` (se escribe en el código, no en el diseñador).
+5. **Ventanas con el diseñador de NetBeans, como en clase:** la ventana principal es un `JFrame Form` con un `JDesktopPane` y una barra de menú, y las demás son **ventanas internas**: se crean como `JFrame Form` y se cambia `extends javax.swing.JFrame` por `extends javax.swing.JInternalFrame`. Se suben juntos el `.java` y el `.form`. Cada `FrmXxx` lleva en su constructor `setClosable(true);` y `setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);`, para que se pueda cerrar sin cerrar todo el programa.
 6. **Commits:** `tipo(donde): descripción`, por ejemplo `feat(login): valida campos vacíos`.
 7. **Pull Request siempre a `develop`**, nunca a `main`. Se usa la plantilla de `.github/pull_request_template.md`.
 
@@ -89,7 +89,7 @@ El cuerpo de cada método de `dao` y de `controlador` lo escribe su dueño: se r
 
 - **`UsuarioDAO`:** `validar` busca por usuario y clave (y que esté activo) y devuelve el usuario sin la clave (o `null`). La clave se guarda tal cual en la columna `clave`.
 - **`VentanaLogin`:** campos usuario y clave, botón Ingresar. Si los datos son válidos abre `VentanaPrincipal` con el usuario; si no, muestra un mensaje.
-- **`VentanaPrincipal`:** ventana principal (`JFrame` con barra de menú) cuyo menú **cambia según el perfil**. Cada opción abre la ventana correspondiente con `new FrmXxx(usuario).setVisible(true)`.
+- **`VentanaPrincipal`:** ventana principal (`JFrame` con un `JDesktopPane` y barra de menú) cuyo menú **cambia según el perfil**. Cada opción abre la ventana correspondiente dentro del escritorio, como en clase: `jdskPrincipal.add(ventana); ventana.setVisible(true);`. Las opciones llevan atajo de teclado (`setAccelerator`).
 - **`FrmPeriodos`:** crear y modificar periodos, activar uno, abrir y cerrar matrículas, y **Cerrar periodo**. Antes de cerrar muestra las notas que faltan (si hay, no cierra); luego pide confirmación y al terminar muestra la lista de estudiantes "por revisar".
 - **`FrmRegistro`** (lectura de tarjeta): una caja de texto que siempre mantiene el foco. Al pulsar Enter llama a `AsistenciaControlador.registrarPorCodigo(codigo, new Date())`, limpia la caja y muestra nombre, asignatura, paralelo y hora, con color: **verde** si `REGISTRADO`, **amarillo** si `YA_REGISTRADO`, **rojo** en los demás casos.
   - **Modo prueba:** una casilla "Simular fecha y hora" con un campo `yyyy-MM-dd HH:mm`. Si está marcada, se usa esa hora en lugar de la actual. Sirve para mostrar el funcionamiento sin esperar a la hora de clase.
@@ -191,7 +191,7 @@ PR sugeridos: `feat(dao): implementa DAO de carrera, asignatura y periodo`, `fea
 - **Reportes con iReport:** el reporte trae **su propia consulta SQL**, recibe parámetros de texto y se abre con la conexión, igual que en clase. Son dos, guardados en `reportes/`:
   1. **Asistencia de una clase en una fecha** (`P_GRUPO_ID`, `P_FECHA` con formato `yyyy-MM-dd`): lista cada estudiante matriculado como `PRESENTE` o `FALTA`.
   2. **Total de asistencias por estudiante en un grupo** (`P_GRUPO_ID`).
-- **`FrmReportes`:** combo de grupos (el docente ve los suyos, el coordinador los de su carrera, el admin todos), una caja para la fecha y un botón por reporte. Abre el reporte con `JasperViewer.viewReport(imprimir, false)`, igual que en clase, y con **ruta relativa** (`reportes/archivo.jrxml`), nunca una ruta de `C:\`.
+- **`FrmReportes`:** combo de grupos (el docente ve los suyos, el coordinador los de su carrera, el admin todos), una caja para la fecha, dos botones de opción (`JRadioButton`) para elegir el reporte y un botón Generar. Abre el reporte con `JasperViewer.viewReport(imprimir, false)`, igual que en clase, y con **ruta relativa** (`reportes/archivo.jrxml`), nunca una ruta de `C:\`.
 - **Documentación:** la revisión final del README (las capturas y la guía APE las lleva Brayan).
 - **Día 1: probar iReport y Jasper** con un reporte mínimo en el JDK del proyecto, y avisar al grupo si funciona. Si Jasper falla, el plan de respaldo es mostrar los datos en una tabla dentro de `FrmReportes`.
 
@@ -255,9 +255,9 @@ Todos programan y todos revisan. Nadie aprueba ni mezcla su propio PR.
 
 El revisor principal tiene unas 3 horas para revisar. Si no puede, avisa en el grupo y entra el respaldo. Quien aprueba hace el merge a `develop`. La guía paso a paso está en el README.
 
-### Issues y dependencias
+### Dependencias
 
-Cada entrega (un `DAO`, una ventana, un controlador) tiene su **issue** en GitHub, asignado a su dueño, con la línea **Depende de**. Cómo se usan está en el README, sección *Issues y dependencias*.
+Si dependes de una parte que todavía no está en `develop`, avisa en el grupo con @mención a la persona y avanza con datos de ejemplo. Cuando tu PR se mezcle, avisa en el grupo a quienes dependían de ti. La tabla *Quién necesita a quién* (sección 5) dice quién depende de quién.
 
 ## 9. Usuarios y datos de prueba
 
@@ -278,12 +278,47 @@ Tarjetas de prueba (de mentira): María `0001234567`, Luis `0007654321`. Se camb
 |---|---|
 | Ventana de login | `VentanaLogin` (Ali) |
 | Ventana principal con menú | `VentanaPrincipal` (Ali), con menú según el perfil |
-| Ventanas necesarias para manejar el sistema | `FrmXxx`, todas `JFrame Form`, que se abren desde el menú de la ventana principal |
+| Ventanas internas | `FrmXxx` (`JInternalFrame`), que se abren dentro del escritorio (`JDesktopPane`) de la ventana principal |
 | Datos guardados en la base de datos | MySQL con DAO |
-| Componentes según el tipo de dato | `JSpinner` (nivel), `JComboBox` (carrera, perfil, día), `JCheckBox` (activo), `JPasswordField` (clave), `JTable`, `JTextField` con validación |
+| Componentes según el tipo de dato | Ver la tabla *Componentes por ventana*, abajo |
 | Perfiles | 5 perfiles con menús distintos |
 | Agregar, modificar, eliminar y actualizar un evento | Horarios de clase en `FrmHorarios` (Brayan) |
 | Reporte con iReport, MVC, DAO, login | `FrmReportes`, estructura de paquetes, `dao`, `VentanaLogin` |
+
+### Componentes por ventana
+
+La guía pide usar el componente que corresponde al tipo de dato. Estos son los que se usan:
+
+| Ventana | Campo | Componente |
+|---|---|---|
+| `VentanaLogin` | usuario / clave | `JTextField` / `JPasswordField` |
+| `VentanaPrincipal` | opciones del menú | `JMenuBar` y `JMenuItem` con atajo (`setAccelerator`), dentro de un `JDesktopPane` |
+| `FrmUsuarios` | usuario, nombre / clave | `JTextField` / `JPasswordField` |
+| | perfil, carrera | `JComboBox` (primer ítem "Seleccione") |
+| | activo | `JCheckBox` |
+| `FrmEstudiantes` | código RFID (se pasa la tarjeta), nombre, apellido, correo | `JTextField` |
+| | carrera | `JComboBox` |
+| | nivel de inicio | `JSlider` (1 a 10) |
+| | estado de cada materia | `JTable` con un `JComboBox` en la columna |
+| `FrmAsignaturas` | nombre / nivel / carrera | `JTextField` / `JSpinner` (1 a 10) / `JComboBox` |
+| `FrmGrupos` | asignatura, docente | `JComboBox` |
+| | paralelo | `JRadioButton` (A, B, C) con `ButtonGroup` |
+| `FrmHorarios` | grupo, día | `JComboBox` |
+| | hora de inicio y fin, aula | `JTextField` |
+| `FrmPeriodos` | nombre, fechas | `JTextField` |
+| | matrícula abierta | `JToggleButton` |
+| `FrmMatricula` | materias disponibles y matriculadas | `JTable` |
+| | cuántas lleva (de 5) | `JProgressBar` |
+| `FrmNotas` | grupo | `JComboBox` |
+| | nota | `JTable` con la columna editable |
+| `FrmRegistro` | código de la tarjeta | `JTextField` (siempre con el foco) |
+| | modo prueba | `JCheckBox` y `JTextField` |
+| `FrmReportes` | grupo | `JComboBox` |
+| | fecha | `JTextField` |
+| | reporte | `JRadioButton` (dos) con `ButtonGroup` |
+| | guardar PDF (opcional) | `JFileChooser` |
+
+Los avisos y las confirmaciones usan `JOptionPane`.
 
 ## 11. Entrega final (día 4, antes del colchón)
 

@@ -59,29 +59,49 @@ ESTILO DE CLASE (el ingeniero califica que sea sencillo y con lo que enseñó):
   DefaultTableModel modelo = new DefaultTableModel(null, titulos);
   List<Estudiante> lista = EstudianteDAO.listar(null);
   for (Estudiante est : lista) { modelo.addRow(new Object[]{est.getCedula(), est.getNombre()}); }
-  jtbEstudiantes.setModel(modelo);
+  jtblEstudiantes.setModel(modelo);
 - Al seleccionar una fila se llenan las cajas de texto, como en clase:
-  jtbXxx.getSelectionModel().addListSelectionListener(new ListSelectionListener(){ ... }) y
+  jtblXxx.getSelectionModel().addListSelectionListener(new ListSelectionListener(){ ... }) y
   getValueAt(fila, columna).
 - Para guardar: se arma el objeto con los datos de las cajas (con los setters), se llama al DAO
   (EstudianteDAO.insertar(est)), se muestra un JOptionPane con el resultado y se recarga la tabla.
+- Las ventanas de agregar, modificar y eliminar siguen el flujo de clase, con los botones Nuevo,
+  Guardar, Editar, Eliminar y Cancelar (donde una tarea diga Agregar o Modificar, se refiere a
+  estos botones): al abrir, las cajas están deshabilitadas (método InformacionInicio) y solo está
+  activo Nuevo (método BotonesInicio); Nuevo habilita las cajas (InformacionNuevo); al seleccionar
+  una fila de la tabla se habilitan Editar y Eliminar (InformacionEditar); Cancelar limpia todo y
+  vuelve al inicio.
+- La validación va en un método validarCampos() que devuelve boolean: si un campo está mal, muestra
+  un JOptionPane, le da el foco con requestFocus() y devuelve false.
+- Los combos se llenan con un DefaultComboBoxModel a partir de un vector o de una lista; en los
+  combos de elegir, el primer ítem es "Seleccione" y se valida que getSelectedIndex() no sea 0.
+- El tipo de componente de cada campo está en la tabla "Componentes por ventana" de
+  docs/REPARTO.md: respétalo (JSpinner, JSlider, JRadioButton con ButtonGroup, JCheckBox, etc.).
 - FECHAS Y HORAS: se usa java.sql.Date y java.sql.Time (NO java.time, NO LocalDate).
   Se guardan con ps.setDate(...) y ps.setTime(...) y se leen con rs.getDate(...) y rs.getTime(...).
   Para convertir texto: java.sql.Date.valueOf("2026-11-09") y java.sql.Time.valueOf("16:00:00").
   La clase asistenciarfid.util.Fechas ya tiene ayudas (día de la semana, minutos del día).
 - Perfiles y estados son constantes String (clases Perfil, Estado, EstadoMateria).
   Se comparan con .equals(...). NO uses enums ni records.
-- NO uses streams, lambdas complejas, var, try-with-resources ni genéricos avanzados.
+- NO uses streams, var, try-with-resources ni genéricos avanzados. Solo se permiten lambdas
+  simples de eventos, como e -> {...}, igual que en clase.
 - Código de nivel estudiante universitario: nombres en español, comentarios breves y
   naturales (no excesivos).
 - NO uses transacciones (setAutoCommit, commit, rollback): todo se hace con consultas simples,
   una tras otra, como en clase. Si un paso falla, se borra lo que ya se había guardado.
 
 VENTANAS (diseñador de NetBeans):
-- Todas las ventanas son JFrame Form (NO uses JInternalFrame, JDialog, JDesktopPane ni
-  CardLayout). Las ventanas del sistema se abren desde el menú de la ventana principal con
-  new FrmXxx(usuario).setVisible(true).
-- Cada FrmXxx tiene dos constructores: el que genera NetBeans y otro que recibe el Usuario, que llama a initComponents(), guarda el usuario, y luego setLocationRelativeTo(null) y setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE) (así cerrar la ventana no cierra todo el programa).
+- La ventana principal (VentanaPrincipal) es un JFrame con un JDesktopPane (jdskPrincipal) y una
+  barra de menú. TODAS las demás ventanas son ventanas internas (JInternalFrame) que se abren
+  dentro de ese escritorio, como en clase:
+  FrmXxx ventana = new FrmXxx(usuario); jdskPrincipal.add(ventana); ventana.setVisible(true);
+  NO uses JDialog ni CardLayout.
+- Yo creo cada ventana en el diseñador como JFrame Form y cambio "extends javax.swing.JFrame" por
+  "extends javax.swing.JInternalFrame", como en clase.
+- Cada FrmXxx tiene dos constructores: el que genera NetBeans y otro que recibe el Usuario, que
+  llama a initComponents(), guarda el usuario, y luego setClosable(true) y
+  setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE) (así se puede cerrar la
+  ventana sin cerrar todo el programa).
 - La ventana la dibujo YO arrastrando componentes. TÚ NO escribes initComponents(), ni el
   bloque gris "Generated Code", ni el diseño de la ventana.
 - Te daré la lista de mis componentes con su nombre y tipo. Usa EXACTAMENTE esos nombres.
@@ -106,20 +126,20 @@ MI TAREA:
 
 ## 4. Plantilla para describir una ventana
 
-Después de dibujar tu ventana en el diseñador, dale a cada componente un nombre con prefijo (clic derecho → *Change Variable Name*): `jtxt` (cajas de texto), `jbtn` (botones), `jtb` (tablas), `jcmb` (combos), `jlbl` (etiquetas), `jchk` (casillas), `jspn` (spinner), `jpwd` (clave).
+Después de dibujar tu ventana en el diseñador, dale a cada componente un nombre con prefijo (clic derecho → *Change Variable Name*): `jtxt` (cajas de texto), `jbtn` (botones), `jtbl` (tablas), `jcbx` (combos), `jrbtn` (botones de opción), `jsld` (deslizador), `jtbtn` (botón de alternar), `jlbl` (etiquetas), `jchk` (casillas), `jspn` (spinner), `jpwd` (clave).
 
 Y pega algo así, junto a tu tarea:
 
 ```text
-La ventana se llama FrmEstudiantes (JFrame Form). Su constructor recibe el Usuario
+La ventana se llama FrmEstudiantes (JInternalFrame). Su constructor recibe el Usuario
 que inició sesión: public FrmEstudiantes(Usuario usuario).
 
 Mis componentes:
 - jtxtCodigo (JTextField): código RFID, aquí se pasa la tarjeta
 - jtxtNombre (JTextField)
-- jcmbCarrera (JComboBox)
+- jcbxCarrera (JComboBox)
 - jspnNivel (JSpinner)
-- jtbEstudiantes (JTable): lista de estudiantes
+- jtblEstudiantes (JTable): lista de estudiantes
 - jbtnGuardar (JButton), jbtnLimpiar (JButton)
 ```
 
@@ -145,7 +165,7 @@ TAREA 2 - VentanaLogin (JFrame con el diseñador). Componentes: jtxtUsuario, jpw
 UsuarioDAO.validar; si da un usuario abre new VentanaPrincipal(usuario).setVisible(true)
 y cierra el login con dispose(); si no, muestra un JOptionPane.
 
-TAREA 3 - VentanaPrincipal (JFrame con una barra de menú, sin JDesktopPane). Su constructor
+TAREA 3 - VentanaPrincipal (JFrame con un JDesktopPane llamado jdskPrincipal y una barra de menú). Su constructor
 recibe el Usuario. Método configurarMenuSegunPerfil() que muestra u oculta las opciones:
 - ADMIN: Usuarios, Estudiantes, Periodos, Asignaturas, Grupos, Horarios, Notas,
   Registro de asistencia, Reportes.
@@ -153,12 +173,16 @@ recibe el Usuario. Método configurarMenuSegunPerfil() que muestra u oculta las 
 - DOCENTE: Notas, Reportes.
 - REGISTRO: solo Registro de asistencia.
 - ESTUDIANTE: solo Matrícula.
-Cada opción del menú abre su ventana con new FrmXxx(usuario).setVisible(true). Incluye
-"Cerrar sesión" (hace dispose() y abre de nuevo el login) y "Salir".
+Cada opción del menú abre su ventana como en clase: FrmXxx ventana = new FrmXxx(usuario);
+jdskPrincipal.add(ventana); ventana.setVisible(true); Haz un método abrirVentana(JInternalFrame
+ventana) que, si ya hay abierta una ventana de esa misma clase (recorre jdskPrincipal.getAllFrames()),
+la trae al frente en lugar de abrir otra. Cada opción tiene un atajo de teclado con setAccelerator,
+como en clase (por ejemplo Ctrl+E para Estudiantes). Incluye "Cerrar sesión" (hace dispose() y abre
+de nuevo el login) y "Salir".
 Las ventanas FrmUsuarios, FrmEstudiantes, FrmAsignaturas, FrmGrupos, FrmHorarios, FrmPeriodos,
 FrmNotas, FrmRegistro, FrmReportes y FrmMatricula ya existen vacías en el paquete vista.
 
-TAREA 4 - FrmRegistro (JFrame, constructor con el Usuario), la pantalla de lectura de
+TAREA 4 - FrmRegistro (JInternalFrame, constructor con el Usuario), la pantalla de lectura de
 tarjeta. Dibuja la ventana en el diseñador y dame la lista de componentes. Funciones:
 - Una caja de texto grande que SIEMPRE mantiene el foco (llama a requestFocus() al terminar
   cada lectura y cuando la ventana se activa).
@@ -172,10 +196,10 @@ tarjeta. Dibuja la ventana en el diseñador y dame la lista de componentes. Func
   casilla está marcada, se pasa esa fecha (convertida con SimpleDateFormat en un try/catch) en
   lugar de la actual. Si el formato es inválido, muestra un mensaje.
 
-TAREA 5 - FrmPeriodos (JFrame, constructor con el Usuario). Dibuja la ventana en el
+TAREA 5 - FrmPeriodos (JInternalFrame, constructor con el Usuario). Dibuja la ventana en el
 diseñador y dame la lista de componentes. Tabla de periodos y formulario (nombre, fecha de
 inicio y de fin como texto yyyy-MM-dd, que se convierte con java.sql.Date.valueOf). Botones:
-Crear, Modificar, Activar periodo, Abrir matrícula, Cerrar matrícula y Cerrar periodo. Cerrar
+Crear, Modificar, Activar periodo y Cerrar periodo, más un botón de alternar (JToggleButton) "Matrícula abierta" que abre o cierra la matrícula. Cerrar
 periodo primero llama a CierrePeriodoControlador.notasFaltantes(): si hay faltantes muestra la
 lista y no continúa; si no, pide confirmación, llama a cerrarPeriodo() y muestra la lista de
 estudiantes "por revisar".
@@ -269,12 +293,12 @@ TAREA 1 - EstudianteDAO y RegistroAcademicoDAO (ya existe con el cuerpo pendient
   usuario) y devuelve false.
 - EstudianteDAO.eliminar(id) también elimina su usuario.
 
-TAREA 2 - FrmEstudiantes (JFrame, constructor con el Usuario). Dibuja la ventana en el
+TAREA 2 - FrmEstudiantes (JInternalFrame, constructor con el Usuario). Dibuja la ventana en el
 diseñador y dame la lista de componentes. Funciones:
 - El campo del código RFID es donde se pasa la tarjeta: el lector escribe y pulsa Enter. Al
   pulsar Enter se valida que no esté vacío ni repetido (existeCodigo) y se pasa el foco al
   siguiente campo.
-- Al elegir carrera y nivel de inicio, se llena una segunda tabla con las materias generadas
+- El nivel de inicio es un JSlider de 1 a 10. Al elegir carrera y mover el deslizador, se llena una segunda tabla con las materias generadas
   (generarParaCarrera). El estado de cada fila se puede editar con un combo (APROBADA,
   REPROBADA, AUN_NO_CURSA) para que el admin lo corrija antes de guardar.
 - Guardar usa insertarConUsuario con esa lista.
@@ -285,10 +309,10 @@ diseñador y dame la lista de componentes. Funciones:
 - Si el usuario es COORDINADOR, solo ve y registra estudiantes de su carrera
   (usuario.getCarreraId()) y el combo de carrera queda bloqueado.
 
-TAREA 3 - FrmMatricula (JFrame, constructor con el Usuario), la vista del ESTUDIANTE.
+TAREA 3 - FrmMatricula (JInternalFrame, constructor con el Usuario), la vista del ESTUDIANTE.
 Dibuja la ventana en el diseñador y dame la lista de componentes. Funciones:
 - Al abrirse busca el Estudiante del usuario que inició sesión (buscarPorUsuarioId) y muestra su
-  nombre, su nivel y un contador "Matriculadas: X de 5" (MatriculaDAO.contarEnPeriodoActivo).
+  nombre, su nivel, un contador "Matriculadas: X de 5" y una barra de progreso (JProgressBar de 0 a 5) (MatriculaDAO.contarEnPeriodoActivo).
 - Si el periodo no tiene la matrícula abierta (PeriodoDAO.obtenerActivo), muestra un aviso y
   bloquea los botones.
 - Tabla 1: grupos disponibles (MatriculaControlador.gruposDisponibles), con asignatura, nivel y
@@ -303,7 +327,7 @@ Dibuja la ventana en el diseñador y dame la lista de componentes. Funciones:
 ```text
 Haz esta tarea:
 
-TAREA 1 - FrmAsignaturas (JFrame, constructor con el Usuario). Dibuja la ventana en el
+TAREA 1 - FrmAsignaturas (JInternalFrame, constructor con el Usuario). Dibuja la ventana en el
 diseñador y dame la lista de componentes. Tabla y formulario (nombre, nivel con JSpinner de 1 a
 10, carrera en combo) con Agregar, Modificar y Eliminar. Valida que el nombre no esté vacío. El
 COORDINADOR solo ve su carrera (usuario.getCarreraId()).
@@ -322,12 +346,12 @@ TAREA 1 - CarreraDAO, AsignaturaDAO y PeriodoDAO (ya existe con el cuerpo pendie
   cambiarMatricula(id, abierta) y activar(id): deja solo ese periodo con activo=1 y los demás
   con 0 (dos UPDATE seguidos).
 
-TAREA 2 - FrmUsuarios (JFrame, constructor con el Usuario): tabla de usuarios y formulario con usuario, clave,
+TAREA 2 - FrmUsuarios (JInternalFrame, constructor con el Usuario): tabla de usuarios y formulario con usuario, clave,
 nombre, perfil (combo con las constantes de Perfil), carrera (combo, solo se habilita si el
 perfil es COORDINADOR) y activo (casilla). Botones Nuevo, Guardar, Modificar, Eliminar.
 Las carreras salen de CarreraDAO. Valida campos obligatorios.
 
-TAREA 3 - FrmHorarios (JFrame, constructor con el Usuario). Dibuja la ventana en el diseñador y
+TAREA 3 - FrmHorarios (JInternalFrame, constructor con el Usuario). Dibuja la ventana en el diseñador y
 dame la lista de componentes. Arriba un combo con los grupos del periodo activo (GrupoDAO.listar;
 el COORDINADOR solo ve los de su carrera con usuario.getCarreraId()). Al elegir un grupo se llena
 la tabla con sus horarios (HorarioDAO.listarPorGrupo). Formulario: día (combo de Lunes a Domingo
@@ -347,14 +371,14 @@ docenteId como Integer: si es null no filtran. Los grupos se listan del periodo 
 asignaturaNombre, asignaturaNivel y el nombre del docente (con JOIN). insertar usa el periodo
 activo (PeriodoDAO.obtenerActivo) como periodo_id.
 
-TAREA 2 - FrmGrupos (JFrame, constructor con el Usuario). Dibuja la ventana en el diseñador y dame
+TAREA 2 - FrmGrupos (JInternalFrame, constructor con el Usuario). Dibuja la ventana en el diseñador y dame
 la lista de componentes. Tabla de grupos del periodo activo (GrupoDAO.listar) y formulario:
-asignatura (combo, de AsignaturaDAO.listar), paralelo (texto corto) y docente (combo de usuarios
+asignatura (combo, de AsignaturaDAO.listar), paralelo (tres JRadioButton: A, B y C, con un ButtonGroup) y docente (combo de usuarios
 con perfil DOCENTE, UsuarioDAO.listarPorPerfil). Botones Agregar, Modificar y Eliminar. Valida que
 el paralelo no esté vacío y que no se repita la misma asignatura con el mismo paralelo. El
 COORDINADOR solo ve y crea grupos de las asignaturas de su carrera (usuario.getCarreraId()).
 
-TAREA 3 - FrmNotas (JFrame, constructor con el Usuario). Dibuja la ventana en el
+TAREA 3 - FrmNotas (JInternalFrame, constructor con el Usuario). Dibuja la ventana en el
 diseñador y dame la lista de componentes. El docente elige uno de sus grupos en un combo
 (GrupoDAO.listar(null, usuario.getId()) si es DOCENTE; todos los grupos si es ADMIN). Se
 llena una tabla con los estudiantes matriculados (MatriculaDAO.listarPorGrupo) y su nota. La
@@ -362,11 +386,10 @@ columna Nota es editable. Botón Guardar: valida que cada nota esté vacía o en
 a MatriculaDAO.actualizarNota (nota null si está vacía). Guarda una lista paralela de las
 matrículas para saber a qué estudiante corresponde cada fila.
 
-TAREA 4 - FrmReportes (JFrame, constructor con el Usuario). Dibuja la ventana en el
+TAREA 4 - FrmReportes (JInternalFrame, constructor con el Usuario). Dibuja la ventana en el
 diseñador y dame la lista de componentes. Tiene un combo de grupos (el DOCENTE ve los suyos, el
 COORDINADOR los de su carrera con GrupoDAO.listar(usuario.getCarreraId(), null), el ADMIN
-todos), una caja de fecha (texto yyyy-MM-dd, con la de hoy por defecto) y dos botones: "Asistencia
-de la clase" y "Total por estudiante". Cada botón abre su reporte de iReport. Este es el código
+todos), una caja de fecha (texto yyyy-MM-dd, con la de hoy por defecto), dos botones de opción (JRadioButton con un ButtonGroup): "Asistencia de la clase" y "Total por estudiante", y un botón Generar que abre el reporte elegido. Opcional, si hay tiempo: un botón "Guardar PDF" que use JFileChooser.showSaveDialog para elegir dónde guardar y JasperExportManager.exportReportToPdfFile. Este es el código
 que hicimos en clase para abrir un reporte; adáptalo (nombre del archivo, parámetros
 P_GRUPO_ID y P_FECHA como String, y una RUTA RELATIVA como "reportes/asistencia_clase.jrxml",
 nunca una ruta de C:\):
