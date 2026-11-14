@@ -228,11 +228,15 @@ public class VentanaPrincipal extends javax.swing.JFrame {
     }//GEN-LAST:event_jmniMatriculaActionPerformed
 
     private void jmniCerrarSesionActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jmniCerrarSesionActionPerformed
-        // TODO add your handling code here:
+        this.dispose();
+        new VentanaLogin().setVisible(true);
     }//GEN-LAST:event_jmniCerrarSesionActionPerformed
 
     private void jmniSalirActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jmniSalirActionPerformed
-        // TODO add your handling code here:
+        int opcion = JOptionPane.showConfirmDialog(null, "¿Desea salir del sistema?", "Salir", JOptionPane.YES_NO_OPTION);
+        if (opcion == JOptionPane.YES_OPTION) {
+            System.exit(0);
+        }
     }//GEN-LAST:event_jmniSalirActionPerformed
 
     private void jmniUsuariosActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jmniUsuariosActionPerformed
