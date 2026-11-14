@@ -52,7 +52,7 @@ El lector escribe el código de la tarjeta y presiona Enter, igual que un teclad
 ```
 src/asistenciarfid/
 ├── modelo/        (M) Clases de datos
-├── vista/         (V) Ventanas Swing (JFrame Form)
+├── vista/         (V) Ventana principal (JFrame con JDesktopPane) y ventanas internas
 ├── controlador/   (C) Reglas del sistema, llaman a los DAO
 ├── dao/           Acceso a la base de datos (clases con métodos static, como en clase)
 ├── db/            Conexion
@@ -134,16 +134,18 @@ Ejemplos: `feat(login): valida campos vacíos`, `fix(matricula): corrige el lím
 
 ## Cómo trabajar tu ventana (Swing)
 
-Las ventanas se diseñan con el editor visual de NetBeans, como en clase. Las 10 ventanas del sistema **ya existen vacías** en el paquete `vista` (`FrmXxx`), con su constructor que recibe el `Usuario`. No hay que crearlas.
+Como en clase: la ventana principal es un `JFrame` con un **escritorio** (`JDesktopPane`) y una barra de menú, y las demás son **ventanas internas** (`JInternalFrame`) que se abren dentro del escritorio. Las 10 ventanas (`FrmXxx`) **ya existen vacías** en el paquete `vista`, con su constructor que recibe el `Usuario`. No hay que crearlas.
 
-1. Abre tu ventana con doble clic y entra a la pestaña **Design**. Arrastra los componentes desde la paleta.
+1. Abre tu ventana con doble clic y entra a la pestaña **Design**. Arrastra los componentes desde la paleta. El componente de cada campo está en la tabla *Componentes por ventana* de [docs/REPARTO.md](docs/REPARTO.md).
 2. Ponle nombre a cada componente (clic derecho → *Change Variable Name*) con prefijo:
-   `jtxt` (cajas de texto), `jbtn` (botones), `jtb` (tablas), `jcmb` (combos), `jlbl` (etiquetas),
-   `jchk` (casillas), `jspn` (spinner), `jpwd` (clave). Ejemplo: `jtxtNombre`, `jbtnGuardar`.
+   `jtxt` (cajas de texto), `jpwd` (clave), `jcbx` (combos), `jrbtn` (botones de opción, con su `ButtonGroup`), `jchk` (casillas),
+   `jspn` (spinner), `jsld` (deslizador), `jtbtn` (botón de alternar), `jtbl` (tablas), `jbtn` (botones), `jlbl` (etiquetas).
+   Ejemplo: `jtxtNombre`, `jbtnGuardar`.
 3. Los métodos (cargar la tabla, guardar...) se escriben **fuera** del bloque gris "Generated Code", que no se toca.
-4. Al subir tu trabajo, sube **los dos archivos**: `FrmXxx.java` y `FrmXxx.form`.
+4. Las ventanas de agregar, modificar y eliminar usan el flujo de clase, con los botones **Nuevo, Guardar, Editar, Eliminar y Cancelar**: al abrir, las cajas están deshabilitadas y solo está activo Nuevo; Nuevo habilita las cajas; al seleccionar una fila se habilitan Editar y Eliminar; Cancelar limpia todo y vuelve al inicio. Un método `validarCampos()` devuelve `false` (con un `JOptionPane` y `requestFocus()`) si algo está mal.
+5. Al subir tu trabajo, sube **los dos archivos**: `FrmXxx.java` y `FrmXxx.form`.
 
-Si necesitas una ventana nueva: clic derecho sobre `vista` → **New → Other → Swing GUI Forms → JFrame Form**, solo se le pone el nombre. Después agrega el constructor que recibe el usuario, debajo del que genera NetBeans:
+Si necesitas una ventana nueva: clic derecho sobre `vista` → **New → Other → Swing GUI Forms → JFrame Form**, solo se le pone el nombre. Después, como en clase, cambia `extends javax.swing.JFrame` por `extends javax.swing.JInternalFrame` y agrega, debajo del constructor que genera NetBeans (con `import asistenciarfid.modelo.Usuario;`):
 
 ```java
     private Usuario usuario;
@@ -151,12 +153,12 @@ Si necesitas una ventana nueva: clic derecho sobre `vista` → **New → Other �
     public FrmXxx(Usuario usuario) {
         initComponents();
         this.usuario = usuario;
-        setLocationRelativeTo(null);
+        setClosable(true);
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
     }
 ```
 
-La línea `DISPOSE_ON_CLOSE` es necesaria: un `JFrame` nuevo trae `EXIT_ON_CLOSE`, que cerraría todo el programa al cerrar la ventana.
+Las dos últimas líneas son necesarias: sin ellas la ventana interna no tiene el botón de cerrar, o no se cierra.
 
 ## Estado del proyecto
 
@@ -200,22 +202,16 @@ Todos programan y todos revisan. Cada PR tiene un revisor principal y uno de res
 - Quien aprueba el PR y comprueba que compila y funciona, hace el merge a `develop`.
 - Un PR debe ser pequeño: una sola funcionalidad.
 
-## Issues y dependencias
+## Dependencias
 
-Cada entrega (un `DAO`, una ventana, un controlador) tiene un **issue** en la pestaña *Issues* de GitHub, asignado a su dueño y con la línea **Depende de**. Así se sabe de quién depende cada uno.
-
-- **Antes de empezar**, lee en tu issue la línea *Depende de*. Si lo que necesitas todavía no está en `develop`, ponle la etiqueta `bloqueado` y avisa en ese issue con @mención a la persona de la que dependes. Mientras tanto, avanza con datos de ejemplo.
-- **Cuando tu PR se mezcla** y desbloquea a otras personas, comenta en sus issues que ya pueden seguir y quita la etiqueta `bloqueado`.
-- **En la descripción de tu PR** escribe `Closes #N` (el número de tu issue). Al mezclarlo en `develop`, el issue se cierra solo.
-- **Etiquetas:** `dao`, `controlador`, `vista`, `reportes`, `docs`, `bloqueado`, `en-revision`.
-- Para crear un issue, usa la plantilla *Tarea*.
+Si dependes de una parte que todavía no está en `develop`, avisa en el grupo con @mención a la persona y avanza con datos de ejemplo. Cuando tu PR se mezcle, avisa en el grupo a quienes dependían de ti. La tabla *Quién necesita a quién* de [docs/REPARTO.md](docs/REPARTO.md) dice quién depende de quién.
 
 ## Cómo abrir un Pull Request
 
 1. Sube tu rama: `git push -u origin feature/nombre-de-la-tarea`
 2. En GitHub aparece el botón **Compare & pull request**. Pulsa ahí.
 3. Verifica que diga **base: `develop`** ← **compare: tu rama**. Nunca `main`.
-4. Llena la plantilla (sobre todo "Cómo probarlo") y escribe `Closes #N` con el número de tu issue.
+4. Llena la plantilla (sobre todo "Cómo probarlo").
 5. En el panel derecho, **Reviewers**, elige a tu revisor principal y avisa en el grupo.
 6. Si te piden cambios, haz commit y push a la misma rama: el PR se actualiza solo.
 
