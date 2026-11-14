@@ -9,6 +9,12 @@ package asistenciarfid.modelo;
  * @author USER
  */
 
-public enum Perfil {
-    ADMIN, COORDINADOR, DOCENTE, REGISTRO
+public class Perfil {
+
+    public static final String ADMIN = "ADMIN";
+    public static final String COORDINADOR = "COORDINADOR";
+    public static final String DOCENTE = "DOCENTE";
+    public static final String REGISTRO = "REGISTRO";
+    public static final String ESTUDIANTE = "ESTUDIANTE";
+    
 }

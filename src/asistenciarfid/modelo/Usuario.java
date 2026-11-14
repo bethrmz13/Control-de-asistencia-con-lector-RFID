@@ -14,8 +14,8 @@ public class Usuario {
     private int id;
     private String username;
     private String nombre;
-    private Perfil perfil;
-    private Integer carreraId;   
+    private String perfil;        // una constante de la clase Perfil (ADMIN, DOCENTE...)
+    private Integer carreraId;    // solo se usa si el perfil es COORDINADOR (si no, null)
     private boolean activo;
 
     public Usuario() {
@@ -30,8 +30,8 @@ public class Usuario {
     public String getNombre() { return nombre; }
     public void setNombre(String nombre) { this.nombre = nombre; }
 
-    public Perfil getPerfil() { return perfil; }
-    public void setPerfil(Perfil perfil) { this.perfil = perfil; }
+    public String getPerfil() { return perfil; }
+    public void setPerfil(String perfil) { this.perfil = perfil; }
 
     public Integer getCarreraId() { return carreraId; }
     public void setCarreraId(Integer carreraId) { this.carreraId = carreraId; }
