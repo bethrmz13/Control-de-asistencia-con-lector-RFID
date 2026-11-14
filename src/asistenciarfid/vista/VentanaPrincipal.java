@@ -224,7 +224,7 @@ public class VentanaPrincipal extends javax.swing.JFrame {
     }// </editor-fold>//GEN-END:initComponents
 
     private void jmniMatriculaActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jmniMatriculaActionPerformed
-        // TODO add your handling code here:
+        abrirVentana(new FrmMatricula(usuario));
     }//GEN-LAST:event_jmniMatriculaActionPerformed
 
     private void jmniCerrarSesionActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jmniCerrarSesionActionPerformed
@@ -236,39 +236,39 @@ public class VentanaPrincipal extends javax.swing.JFrame {
     }//GEN-LAST:event_jmniSalirActionPerformed
 
     private void jmniUsuariosActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jmniUsuariosActionPerformed
-        // TODO add your handling code here:
+        abrirVentana(new FrmUsuarios(usuario));
     }//GEN-LAST:event_jmniUsuariosActionPerformed
 
     private void jmniEstudiantesActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jmniEstudiantesActionPerformed
-        // TODO add your handling code here:
+        abrirVentana(new FrmEstudiantes(usuario));
     }//GEN-LAST:event_jmniEstudiantesActionPerformed
 
     private void jmniPeriodosActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jmniPeriodosActionPerformed
-        // TODO add your handling code here:
+        abrirVentana(new FrmPeriodos(usuario));
     }//GEN-LAST:event_jmniPeriodosActionPerformed
 
     private void jmniAsignaturasActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jmniAsignaturasActionPerformed
-        // TODO add your handling code here:
+        abrirVentana(new FrmAsignaturas(usuario));
     }//GEN-LAST:event_jmniAsignaturasActionPerformed
 
     private void jmniGruposActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jmniGruposActionPerformed
-        // TODO add your handling code here:
+        abrirVentana(new FrmGrupos(usuario));
     }//GEN-LAST:event_jmniGruposActionPerformed
 
     private void jmniHorariosActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jmniHorariosActionPerformed
-        // TODO add your handling code here:
+        abrirVentana(new FrmHorarios(usuario));
     }//GEN-LAST:event_jmniHorariosActionPerformed
 
     private void jmniRegistroActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jmniRegistroActionPerformed
-        // TODO add your handling code here:
+        abrirVentana(new FrmRegistro(usuario));
     }//GEN-LAST:event_jmniRegistroActionPerformed
 
     private void jmniNotasActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jmniNotasActionPerformed
-        // TODO add your handling code here:
+        abrirVentana(new FrmNotas(usuario));
     }//GEN-LAST:event_jmniNotasActionPerformed
 
     private void jmniReportesActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jmniReportesActionPerformed
-        // TODO add your handling code here:
+        abrirVentana(new FrmReportes(usuario));
     }//GEN-LAST:event_jmniReportesActionPerformed
 
     /**
