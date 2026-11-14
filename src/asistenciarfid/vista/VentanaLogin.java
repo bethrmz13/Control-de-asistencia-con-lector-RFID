@@ -47,8 +47,9 @@ public class VentanaLogin extends javax.swing.JFrame {
             return;
         }
 
-        // PROVISIONAL: en el siguiente paso aquí se abre la ventana principal
-        JOptionPane.showMessageDialog(null, "Bienvenido " + u.getNombre() + " (" + u.getPerfil() + ")");
+        VentanaPrincipal principal = new VentanaPrincipal(u);
+        principal.setVisible(true);
+        this.dispose();
     }
 
     /**
