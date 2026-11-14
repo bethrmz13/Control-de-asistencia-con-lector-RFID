@@ -51,6 +51,7 @@ public class VentanaPrincipal extends javax.swing.JFrame {
         jmniRegistro.setVisible(false);
         jmniNotas.setVisible(false);
         jmniReportes.setVisible(false);
+                jmniConsulta.setVisible(false);
 
         // 2. Se muestra lo que corresponde
         if (perfil.equals(Perfil.ADMIN)) {
@@ -82,6 +83,7 @@ public class VentanaPrincipal extends javax.swing.JFrame {
             jmniRegistro.setVisible(true);
         } else if (perfil.equals(Perfil.ESTUDIANTE)) {
             jmnuMatricula.setVisible(true);
+            jmniConsulta.setVisible(true);
         }
     }
 
@@ -129,6 +131,7 @@ public class VentanaPrincipal extends javax.swing.JFrame {
         jmniReportes = new javax.swing.JMenuItem();
         jmnuMatricula = new javax.swing.JMenu();
         jmniMatricula = new javax.swing.JMenuItem();
+        jmniConsulta = new javax.swing.JMenuItem();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
@@ -205,6 +208,10 @@ public class VentanaPrincipal extends javax.swing.JFrame {
         jmniMatricula.addActionListener(this::jmniMatriculaActionPerformed);
         jmnuMatricula.add(jmniMatricula);
 
+        jmniConsulta.setText("Mis notas y asistencia");
+        jmniConsulta.addActionListener(this::jmniConsultaActionPerformed);
+        jmnuMatricula.add(jmniConsulta);
+
         Matricularme.add(jmnuMatricula);
 
         setJMenuBar(Matricularme);
@@ -275,6 +282,10 @@ public class VentanaPrincipal extends javax.swing.JFrame {
         abrirVentana(new FrmReportes(usuario));
     }//GEN-LAST:event_jmniReportesActionPerformed
 
+    private void jmniConsultaActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jmniConsultaActionPerformed
+        abrirVentana(new FrmConsultaEstudiante(usuario));
+    }//GEN-LAST:event_jmniConsultaActionPerformed
+
     /**
      * @param args the command line arguments
      */
@@ -305,6 +316,7 @@ public class VentanaPrincipal extends javax.swing.JFrame {
     private javax.swing.JDesktopPane jdskPrincipal;
     private javax.swing.JMenuItem jmniAsignaturas;
     private javax.swing.JMenuItem jmniCerrarSesion;
+    private javax.swing.JMenuItem jmniConsulta;
     private javax.swing.JMenuItem jmniEstudiantes;
     private javax.swing.JMenuItem jmniGrupos;
     private javax.swing.JMenuItem jmniHorarios;
