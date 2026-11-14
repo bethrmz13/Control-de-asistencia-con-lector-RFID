@@ -60,7 +60,7 @@ src/asistenciarfid/
 src/plugins/       Librerías .jar (conector MySQL y JasperReports)
 reportes/          Reportes de iReport (.jrxml)
 db/                Script de la base de datos (schema.sql)
-docs/              Reparto de tareas y prompts para la IA
+docs/              Reparto de tareas
 ```
 
 ## Reglas de negocio
