@@ -10,7 +10,7 @@ import asistenciarfid.modelo.Usuario;
  *
  * @author USER
  */
-public class FrmReportes extends javax.swing.JFrame {
+public class FrmReportes extends javax.swing.JInternalFrame {
     
     private static final java.util.logging.Logger logger = java.util.logging.Logger.getLogger(FrmReportes.class.getName());
 
@@ -26,7 +26,7 @@ public class FrmReportes extends javax.swing.JFrame {
     public FrmReportes(Usuario usuario) {
         initComponents();
         this.usuario = usuario;
-        setLocationRelativeTo(null);
+        setClosable(true);
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
     }
 
