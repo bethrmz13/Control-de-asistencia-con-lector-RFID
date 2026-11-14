@@ -76,6 +76,7 @@ docs/              Reparto de tareas
 - La abre y la cierra el administrador por periodo.
 - El estudiante se matricula en **máximo 5 materias** por periodo, eligiendo materia y paralelo.
 - Solo ve materias de su carrera, de su nivel o inferiores, con estado `AUN_NO_CURSA` o `REPROBADA`. No puede tomar dos horarios que se choquen.
+- El estudiante también puede **consultar** sus notas, sus asistencias del periodo y su récord académico, sin poder modificarlos.
 
 ### Notas y niveles
 
@@ -91,7 +92,7 @@ docs/              Reparto de tareas
 | COORDINADOR | Gestiona estudiantes, materias y horarios **solo de su carrera** |
 | DOCENTE | Registra notas y ve reportes de sus grupos |
 | REGISTRO | Solo la pantalla de lectura de tarjetas |
-| ESTUDIANTE | Se matricula cuando el periodo está abierto |
+| ESTUDIANTE | Se matricula cuando el periodo está abierto y consulta sus notas y asistencias (solo lectura) |
 
 ## Flujo de trabajo en Git
 
@@ -134,7 +135,7 @@ Ejemplos: `feat(login): valida campos vacíos`, `fix(matricula): corrige el lím
 
 ## Cómo trabajar tu ventana (Swing)
 
-Como en clase: la ventana principal es un `JFrame` con un **escritorio** (`JDesktopPane`) y una barra de menú, y las demás son **ventanas internas** (`JInternalFrame`) que se abren dentro del escritorio. Las 10 ventanas (`FrmXxx`) **ya existen vacías** en el paquete `vista`, con su constructor que recibe el `Usuario`. No hay que crearlas.
+Como en clase: la ventana principal es un `JFrame` con un **escritorio** (`JDesktopPane`) y una barra de menú, y las demás son **ventanas internas** (`JInternalFrame`) que se abren dentro del escritorio. Las 11 ventanas (`FrmXxx`) **ya existen vacías** en el paquete `vista`, con su constructor que recibe el `Usuario`. No hay que crearlas.
 
 1. Abre tu ventana con doble clic y entra a la pestaña **Design**. Arrastra los componentes desde la paleta. El componente de cada campo está en la tabla *Componentes por ventana* de [docs/REPARTO.md](docs/REPARTO.md).
 2. Ponle nombre a cada componente (clic derecho → *Change Variable Name*) con prefijo:
@@ -180,7 +181,7 @@ Quién hace qué, el orden de trabajo, los casos de prueba y cómo se cubre la g
 | Ali | Líder e integración |
 | Damaris | Lógica central |
 | Evelyn | Estudiantes y matrícula |
-| Tatiana | Ventana de asignaturas |
+| Tatiana | Ventanas de asignaturas y de consulta del estudiante |
 | Brayan | DAO sencillos, usuarios, horarios y documentación |
 | Victoria | Grupos, notas y reportes |
 

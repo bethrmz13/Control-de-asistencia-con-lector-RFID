@@ -16,7 +16,7 @@ Reglas del sistema (resumen):
 - **Asistencia:** la tarjeta solo registra si el estudiante está matriculado en una clase de hoy y pasa la tarjeta **desde la hora de inicio hasta 15 minutos después**. Nada antes del inicio.
 - **Matrícula:** la abre y cierra el admin. El estudiante se matricula en **máximo 5 materias** por periodo, escogiendo materia y paralelo. Solo ve materias de su carrera, de su nivel o inferiores, que estén `AUN_NO_CURSA` o `REPROBADA`. No puede tomar dos horarios que se choquen.
 - **Notas y niveles:** el docente registra las notas. Al cerrar el periodo, 7 o más es `APROBADA` y menos de 7 es `REPROBADA`. Si aprobó todo lo que matriculó sube de nivel; si reprobó algo, el admin define su nivel.
-- **Perfiles:** ADMIN, COORDINADOR (solo su carrera), DOCENTE, REGISTRO (solo lectura de tarjeta) y ESTUDIANTE (solo matrícula).
+- **Perfiles:** ADMIN, COORDINADOR (solo su carrera), DOCENTE, REGISTRO (solo lectura de tarjeta) y ESTUDIANTE (matrícula y consulta de sus notas y asistencias, solo lectura).
 
 ## 2. Reglas del equipo
 
@@ -62,7 +62,7 @@ El cuerpo de cada método de `dao` y de `controlador` lo escribe su dueño: se r
 | **Ali** | Líder e integración | `UsuarioDAO`, `VentanaLogin`, `VentanaPrincipal`, `FrmRegistro` (lectura de tarjeta), `FrmPeriodos`, `AsistenciaRFID` (main), `db/schema.sql` |
 | **Damaris** | Lógica central | `HorarioDAO`, `AsistenciaDAO`, `MatriculaDAO`, `AsistenciaControlador`, `MatriculaControlador`, `CierrePeriodoControlador`, `PruebaLogica` |
 | **Evelyn** | Estudiantes y matrícula | `EstudianteDAO`, `RegistroAcademicoDAO`, `FrmEstudiantes`, `FrmMatricula` (vista del estudiante) |
-| **Tatiana** | Ventana de asignaturas | `FrmAsignaturas` |
+| **Tatiana** | Ventanas de asignaturas y de consulta | `FrmAsignaturas`, `FrmConsultaEstudiante` |
 | **Brayan** | DAO sencillos, usuarios, horarios y documentación | `CarreraDAO`, `AsignaturaDAO`, `PeriodoDAO`, `FrmUsuarios`, `FrmHorarios`, capturas y guía APE |
 | **Victoria** | Grupos, notas y reportes | `GrupoDAO`, `FrmGrupos`, `FrmNotas`, `FrmReportes`, reportes de iReport (`reportes/*.jrxml`) |
 
@@ -73,6 +73,7 @@ El cuerpo de cada método de `dao` y de `controlador` lo escribe su dueño: se r
 | Las ventanas con datos reales | Los `DAO` de su tema (cada uno hace los suyos primero) |
 | `FrmUsuarios` (Brayan) | `UsuarioDAO` (Ali) y `CarreraDAO` (Brayan) |
 | `FrmAsignaturas` (Tatiana) | `AsignaturaDAO` y `CarreraDAO` (Brayan) |
+| `FrmConsultaEstudiante` (Tatiana) | `EstudianteDAO` y `RegistroAcademicoDAO` (Evelyn), `MatriculaDAO` y `AsistenciaDAO` (Damaris), `PeriodoDAO` (Brayan) |
 | `FrmHorarios` (Brayan) | `HorarioDAO` (Damaris) y `GrupoDAO` (Victoria) |
 | `FrmGrupos` (Victoria) | `GrupoDAO` (Victoria), `AsignaturaDAO` (Brayan) y `UsuarioDAO` (Ali) |
 | `FrmPeriodos` (Ali) | `PeriodoDAO` (Brayan) y `CierrePeriodoControlador` (Damaris) |
@@ -161,14 +162,15 @@ PR sugeridos: `feat(dao): implementa DAO de estudiantes y registro académico`, 
 
 **Debe poder explicar:** cómo se crea un estudiante con su usuario, cómo se genera la tabla de materias, qué se hace si un paso falla (se borra lo ya guardado) y por qué la ventana de matrícula no decide las reglas (las decide el controlador).
 
-### Tatiana: ventana de asignaturas
+### Tatiana: asignaturas y consulta del estudiante
 
 - **`FrmAsignaturas`:** agregar, modificar y eliminar asignaturas (nombre, nivel de 1 a 10, carrera). El coordinador solo ve la de su carrera. Es una ventana independiente: nadie necesita su resultado para avanzar, y las asignaturas también vienen del script de la base de datos.
+- **`FrmConsultaEstudiante`:** ventana de **solo lectura** donde el estudiante consulta lo suyo. Muestra su nombre y su nivel, una tabla con una fila por cada matrícula del periodo activo (asignatura, paralelo, **asistencias** y **nota**, o "Sin nota") y otra tabla con su **récord académico** (nivel, asignatura y estado: aprobada, reprobada o aún no cursa). Solo se muestran los datos del estudiante que inició sesión. No usa métodos nuevos: todo sale de los DAO que ya están en el contrato.
 - **Opcional:** apoyar con las pruebas (probar en `develop` los casos de la tabla de Damaris) y con las capturas de pantalla para la documentación.
 
-PR sugerido: `feat(asignaturas): agrega ventana de asignaturas`.
+PR sugeridos: `feat(asignaturas): agrega ventana de asignaturas`, `feat(consulta): agrega ventana de consulta de notas y asistencias del estudiante`.
 
-**Debe poder explicar:** cómo se agrega, modifica y elimina una asignatura, y de dónde sale la lista de carreras.
+**Debe poder explicar:** cómo se agrega, modifica y elimina una asignatura, de dónde sale la lista de carreras, y cómo se obtienen las asistencias y la nota de cada materia del estudiante.
 
 ### Brayan: DAO sencillos, usuarios, horarios y documentación
 
@@ -309,6 +311,8 @@ La guía pide usar el componente que corresponde al tipo de dato. Estos son los 
 | | matrícula abierta | `JToggleButton` |
 | `FrmMatricula` | materias disponibles y matriculadas | `JTable` |
 | | cuántas lleva (de 5) | `JProgressBar` |
+| `FrmConsultaEstudiante` | nombre y nivel del estudiante | `JLabel` |
+| | notas y asistencias del periodo, récord académico | `JTable` (solo lectura) |
 | `FrmNotas` | grupo | `JComboBox` |
 | | nota | `JTable` con la columna editable |
 | `FrmRegistro` | código de la tarjeta | `JTextField` (siempre con el foco) |
