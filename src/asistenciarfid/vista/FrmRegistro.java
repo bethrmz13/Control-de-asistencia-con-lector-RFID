@@ -7,11 +7,13 @@ package asistenciarfid.vista;
 import asistenciarfid.modelo.Usuario;
 import asistenciarfid.controlador.AsistenciaControlador;
 import asistenciarfid.modelo.Estado;
+import asistenciarfid.modelo.Perfil;
 import asistenciarfid.modelo.ResultadoRegistro;
 import java.awt.Color;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import javax.swing.JOptionPane;
+
 
 /**
  *
@@ -37,6 +39,11 @@ public class FrmRegistro extends javax.swing.JInternalFrame {
         setClosable(true);
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
         jtxtFechaSimulada.setEnabled(false);
+        // En el puesto de lectura (perfil REGISTRO) no se puede simular la hora: solo la usa el personal
+        if (usuario.getPerfil().equals(Perfil.REGISTRO)) {
+            jchkSimular.setVisible(false);
+            jtxtFechaSimulada.setVisible(false);
+        }
         limpiarResultado();
     }
     
@@ -48,6 +55,17 @@ public class FrmRegistro extends javax.swing.JInternalFrame {
         }
 
         Date ahora = new Date();
+        if (jchkSimular.isSelected()) {
+            try {
+                SimpleDateFormat formato = new SimpleDateFormat("yyyy-MM-dd HH:mm");
+                formato.setLenient(false);
+                ahora = formato.parse(jtxtFechaSimulada.getText().trim());
+            } catch (java.text.ParseException ex) {
+                JOptionPane.showMessageDialog(null, "Fecha y hora inválidas. Use el formato 2026-11-09 16:10");
+                jtxtFechaSimulada.requestFocus();
+                return;
+            }
+        }
 
         ResultadoRegistro res = AsistenciaControlador.registrarPorCodigo(codigo, ahora);
         mostrarResultado(res, ahora);
@@ -128,6 +146,7 @@ public class FrmRegistro extends javax.swing.JInternalFrame {
             }
         });
 
+        jlblTitulo.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
         jlblTitulo.setText("ACERQUE SU TARJETA");
 
         jtxtCodigo.addActionListener(this::jtxtCodigoActionPerformed);
@@ -187,11 +206,11 @@ public class FrmRegistro extends javax.swing.JInternalFrame {
                                 .addComponent(jtxtFechaSimulada, javax.swing.GroupLayout.PREFERRED_SIZE, 109, javax.swing.GroupLayout.PREFERRED_SIZE))))
                     .addGroup(layout.createSequentialGroup()
                         .addGap(213, 213, 213)
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(jtxtCodigo, javax.swing.GroupLayout.PREFERRED_SIZE, 196, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                                .addComponent(jlblTitulo, javax.swing.GroupLayout.PREFERRED_SIZE, 132, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addGap(28, 28, 28)))))
+                        .addComponent(jtxtCodigo, javax.swing.GroupLayout.PREFERRED_SIZE, 196, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                        .addContainerGap()
+                        .addComponent(jlblTitulo, javax.swing.GroupLayout.PREFERRED_SIZE, 160, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(192, 192, 192)))
                 .addContainerGap(38, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
@@ -218,7 +237,11 @@ public class FrmRegistro extends javax.swing.JInternalFrame {
     }//GEN-LAST:event_jtxtCodigoActionPerformed
 
     private void jchkSimularActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jchkSimularActionPerformed
-        // TODO add your handling code here:
+        jtxtFechaSimulada.setEnabled(jchkSimular.isSelected());
+        if (jchkSimular.isSelected()) {
+            jtxtFechaSimulada.setText("2026-11-09 16:10");
+        }
+        jtxtCodigo.requestFocus();
     }//GEN-LAST:event_jchkSimularActionPerformed
 
     private void formInternalFrameActivated(javax.swing.event.InternalFrameEvent evt) {//GEN-FIRST:event_formInternalFrameActivated
