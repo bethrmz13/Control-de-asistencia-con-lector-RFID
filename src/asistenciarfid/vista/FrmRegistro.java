@@ -5,6 +5,15 @@
 package asistenciarfid.vista;
 
 import asistenciarfid.modelo.Usuario;
+import asistenciarfid.controlador.AsistenciaControlador;
+import asistenciarfid.modelo.Estado;
+import asistenciarfid.modelo.Perfil;
+import asistenciarfid.modelo.ResultadoRegistro;
+import java.awt.Color;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import javax.swing.JOptionPane;
+
 
 /**
  *
@@ -25,9 +34,79 @@ public class FrmRegistro extends javax.swing.JInternalFrame {
 
     public FrmRegistro(Usuario usuario) {
         initComponents();
+        setSize(620, 440);
         this.usuario = usuario;
         setClosable(true);
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
+        jtxtFechaSimulada.setEnabled(false);
+        // En el puesto de lectura (perfil REGISTRO) no se puede simular la hora: solo la usa el personal
+        if (usuario.getPerfil().equals(Perfil.REGISTRO)) {
+            jchkSimular.setVisible(false);
+            jtxtFechaSimulada.setVisible(false);
+        }
+        limpiarResultado();
+    }
+    
+        // Se llama al pulsar Enter en la caja del código (el lector escribe el código y pulsa Enter)
+    public void registrar() {
+        String codigo = jtxtCodigo.getText().trim();
+        if (codigo.isEmpty()) {
+            return;
+        }
+
+        Date ahora = new Date();
+        if (jchkSimular.isSelected()) {
+            try {
+                SimpleDateFormat formato = new SimpleDateFormat("yyyy-MM-dd HH:mm");
+                formato.setLenient(false);
+                ahora = formato.parse(jtxtFechaSimulada.getText().trim());
+            } catch (java.text.ParseException ex) {
+                JOptionPane.showMessageDialog(null, "Fecha y hora inválidas. Use el formato 2026-11-09 16:10");
+                jtxtFechaSimulada.requestFocus();
+                return;
+            }
+        }
+
+        ResultadoRegistro res = AsistenciaControlador.registrarPorCodigo(codigo, ahora);
+        mostrarResultado(res, ahora);
+
+        jtxtCodigo.setText("");
+        jtxtCodigo.requestFocus();
+    }
+
+    private void mostrarResultado(ResultadoRegistro res, Date ahora) {
+        String hora = new SimpleDateFormat("HH:mm").format(ahora);
+
+        if (res.getEstudiante() != null) {
+            jlblNombre.setText(res.getEstudiante().getNombre() + " " + res.getEstudiante().getApellido());
+        } else {
+            jlblNombre.setText("");
+        }
+
+        if (res.getHorario() != null) {
+            jlblDetalle.setText(res.getHorario().getAsignaturaNombre() + " - Paralelo "
+                    + res.getHorario().getParalelo() + " - " + hora);
+        } else {
+            jlblDetalle.setText(hora);
+        }
+
+        jlblEstado.setText(res.getMensaje());
+
+        String estado = res.getEstado();
+        if (estado.equals(Estado.REGISTRADO)) {
+            jpnlResultado.setBackground(new Color(144, 238, 144));    // verde
+        } else if (estado.equals(Estado.YA_REGISTRADO)) {
+            jpnlResultado.setBackground(new Color(255, 235, 130));    // amarillo
+        } else {
+            jpnlResultado.setBackground(new Color(255, 150, 150));    // rojo
+        }
+    }
+
+    private void limpiarResultado() {
+        jlblNombre.setText("");
+        jlblDetalle.setText("");
+        jlblEstado.setText("");
+        jpnlResultado.setBackground(Color.WHITE);
     }
 
     /**
@@ -39,21 +118,135 @@ public class FrmRegistro extends javax.swing.JInternalFrame {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
-        setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
+        jlblTitulo = new javax.swing.JLabel();
+        jtxtCodigo = new javax.swing.JTextField();
+        jpnlResultado = new javax.swing.JPanel();
+        jlblNombre = new javax.swing.JLabel();
+        jlblDetalle = new javax.swing.JLabel();
+        jlblEstado = new javax.swing.JLabel();
+        jchkSimular = new javax.swing.JCheckBox();
+        jtxtFechaSimulada = new javax.swing.JTextField();
+
+        setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
+        addInternalFrameListener(new javax.swing.event.InternalFrameListener() {
+            public void internalFrameActivated(javax.swing.event.InternalFrameEvent evt) {
+                formInternalFrameActivated(evt);
+            }
+            public void internalFrameClosed(javax.swing.event.InternalFrameEvent evt) {
+            }
+            public void internalFrameClosing(javax.swing.event.InternalFrameEvent evt) {
+            }
+            public void internalFrameDeactivated(javax.swing.event.InternalFrameEvent evt) {
+            }
+            public void internalFrameDeiconified(javax.swing.event.InternalFrameEvent evt) {
+            }
+            public void internalFrameIconified(javax.swing.event.InternalFrameEvent evt) {
+            }
+            public void internalFrameOpened(javax.swing.event.InternalFrameEvent evt) {
+            }
+        });
+
+        jlblTitulo.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        jlblTitulo.setText("ACERQUE SU TARJETA");
+
+        jtxtCodigo.addActionListener(this::jtxtCodigoActionPerformed);
+
+        jpnlResultado.setBorder(javax.swing.BorderFactory.createBevelBorder(javax.swing.border.BevelBorder.RAISED));
+        jpnlResultado.setPreferredSize(new java.awt.Dimension(560, 160));
+
+        jlblNombre.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        jlblNombre.setText("jLabel1");
+
+        jlblDetalle.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        jlblDetalle.setText("jLabel2");
+
+        jlblEstado.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        jlblEstado.setText("jLabel3");
+
+        javax.swing.GroupLayout jpnlResultadoLayout = new javax.swing.GroupLayout(jpnlResultado);
+        jpnlResultado.setLayout(jpnlResultadoLayout);
+        jpnlResultadoLayout.setHorizontalGroup(
+            jpnlResultadoLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jpnlResultadoLayout.createSequentialGroup()
+                .addGap(34, 34, 34)
+                .addGroup(jpnlResultadoLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(jlblEstado)
+                    .addComponent(jlblDetalle)
+                    .addComponent(jlblNombre))
+                .addContainerGap(484, Short.MAX_VALUE))
+        );
+        jpnlResultadoLayout.setVerticalGroup(
+            jpnlResultadoLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jpnlResultadoLayout.createSequentialGroup()
+                .addGap(23, 23, 23)
+                .addComponent(jlblNombre)
+                .addGap(18, 18, 18)
+                .addComponent(jlblDetalle)
+                .addGap(18, 18, 18)
+                .addComponent(jlblEstado)
+                .addContainerGap(49, Short.MAX_VALUE))
+        );
+
+        jchkSimular.setText("Simular fecha y hora");
+        jchkSimular.addActionListener(this::jchkSimularActionPerformed);
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 400, Short.MAX_VALUE)
+            .addGroup(layout.createSequentialGroup()
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(layout.createSequentialGroup()
+                        .addGap(29, 29, 29)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                            .addComponent(jpnlResultado, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addGroup(layout.createSequentialGroup()
+                                .addComponent(jchkSimular)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                .addComponent(jtxtFechaSimulada, javax.swing.GroupLayout.PREFERRED_SIZE, 109, javax.swing.GroupLayout.PREFERRED_SIZE))))
+                    .addGroup(layout.createSequentialGroup()
+                        .addGap(213, 213, 213)
+                        .addComponent(jtxtCodigo, javax.swing.GroupLayout.PREFERRED_SIZE, 196, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                        .addContainerGap()
+                        .addComponent(jlblTitulo, javax.swing.GroupLayout.PREFERRED_SIZE, 160, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(192, 192, 192)))
+                .addContainerGap(38, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 300, Short.MAX_VALUE)
+            .addGroup(layout.createSequentialGroup()
+                .addGap(11, 11, 11)
+                .addComponent(jlblTitulo)
+                .addGap(18, 18, 18)
+                .addComponent(jtxtCodigo, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(28, 28, 28)
+                .addComponent(jpnlResultado, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(18, 18, 18)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jchkSimular)
+                    .addComponent(jtxtFechaSimulada, javax.swing.GroupLayout.PREFERRED_SIZE, 20, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addContainerGap(49, Short.MAX_VALUE))
         );
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
+
+    private void jtxtCodigoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jtxtCodigoActionPerformed
+        registrar();
+    }//GEN-LAST:event_jtxtCodigoActionPerformed
+
+    private void jchkSimularActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jchkSimularActionPerformed
+        jtxtFechaSimulada.setEnabled(jchkSimular.isSelected());
+        if (jchkSimular.isSelected()) {
+            jtxtFechaSimulada.setText("2026-11-09 16:10");
+        }
+        jtxtCodigo.requestFocus();
+    }//GEN-LAST:event_jchkSimularActionPerformed
+
+    private void formInternalFrameActivated(javax.swing.event.InternalFrameEvent evt) {//GEN-FIRST:event_formInternalFrameActivated
+        jtxtCodigo.requestFocus();
+    }//GEN-LAST:event_formInternalFrameActivated
 
     /**
      * @param args the command line arguments
@@ -81,5 +274,13 @@ public class FrmRegistro extends javax.swing.JInternalFrame {
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JCheckBox jchkSimular;
+    private javax.swing.JLabel jlblDetalle;
+    private javax.swing.JLabel jlblEstado;
+    private javax.swing.JLabel jlblNombre;
+    private javax.swing.JLabel jlblTitulo;
+    private javax.swing.JPanel jpnlResultado;
+    private javax.swing.JTextField jtxtCodigo;
+    private javax.swing.JTextField jtxtFechaSimulada;
     // End of variables declaration//GEN-END:variables
 }

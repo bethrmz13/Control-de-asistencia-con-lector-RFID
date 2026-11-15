@@ -32,8 +32,31 @@ public class VentanaPrincipal extends javax.swing.JFrame {
         setTitle("Control de asistencia - " + usuario.getNombre() + " (" + usuario.getPerfil() + ")");
         setExtendedState(javax.swing.JFrame.MAXIMIZED_BOTH);
         configurarMenuSegunPerfil();
+        if (usuario.getPerfil().equals(Perfil.REGISTRO)) {
+            iniciarModoRegistro();
+        } 
     }
+    
+    // Modo puesto de lectura: sin menú y con la pantalla de registro fija, para que quien pase la
+    // tarjeta no pueda entrar a nada más del sistema
+    private void iniciarModoRegistro() {
+        getJMenuBar().setVisible(false);
 
+        FrmRegistro ventana = new FrmRegistro(usuario);
+        ventana.setClosable(false);
+        jdskPrincipal.add(ventana);
+        ventana.setVisible(true);
+
+        // Se maximiza cuando la ventana principal ya se mostró; si no, queda con tamaño cero
+        javax.swing.SwingUtilities.invokeLater(() -> {
+            try {
+                ventana.setMaximum(true);
+            } catch (java.beans.PropertyVetoException ex) {
+                JOptionPane.showMessageDialog(null, ex);
+            }
+        });
+    }
+    
     // Muestra solo las opciones que le corresponden a cada perfil
     public void configurarMenuSegunPerfil() {
         String perfil = usuario.getPerfil();
