@@ -5,6 +5,13 @@
 package asistenciarfid.vista;
 
 import asistenciarfid.modelo.Usuario;
+import asistenciarfid.controlador.AsistenciaControlador;
+import asistenciarfid.modelo.Estado;
+import asistenciarfid.modelo.ResultadoRegistro;
+import java.awt.Color;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import javax.swing.JOptionPane;
 
 /**
  *
@@ -28,6 +35,59 @@ public class FrmRegistro extends javax.swing.JInternalFrame {
         this.usuario = usuario;
         setClosable(true);
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
+        jtxtFechaSimulada.setEnabled(false);
+        limpiarResultado();
+    }
+    
+        // Se llama al pulsar Enter en la caja del código (el lector escribe el código y pulsa Enter)
+    public void registrar() {
+        String codigo = jtxtCodigo.getText().trim();
+        if (codigo.isEmpty()) {
+            return;
+        }
+
+        Date ahora = new Date();
+
+        ResultadoRegistro res = AsistenciaControlador.registrarPorCodigo(codigo, ahora);
+        mostrarResultado(res, ahora);
+
+        jtxtCodigo.setText("");
+        jtxtCodigo.requestFocus();
+    }
+
+    private void mostrarResultado(ResultadoRegistro res, Date ahora) {
+        String hora = new SimpleDateFormat("HH:mm").format(ahora);
+
+        if (res.getEstudiante() != null) {
+            jlblNombre.setText(res.getEstudiante().getNombre() + " " + res.getEstudiante().getApellido());
+        } else {
+            jlblNombre.setText("");
+        }
+
+        if (res.getHorario() != null) {
+            jlblDetalle.setText(res.getHorario().getAsignaturaNombre() + " - Paralelo "
+                    + res.getHorario().getParalelo() + " - " + hora);
+        } else {
+            jlblDetalle.setText(hora);
+        }
+
+        jlblEstado.setText(res.getMensaje());
+
+        String estado = res.getEstado();
+        if (estado.equals(Estado.REGISTRADO)) {
+            jpnlResultado.setBackground(new Color(144, 238, 144));    // verde
+        } else if (estado.equals(Estado.YA_REGISTRADO)) {
+            jpnlResultado.setBackground(new Color(255, 235, 130));    // amarillo
+        } else {
+            jpnlResultado.setBackground(new Color(255, 150, 150));    // rojo
+        }
+    }
+
+    private void limpiarResultado() {
+        jlblNombre.setText("");
+        jlblDetalle.setText("");
+        jlblEstado.setText("");
+        jpnlResultado.setBackground(Color.WHITE);
     }
 
     /**
@@ -41,12 +101,12 @@ public class FrmRegistro extends javax.swing.JInternalFrame {
 
         jlblTitulo = new javax.swing.JLabel();
         jtxtCodigo = new javax.swing.JTextField();
-        jPanel1 = new javax.swing.JPanel();
+        jpnlResultado = new javax.swing.JPanel();
         jlblNombre = new javax.swing.JLabel();
         jlblDetalle = new javax.swing.JLabel();
         jlblEstado = new javax.swing.JLabel();
         jchkSimular = new javax.swing.JCheckBox();
-        jtxtSimularHora = new javax.swing.JTextField();
+        jtxtFechaSimulada = new javax.swing.JTextField();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
         addInternalFrameListener(new javax.swing.event.InternalFrameListener() {
@@ -71,7 +131,7 @@ public class FrmRegistro extends javax.swing.JInternalFrame {
 
         jtxtCodigo.addActionListener(this::jtxtCodigoActionPerformed);
 
-        jPanel1.setBorder(javax.swing.BorderFactory.createBevelBorder(javax.swing.border.BevelBorder.RAISED));
+        jpnlResultado.setBorder(javax.swing.BorderFactory.createBevelBorder(javax.swing.border.BevelBorder.RAISED));
 
         jlblNombre.setText("jLabel1");
 
@@ -79,21 +139,21 @@ public class FrmRegistro extends javax.swing.JInternalFrame {
 
         jlblEstado.setText("jLabel3");
 
-        javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
-        jPanel1.setLayout(jPanel1Layout);
-        jPanel1Layout.setHorizontalGroup(
-            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel1Layout.createSequentialGroup()
+        javax.swing.GroupLayout jpnlResultadoLayout = new javax.swing.GroupLayout(jpnlResultado);
+        jpnlResultado.setLayout(jpnlResultadoLayout);
+        jpnlResultadoLayout.setHorizontalGroup(
+            jpnlResultadoLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jpnlResultadoLayout.createSequentialGroup()
                 .addGap(34, 34, 34)
-                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                .addGroup(jpnlResultadoLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(jlblEstado)
                     .addComponent(jlblDetalle)
                     .addComponent(jlblNombre))
                 .addContainerGap(266, Short.MAX_VALUE))
         );
-        jPanel1Layout.setVerticalGroup(
-            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel1Layout.createSequentialGroup()
+        jpnlResultadoLayout.setVerticalGroup(
+            jpnlResultadoLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jpnlResultadoLayout.createSequentialGroup()
                 .addGap(23, 23, 23)
                 .addComponent(jlblNombre)
                 .addGap(18, 18, 18)
@@ -110,39 +170,36 @@ public class FrmRegistro extends javax.swing.JInternalFrame {
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(layout.createSequentialGroup()
+                .addGap(29, 29, 29)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                    .addComponent(jpnlResultado, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addGroup(layout.createSequentialGroup()
+                        .addComponent(jchkSimular)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addComponent(jtxtFechaSimulada, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(43, 43, 43)))
+                .addContainerGap(29, Short.MAX_VALUE))
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addComponent(jlblTitulo, javax.swing.GroupLayout.PREFERRED_SIZE, 132, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                    .addComponent(jlblTitulo, javax.swing.GroupLayout.DEFAULT_SIZE, 132, Short.MAX_VALUE)
+                    .addComponent(jtxtCodigo))
                 .addGap(133, 133, 133))
-            .addGroup(layout.createSequentialGroup()
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(layout.createSequentialGroup()
-                        .addGap(158, 158, 158)
-                        .addComponent(jtxtCodigo, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                    .addGroup(layout.createSequentialGroup()
-                        .addGap(29, 29, 29)
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                            .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addGroup(layout.createSequentialGroup()
-                                .addComponent(jchkSimular)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                                .addComponent(jtxtSimularHora, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addGap(43, 43, 43)))))
-                .addContainerGap(29, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
                 .addComponent(jlblTitulo)
-                .addGap(26, 26, 26)
-                .addComponent(jtxtCodigo, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(18, 18, 18)
-                .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addComponent(jtxtCodigo, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(26, 26, 26)
+                .addComponent(jpnlResultado, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(25, 25, 25)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jchkSimular)
-                    .addComponent(jtxtSimularHora, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(jtxtFechaSimulada, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addContainerGap(25, Short.MAX_VALUE))
         );
 
@@ -150,7 +207,7 @@ public class FrmRegistro extends javax.swing.JInternalFrame {
     }// </editor-fold>//GEN-END:initComponents
 
     private void jtxtCodigoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jtxtCodigoActionPerformed
-        // TODO add your handling code here:
+        registrar();
     }//GEN-LAST:event_jtxtCodigoActionPerformed
 
     private void jchkSimularActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jchkSimularActionPerformed
@@ -158,7 +215,7 @@ public class FrmRegistro extends javax.swing.JInternalFrame {
     }//GEN-LAST:event_jchkSimularActionPerformed
 
     private void formInternalFrameActivated(javax.swing.event.InternalFrameEvent evt) {//GEN-FIRST:event_formInternalFrameActivated
-        // TODO add your handling code here:
+        jtxtCodigo.requestFocus();
     }//GEN-LAST:event_formInternalFrameActivated
 
     /**
@@ -187,13 +244,13 @@ public class FrmRegistro extends javax.swing.JInternalFrame {
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JPanel jPanel1;
     private javax.swing.JCheckBox jchkSimular;
     private javax.swing.JLabel jlblDetalle;
     private javax.swing.JLabel jlblEstado;
     private javax.swing.JLabel jlblNombre;
     private javax.swing.JLabel jlblTitulo;
+    private javax.swing.JPanel jpnlResultado;
     private javax.swing.JTextField jtxtCodigo;
-    private javax.swing.JTextField jtxtSimularHora;
+    private javax.swing.JTextField jtxtFechaSimulada;
     // End of variables declaration//GEN-END:variables
 }
