@@ -15,7 +15,8 @@ public class AsistenciaRFID {
      * @param args the command line arguments
      */
     public static void main(String[] args) {
-        java.awt.EventQueue.invokeLater(() -> new VentanaLogin().setVisible(true));
+        VentanaLogin v1=new VentanaLogin();
+        v1.setVisible(true);
     }
     
 }
