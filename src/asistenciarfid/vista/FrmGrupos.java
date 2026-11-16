@@ -10,6 +10,8 @@ import asistenciarfid.modelo.Asignatura;
 import asistenciarfid.modelo.Grupo;
 import asistenciarfid.modelo.Perfil;
 import asistenciarfid.modelo.Usuario;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JOptionPane;
@@ -31,11 +33,15 @@ public class FrmGrupos extends javax.swing.JInternalFrame {
     }
     
     private Usuario usuario;
-    private List<Grupo> listaGrupos;              // paralela a las filas de la tabla
-    private List<Asignatura> listaAsignaturas;    // paralela al combo (indice - 1)
-    private List<Usuario> listaDocentes;          // paralela al combo (indice - 1)
-    private boolean editando = false;             // false = Nuevo, true = Editar
-    private int grupoSeleccionadoId = 0;          // id del grupo elegido en la tabla
+   private List<Grupo> listaGrupos;                                       // paralela a las filas de la tabla
+    private List<Asignatura> listaAsignaturas = new ArrayList<>();         // todas las asignaturas que puede ver el usuario
+    private List<Integer> listaNiveles = new ArrayList<>();                // paralela al combo de nivel (indice - 1)
+    private List<Asignatura> asignaturasDelNivel = new ArrayList<>();      // paralela al combo de asignatura (indice - 1)
+    private List<Usuario> listaDocentes;                                   // paralela al combo de docente (indice - 1)
+    private boolean editando = false;                                      // false = Nuevo, true = Editar
+    private boolean camposActivos = false;                                 // true cuando se esta escribiendo (Nuevo o Editar)
+    private boolean cargando = false;                                      // true mientras se llenan los combos por codigo (ignora sus eventos)
+    private int grupoSeleccionadoId = 0;                                   // id del grupo elegido en la tabla
 
     public FrmGrupos(Usuario usuario) {
         initComponents();
@@ -43,6 +49,7 @@ public class FrmGrupos extends javax.swing.JInternalFrame {
         setClosable(true);
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
         cargarAsignaturas();
+        cargarNiveles();
         cargarDocentes();
         cargarTabla();
         InformacionInicio();
@@ -52,8 +59,17 @@ public class FrmGrupos extends javax.swing.JInternalFrame {
                 seleccionarFila();
             }
         });
+        // La cadena de filtros
+        jcbxNivel.addActionListener(e -> alElegirNivel());
+        jcbxAsignatura.addActionListener(e -> alElegirAsignatura());
+        jrbtnParaleloA.addActionListener(e -> actualizarHabilitados());
+        jrbtnParaleloB.addActionListener(e -> actualizarHabilitados());
+        jrbtnParaleloC.addActionListener(e -> actualizarHabilitados());
+        
     }
 
+    
+    // El COORDINADOR solo trabaja con su carrera; los demas ven todas (null)
     private Integer carreraDelUsuario() {
         if (usuario != null && Perfil.COORDINADOR.equals(usuario.getPerfil())) {
             return usuario.getCarreraId();
@@ -63,10 +79,41 @@ public class FrmGrupos extends javax.swing.JInternalFrame {
 
     private void cargarAsignaturas() {
         listaAsignaturas = AsignaturaDAO.listar(carreraDelUsuario());
+    }
+
+    // Combo de nivel: los niveles que de verdad tienen asignaturas
+    private void cargarNiveles() {
+        listaNiveles = new ArrayList<>();
+        for (Asignatura a : listaAsignaturas) {
+            if (!listaNiveles.contains(a.getNivel())) {
+                listaNiveles.add(a.getNivel());
+            }
+        }
+        Collections.sort(listaNiveles);
         DefaultComboBoxModel<String> modelo = new DefaultComboBoxModel<>();
         modelo.addElement("Seleccione");
-        for (Asignatura a : listaAsignaturas) {
-            modelo.addElement(a.getNombre() + " (nivel " + a.getNivel() + ")");
+        for (Integer nivel : listaNiveles) {
+            modelo.addElement("Nivel " + nivel);
+        }
+        jcbxNivel.setModel(modelo);
+    }
+
+    // Combo de asignatura: SOLO las del nivel elegido (si no hay nivel, queda vacio)
+    private void llenarAsignaturasDelNivel() {
+        asignaturasDelNivel = new ArrayList<>();
+        int indice = jcbxNivel.getSelectedIndex();
+        if (indice > 0) {
+            int nivel = listaNiveles.get(indice - 1);
+            for (Asignatura a : listaAsignaturas) {
+                if (a.getNivel() == nivel) {
+                    asignaturasDelNivel.add(a);
+                }
+            }
+        }
+        DefaultComboBoxModel<String> modelo = new DefaultComboBoxModel<>();
+        modelo.addElement("Seleccione");
+        for (Asignatura a : asignaturasDelNivel) {
+            modelo.addElement(a.getNombre());
         }
         jcbxAsignatura.setModel(modelo);
     }
@@ -109,7 +156,46 @@ public class FrmGrupos extends javax.swing.JInternalFrame {
         return "";
     }
 
-    // Al hacer clic en una fila se llenan los controles con ese grupo
+    // ---- La cadena: cada paso habilita el siguiente ----
+
+    private void alElegirNivel() {
+        if (cargando) {
+            return;
+        }
+        llenarAsignaturasDelNivel();     // solo las asignaturas de ese nivel
+        bgParalelo.clearSelection();     // lo que sigue se reinicia
+        jcbxDocente.setSelectedIndex(0);
+        actualizarHabilitados();
+    }
+
+    private void alElegirAsignatura() {
+        if (cargando) {
+            return;
+        }
+        bgParalelo.clearSelection();
+        jcbxDocente.setSelectedIndex(0);
+        actualizarHabilitados();
+    }
+
+    // Decide que controles se pueden usar segun lo que ya se eligio
+    private void actualizarHabilitados() {
+        boolean hayNivel = jcbxNivel.getSelectedIndex() > 0;
+        boolean hayAsignatura = jcbxAsignatura.getSelectedIndex() > 0;
+        boolean hayParalelo = !paraleloElegido().isEmpty();
+        jcbxNivel.setEnabled(camposActivos);
+        jcbxAsignatura.setEnabled(camposActivos && hayNivel);
+        jrbtnParaleloA.setEnabled(camposActivos && hayAsignatura);
+        jrbtnParaleloB.setEnabled(camposActivos && hayAsignatura);
+        jrbtnParaleloC.setEnabled(camposActivos && hayAsignatura);
+        jcbxDocente.setEnabled(camposActivos && hayAsignatura && hayParalelo);
+    }
+
+    private void habilitarCampos(boolean estado) {
+        camposActivos = estado;
+        actualizarHabilitados();
+    }
+
+    // Al hacer clic en una fila se llenan los controles con ese grupo (en el mismo orden de la cadena)
     private void seleccionarFila() {
         int fila = jtblGrupos.getSelectedRow();
         if (fila < 0) {
@@ -118,9 +204,16 @@ public class FrmGrupos extends javax.swing.JInternalFrame {
         Grupo g = listaGrupos.get(fila);
         grupoSeleccionadoId = g.getId();
 
-        jcbxAsignatura.setSelectedIndex(0);
-        for (int i = 0; i < listaAsignaturas.size(); i++) {
-            if (listaAsignaturas.get(i).getId() == g.getAsignaturaId()) {
+        cargando = true;
+        jcbxNivel.setSelectedIndex(0);
+        for (int i = 0; i < listaNiveles.size(); i++) {
+            if (listaNiveles.get(i) == g.getAsignaturaNivel()) {
+                jcbxNivel.setSelectedIndex(i + 1);
+            }
+        }
+        llenarAsignaturasDelNivel();
+        for (int i = 0; i < asignaturasDelNivel.size(); i++) {
+            if (asignaturasDelNivel.get(i).getId() == g.getAsignaturaId()) {
                 jcbxAsignatura.setSelectedIndex(i + 1);
             }
         }
@@ -141,25 +234,21 @@ public class FrmGrupos extends javax.swing.JInternalFrame {
                 }
             }
         }
+        cargando = false;
         habilitarCampos(false);
         BotonesSeleccionado();
     }
 
-    private void habilitarCampos(boolean estado) {
-        jcbxAsignatura.setEnabled(estado);
-        jrbtnParaleloA.setEnabled(estado);
-        jrbtnParaleloB.setEnabled(estado);
-        jrbtnParaleloC.setEnabled(estado);
-        jcbxDocente.setEnabled(estado);
-    }
-
     private void limpiarCampos() {
-        jcbxAsignatura.setSelectedIndex(0);
+        cargando = true;
+        jcbxNivel.setSelectedIndex(0);
+        llenarAsignaturasDelNivel();
         bgParalelo.clearSelection();
         jcbxDocente.setSelectedIndex(0);
         jtblGrupos.clearSelection();
         grupoSeleccionadoId = 0;
         editando = false;
+        cargando = false;
     }
 
     // ---- Estados de la ventana (como en clase) ----
@@ -169,7 +258,7 @@ public class FrmGrupos extends javax.swing.JInternalFrame {
     }
 
     private void BotonesInicio() {
-        jPanel2.setEnabled(true);
+        jbtnNuevo.setEnabled(true);
         jbtnGuardar.setEnabled(false);
         jbtnEditar.setEnabled(false);
         jbtnEliminar.setEnabled(false);
@@ -178,12 +267,12 @@ public class FrmGrupos extends javax.swing.JInternalFrame {
 
     private void InformacionNuevo() {
         limpiarCampos();
-        habilitarCampos(true);
-        jcbxAsignatura.requestFocus();
+        habilitarCampos(true);      // solo queda habilitado el nivel
+        jcbxNivel.requestFocus();
     }
 
     private void BotonesNuevo() {
-        jPanel2.setEnabled(false);
+        jbtnNuevo.setEnabled(false);
         jbtnGuardar.setEnabled(true);
         jbtnEditar.setEnabled(false);
         jbtnEliminar.setEnabled(false);
@@ -191,7 +280,7 @@ public class FrmGrupos extends javax.swing.JInternalFrame {
     }
 
     private void BotonesSeleccionado() {
-        jPanel2.setEnabled(false);
+        jbtnNuevo.setEnabled(false);
         jbtnGuardar.setEnabled(false);
         jbtnEditar.setEnabled(true);
         jbtnEliminar.setEnabled(true);
@@ -199,6 +288,11 @@ public class FrmGrupos extends javax.swing.JInternalFrame {
     }
 
     private boolean validarCampos() {
+        if (jcbxNivel.getSelectedIndex() == 0) {
+            JOptionPane.showMessageDialog(this, "Seleccione el nivel");
+            jcbxNivel.requestFocus();
+            return false;
+        }
         if (jcbxAsignatura.getSelectedIndex() == 0) {
             JOptionPane.showMessageDialog(this, "Seleccione la asignatura");
             jcbxAsignatura.requestFocus();
@@ -211,7 +305,7 @@ public class FrmGrupos extends javax.swing.JInternalFrame {
             return false;
         }
         // No se puede repetir la misma asignatura con el mismo paralelo
-        int asignaturaId = listaAsignaturas.get(jcbxAsignatura.getSelectedIndex() - 1).getId();
+        int asignaturaId = asignaturasDelNivel.get(jcbxAsignatura.getSelectedIndex() - 1).getId();
         List<Grupo> existentes = GrupoDAO.listarPorAsignatura(asignaturaId);
         for (Grupo g : existentes) {
             if (g.getParalelo().equals(paralelo) && g.getId() != grupoSeleccionadoId) {
@@ -228,7 +322,7 @@ public class FrmGrupos extends javax.swing.JInternalFrame {
             return;
         }
         Grupo g = new Grupo();
-        g.setAsignaturaId(listaAsignaturas.get(jcbxAsignatura.getSelectedIndex() - 1).getId());
+        g.setAsignaturaId(asignaturasDelNivel.get(jcbxAsignatura.getSelectedIndex() - 1).getId());
         g.setParalelo(paraleloElegido());
         if (jcbxDocente.getSelectedIndex() == 0) {
             g.setDocenteId(null);
@@ -272,6 +366,7 @@ public class FrmGrupos extends javax.swing.JInternalFrame {
         }
     }
 
+
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always
@@ -291,6 +386,8 @@ public class FrmGrupos extends javax.swing.JInternalFrame {
         jrbtnParaleloB = new javax.swing.JRadioButton();
         jrbtnParaleloC = new javax.swing.JRadioButton();
         jcbxDocente = new javax.swing.JComboBox<>();
+        jLabel5 = new javax.swing.JLabel();
+        jcbxNivel = new javax.swing.JComboBox<>();
         jLabel1 = new javax.swing.JLabel();
         jPanel2 = new javax.swing.JPanel();
         jbtnNuevo = new javax.swing.JButton();
@@ -328,16 +425,22 @@ public class FrmGrupos extends javax.swing.JInternalFrame {
 
         jcbxDocente.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Item 1", "Item 2", "Item 3", "Item 4" }));
 
+        jLabel5.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
+        jLabel5.setText("Nivel");
+
+        jcbxNivel.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Item 1", "Item 2", "Item 3", "Item 4" }));
+
         javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
         jPanel1.setLayout(jPanel1Layout);
         jPanel1Layout.setHorizontalGroup(
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel1Layout.createSequentialGroup()
-                .addContainerGap()
+                .addGap(14, 14, 14)
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(jLabel4)
+                    .addComponent(jLabel5)
                     .addComponent(jLabel2)
-                    .addComponent(jLabel3)
-                    .addComponent(jLabel4))
+                    .addComponent(jLabel3))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
                     .addGroup(jPanel1Layout.createSequentialGroup()
@@ -346,17 +449,22 @@ public class FrmGrupos extends javax.swing.JInternalFrame {
                         .addComponent(jrbtnParaleloB)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(jrbtnParaleloC))
+                    .addComponent(jcbxDocente, 0, 129, Short.MAX_VALUE)
                     .addComponent(jcbxAsignatura, 0, 129, Short.MAX_VALUE)
-                    .addComponent(jcbxDocente, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                    .addComponent(jcbxNivel, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                 .addContainerGap(392, Short.MAX_VALUE))
         );
         jPanel1Layout.setVerticalGroup(
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel1Layout.createSequentialGroup()
-                .addGap(13, 13, 13)
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel1Layout.createSequentialGroup()
+                .addContainerGap(14, Short.MAX_VALUE)
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jLabel2)
-                    .addComponent(jcbxAsignatura, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(jLabel5)
+                    .addComponent(jcbxNivel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jcbxAsignatura, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jLabel2))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel3)
@@ -367,7 +475,7 @@ public class FrmGrupos extends javax.swing.JInternalFrame {
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(jLabel4)
                     .addComponent(jcbxDocente, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addContainerGap(14, Short.MAX_VALUE))
+                .addGap(19, 19, 19))
         );
 
         jLabel1.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
@@ -469,7 +577,7 @@ public class FrmGrupos extends javax.swing.JInternalFrame {
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jPanel2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 427, Short.MAX_VALUE)
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 393, Short.MAX_VALUE)
                 .addContainerGap())
         );
 
@@ -531,6 +639,7 @@ public class FrmGrupos extends javax.swing.JInternalFrame {
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel4;
+    private javax.swing.JLabel jLabel5;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JPanel jPanel2;
     private javax.swing.JScrollPane jScrollPane1;
@@ -542,6 +651,7 @@ public class FrmGrupos extends javax.swing.JInternalFrame {
     private javax.swing.JButton jbtnNuevo;
     private javax.swing.JComboBox<String> jcbxAsignatura;
     private javax.swing.JComboBox<String> jcbxDocente;
+    private javax.swing.JComboBox<String> jcbxNivel;
     private javax.swing.JRadioButton jrbtnParaleloA;
     private javax.swing.JRadioButton jrbtnParaleloB;
     private javax.swing.JRadioButton jrbtnParaleloC;
