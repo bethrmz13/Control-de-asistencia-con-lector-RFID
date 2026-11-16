@@ -449,10 +449,10 @@ public class FrmGrupos extends javax.swing.JInternalFrame {
                         .addComponent(jrbtnParaleloB)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(jrbtnParaleloC))
-                    .addComponent(jcbxDocente, 0, 129, Short.MAX_VALUE)
-                    .addComponent(jcbxAsignatura, 0, 129, Short.MAX_VALUE)
+                    .addComponent(jcbxAsignatura, 0, 274, Short.MAX_VALUE)
+                    .addComponent(jcbxDocente, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addComponent(jcbxNivel, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-                .addContainerGap(392, Short.MAX_VALUE))
+                .addContainerGap(247, Short.MAX_VALUE))
         );
         jPanel1Layout.setVerticalGroup(
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)

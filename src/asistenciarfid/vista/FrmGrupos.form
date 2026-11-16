@@ -97,11 +97,11 @@
                           <EmptySpace max="-2" attributes="0"/>
                           <Component id="jrbtnParaleloC" min="-2" max="-2" attributes="0"/>
                       </Group>
-                      <Component id="jcbxDocente" alignment="0" pref="129" max="32767" attributes="0"/>
-                      <Component id="jcbxAsignatura" pref="129" max="32767" attributes="0"/>
+                      <Component id="jcbxAsignatura" pref="274" max="32767" attributes="0"/>
+                      <Component id="jcbxDocente" alignment="0" max="32767" attributes="0"/>
                       <Component id="jcbxNivel" alignment="0" max="32767" attributes="0"/>
                   </Group>
-                  <EmptySpace pref="392" max="32767" attributes="0"/>
+                  <EmptySpace pref="247" max="32767" attributes="0"/>
               </Group>
           </Group>
         </DimensionLayout>
