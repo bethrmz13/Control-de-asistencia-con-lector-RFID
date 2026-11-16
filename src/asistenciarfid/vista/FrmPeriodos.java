@@ -103,6 +103,7 @@ public class FrmPeriodos extends javax.swing.JInternalFrame {
         jtbtnMatricula.setEnabled(false);
         jbtnCerrarPeriodo.setEnabled(false);
     }
+    
 
     private void informacionNuevo() {
         modo = "NUEVO";
@@ -119,6 +120,15 @@ public class FrmPeriodos extends javax.swing.JInternalFrame {
         jbtnActivar.setEnabled(false);
         jtbtnMatricula.setEnabled(false);
         jbtnCerrarPeriodo.setEnabled(false);
+        jtxtNombre.requestFocus();
+    }
+    
+        private void informacionEditar() {
+        modo = "EDITAR";
+        habilitarCampos(true);
+        jbtnNuevo.setEnabled(false);
+        jbtnEditar.setEnabled(false);
+        jbtnGuardar.setEnabled(true);
         jtxtNombre.requestFocus();
     }
 
