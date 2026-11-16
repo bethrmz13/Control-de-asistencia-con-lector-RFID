@@ -39,21 +39,177 @@ public class FrmPeriodos extends javax.swing.JInternalFrame {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
-        setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
+        jlblActivo = new javax.swing.JLabel();
+        jScrollPane1 = new javax.swing.JScrollPane();
+        jtblPeriodos = new javax.swing.JTable();
+        jtxtNombre = new javax.swing.JTextField();
+        jtxtInicio = new javax.swing.JTextField();
+        jtxtFin = new javax.swing.JTextField();
+        jLabel1 = new javax.swing.JLabel();
+        jLabel2 = new javax.swing.JLabel();
+        jLabel3 = new javax.swing.JLabel();
+        jtbnNuevo = new javax.swing.JButton();
+        jbtnGuardar = new javax.swing.JButton();
+        jbtnEditar = new javax.swing.JButton();
+        jbtnCancelar = new javax.swing.JButton();
+        jtbnActivar = new javax.swing.JButton();
+        jtbtnMatricula = new javax.swing.JToggleButton();
+        jtbnCerrarPeriodo = new javax.swing.JButton();
+
+        setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
+
+        jlblActivo.setText("jLabel1");
+
+        jtblPeriodos.setModel(new javax.swing.table.DefaultTableModel(
+            new Object [][] {
+                {null, null, null, null},
+                {null, null, null, null},
+                {null, null, null, null},
+                {null, null, null, null}
+            },
+            new String [] {
+                "Title 1", "Title 2", "Title 3", "Title 4"
+            }
+        ));
+        jScrollPane1.setViewportView(jtblPeriodos);
+
+        jLabel1.setText("Nombre");
+
+        jLabel2.setText("Inicio (aaaa-mm-dd)");
+
+        jLabel3.setText("Fin (aaaa-mm-dd)");
+
+        jtbnNuevo.setText("Nuevo");
+        jtbnNuevo.addActionListener(this::jtbnNuevoActionPerformed);
+
+        jbtnGuardar.setText("Guardar");
+        jbtnGuardar.addActionListener(this::jbtnGuardarActionPerformed);
+
+        jbtnEditar.setText("Editar");
+        jbtnEditar.addActionListener(this::jbtnEditarActionPerformed);
+
+        jbtnCancelar.setText("Cancelar");
+        jbtnCancelar.addActionListener(this::jbtnCancelarActionPerformed);
+
+        jtbnActivar.setText("Activar Periodo");
+        jtbnActivar.addActionListener(this::jtbnActivarActionPerformed);
+
+        jtbtnMatricula.setText("Matricula Abierta");
+        jtbtnMatricula.addActionListener(this::jtbtnMatriculaActionPerformed);
+
+        jtbnCerrarPeriodo.setText("Cerrar Periodo");
+        jtbnCerrarPeriodo.addActionListener(this::jtbnCerrarPeriodoActionPerformed);
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 400, Short.MAX_VALUE)
+            .addGroup(layout.createSequentialGroup()
+                .addGap(38, 38, 38)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(layout.createSequentialGroup()
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                            .addGroup(layout.createSequentialGroup()
+                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
+                                    .addGroup(layout.createSequentialGroup()
+                                        .addComponent(jLabel1)
+                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                        .addComponent(jtxtNombre))
+                                    .addGroup(layout.createSequentialGroup()
+                                        .addComponent(jLabel2)
+                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                        .addComponent(jtxtInicio, javax.swing.GroupLayout.DEFAULT_SIZE, 143, Short.MAX_VALUE)))
+                                .addGap(43, 43, 43)
+                                .addComponent(jLabel3)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(jtxtFin, javax.swing.GroupLayout.PREFERRED_SIZE, 143, javax.swing.GroupLayout.PREFERRED_SIZE))
+                            .addGroup(javax.swing.GroupLayout.Alignment.LEADING, layout.createSequentialGroup()
+                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                    .addGroup(layout.createSequentialGroup()
+                                        .addComponent(jtbnNuevo)
+                                        .addGap(60, 60, 60))
+                                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                                        .addComponent(jtbnCerrarPeriodo)
+                                        .addGap(25, 25, 25)))
+                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                    .addGroup(layout.createSequentialGroup()
+                                        .addComponent(jtbnActivar)
+                                        .addGap(18, 18, 18)
+                                        .addComponent(jtbtnMatricula))
+                                    .addGroup(layout.createSequentialGroup()
+                                        .addComponent(jbtnGuardar)
+                                        .addGap(46, 46, 46)
+                                        .addComponent(jbtnEditar)
+                                        .addGap(36, 36, 36)
+                                        .addComponent(jbtnCancelar)))))
+                        .addGap(0, 0, Short.MAX_VALUE))
+                    .addGroup(layout.createSequentialGroup()
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(jlblActivo)
+                            .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 570, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addContainerGap(36, Short.MAX_VALUE))))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 300, Short.MAX_VALUE)
+            .addGroup(layout.createSequentialGroup()
+                .addGap(17, 17, 17)
+                .addComponent(jlblActivo)
+                .addGap(35, 35, 35)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jtxtNombre, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jLabel1))
+                .addGap(18, 18, 18)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jLabel2)
+                    .addComponent(jtxtInicio, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jLabel3)
+                    .addComponent(jtxtFin, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addGap(37, 37, 37)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jbtnCancelar)
+                    .addComponent(jbtnGuardar)
+                    .addComponent(jtbnNuevo)
+                    .addComponent(jbtnEditar))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jtbnCerrarPeriodo)
+                    .addComponent(jtbnActivar)
+                    .addComponent(jtbtnMatricula))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 41, Short.MAX_VALUE)
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 311, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(18, 18, 18))
         );
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
+
+    private void jtbnNuevoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jtbnNuevoActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_jtbnNuevoActionPerformed
+
+    private void jbtnGuardarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jbtnGuardarActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_jbtnGuardarActionPerformed
+
+    private void jbtnEditarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jbtnEditarActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_jbtnEditarActionPerformed
+
+    private void jbtnCancelarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jbtnCancelarActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_jbtnCancelarActionPerformed
+
+    private void jtbnActivarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jtbnActivarActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_jtbnActivarActionPerformed
+
+    private void jtbtnMatriculaActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jtbtnMatriculaActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_jtbtnMatriculaActionPerformed
+
+    private void jtbnCerrarPeriodoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jtbnCerrarPeriodoActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_jtbnCerrarPeriodoActionPerformed
 
     /**
      * @param args the command line arguments
@@ -81,5 +237,21 @@ public class FrmPeriodos extends javax.swing.JInternalFrame {
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JLabel jLabel1;
+    private javax.swing.JLabel jLabel2;
+    private javax.swing.JLabel jLabel3;
+    private javax.swing.JScrollPane jScrollPane1;
+    private javax.swing.JButton jbtnCancelar;
+    private javax.swing.JButton jbtnEditar;
+    private javax.swing.JButton jbtnGuardar;
+    private javax.swing.JLabel jlblActivo;
+    private javax.swing.JTable jtblPeriodos;
+    private javax.swing.JButton jtbnActivar;
+    private javax.swing.JButton jtbnCerrarPeriodo;
+    private javax.swing.JButton jtbnNuevo;
+    private javax.swing.JToggleButton jtbtnMatricula;
+    private javax.swing.JTextField jtxtFin;
+    private javax.swing.JTextField jtxtInicio;
+    private javax.swing.JTextField jtxtNombre;
     // End of variables declaration//GEN-END:variables
 }
