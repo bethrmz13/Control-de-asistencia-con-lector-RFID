@@ -146,6 +146,7 @@ public class FrmRegistro extends javax.swing.JInternalFrame {
             }
         });
 
+        jlblTitulo.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
         jlblTitulo.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
         jlblTitulo.setText("ACERQUE SU TARJETA");
 
@@ -226,7 +227,7 @@ public class FrmRegistro extends javax.swing.JInternalFrame {
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jchkSimular)
                     .addComponent(jtxtFechaSimulada, javax.swing.GroupLayout.PREFERRED_SIZE, 20, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addContainerGap(49, Short.MAX_VALUE))
+                .addContainerGap(45, Short.MAX_VALUE))
         );
 
         pack();
