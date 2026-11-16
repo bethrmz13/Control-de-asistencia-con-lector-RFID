@@ -1,20 +1,370 @@
 package asistenciarfid.vista;
 
 import asistenciarfid.modelo.Usuario;
+import asistenciarfid.modelo.Grupo;
+import asistenciarfid.modelo.Horario;
+import asistenciarfid.modelo.Perfil;
+import asistenciarfid.dao.GrupoDAO;
+import asistenciarfid.dao.HorarioDAO;
+import java.sql.Time;
+import java.util.ArrayList;
+import java.util.List;
+import javax.swing.DefaultComboBoxModel;
+import javax.swing.JOptionPane;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
+import javax.swing.table.DefaultTableModel;
 
 public class FrmHorarios extends javax.swing.JInternalFrame {
 
     private Usuario usuario;
 
     public FrmHorarios() {
-        initComponents();
+        this(null);
     }
 
     public FrmHorarios(Usuario usuario) {
         initComponents();
         this.usuario = usuario;
+        iniciarFormulario();
         setClosable(true);
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
+    }
+
+
+    private List<Grupo> grupos = new ArrayList<>();
+    private List<Horario> horarios = new ArrayList<>();
+    private int idHorarioSeleccionado;
+    private boolean nuevo;
+    private boolean cargandoGrupos;
+    private Time horaInicioValidada;
+    private Time horaFinValidada;
+
+    private boolean tienePermiso() {
+        return usuario != null && (Perfil.ADMIN.equals(usuario.getPerfil())
+                || (Perfil.COORDINADOR.equals(usuario.getPerfil())
+                && usuario.getCarreraId() != null && usuario.getCarreraId() > 0));
+    }
+
+    private Integer filtroCarrera() {
+        if (Perfil.COORDINADOR.equals(usuario.getPerfil())) {
+            return usuario.getCarreraId();
+        }
+        return null;
+    }
+
+    private void iniciarFormulario() {
+        jcbxDia.setModel(new DefaultComboBoxModel<Object>(new String[]{
+            "Seleccione", "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"}));
+        jtblHorarios.setDefaultEditor(Object.class, null);
+        jtblHorarios.setSelectionMode(javax.swing.ListSelectionModel.SINGLE_SELECTION);
+        jtblHorarios.getSelectionModel().addListSelectionListener(new ListSelectionListener() {
+            @Override
+            public void valueChanged(ListSelectionEvent evento) {
+                if (!evento.getValueIsAdjusting()) {
+                    seleccionarHorario();
+                }
+            }
+        });
+        if (tienePermiso()) {
+            cargarGrupos();
+            if (grupos.isEmpty()) {
+                JOptionPane.showMessageDialog(this,
+                        "No hay grupos disponibles. Revise el periodo activo y la conexión.");
+            }
+        } else if (usuario != null) {
+            JOptionPane.showMessageDialog(this,
+                    "Solo ADMIN o un COORDINADOR con carrera pueden gestionar horarios.");
+        }
+        Cancelar();
+    }
+
+    private void cargarGrupos() {
+        cargandoGrupos = true;
+        DefaultComboBoxModel<Object> modelo = new DefaultComboBoxModel<>();
+        modelo.addElement("Seleccione");
+        grupos = new ArrayList<>();
+        if (tienePermiso()) {
+            grupos = GrupoDAO.listar(filtroCarrera(), null);
+            for (Grupo grupo : grupos) {
+                modelo.addElement(grupo);
+            }
+        }
+        jcbxGrupo.setModel(modelo);
+        cargandoGrupos = false;
+        limpiarTabla();
+        Cancelar();
+    }
+
+    private Grupo grupoSeleccionado() {
+        if (!tienePermiso() || jcbxGrupo.getSelectedIndex() <= 0
+                || !(jcbxGrupo.getSelectedItem() instanceof Grupo)) {
+            return null;
+        }
+        Grupo seleccionado = (Grupo) jcbxGrupo.getSelectedItem();
+        for (Grupo grupo : grupos) {
+            if (grupo.getId() == seleccionado.getId()) {
+                return grupo;
+            }
+        }
+        return null;
+    }
+
+    // Reconsulta la lista autorizada: un grupo puede cambiar de periodo o carrera.
+    private boolean validarGrupo() {
+        Grupo seleccionado = grupoSeleccionado();
+        if (seleccionado == null) {
+            JOptionPane.showMessageDialog(this, "Seleccione un grupo permitido del periodo activo.");
+            jcbxGrupo.requestFocus();
+            return false;
+        }
+        List<Grupo> vigentes = GrupoDAO.listar(filtroCarrera(), null);
+        for (Grupo vigente : vigentes) {
+            if (vigente.getId() == seleccionado.getId()) {
+                return true;
+            }
+        }
+        JOptionPane.showMessageDialog(this,
+                "El grupo ya no está disponible para su perfil o periodo. Selecciónelo nuevamente.");
+        cargarGrupos();
+        return false;
+    }
+
+    private void limpiarTabla() {
+        idHorarioSeleccionado = 0;
+        jtblHorarios.clearSelection();
+        horarios = new ArrayList<>();
+        String[] titulos = {"Día", "Hora de inicio", "Hora de finalización", "Aula"};
+        jtblHorarios.setModel(new DefaultTableModel(null, titulos));
+    }
+
+    private void cargarHorarios() {
+        limpiarTabla();
+        Grupo grupo = grupoSeleccionado();
+        if (grupo == null || !validarGrupo()) {
+            return;
+        }
+        horarios = HorarioDAO.listarPorGrupo(grupo.getId());
+        DefaultTableModel modelo = (DefaultTableModel) jtblHorarios.getModel();
+        for (Horario horario : horarios) {
+            modelo.addRow(new Object[]{horario.getNombreDia(), mostrarHora(horario.getHoraInicio()),
+                mostrarHora(horario.getHoraFin()), horario.getAula()});
+        }
+    }
+
+    private String mostrarHora(Time hora) {
+        return hora.toString().substring(0, 5);
+    }
+
+    private void seleccionarHorario() {
+        if (!tienePermiso() || nuevo || jtblHorarios.getSelectedRow() < 0
+                || grupoSeleccionado() == null) {
+            return;
+        }
+        int fila = jtblHorarios.convertRowIndexToModel(jtblHorarios.getSelectedRow());
+        if (fila >= horarios.size()) {
+            return;
+        }
+        Horario seleccionado = horarios.get(fila);
+        if (seleccionado.getGrupoId() != grupoSeleccionado().getId()) {
+            return;
+        }
+        idHorarioSeleccionado = seleccionado.getId();
+        jcbxDia.setSelectedIndex(seleccionado.getDiaSemana());
+        jtxtHoraInicio.setText(mostrarHora(seleccionado.getHoraInicio()));
+        jtxtHoraFin.setText(mostrarHora(seleccionado.getHoraFin()));
+        jtxtAula.setText(seleccionado.getAula());
+        InformacionEditar();
+    }
+
+    private void habilitarInformacion(boolean habilitar) {
+        jcbxDia.setEnabled(habilitar);
+        jtxtHoraInicio.setEnabled(habilitar);
+        jtxtHoraFin.setEnabled(habilitar);
+        jtxtAula.setEnabled(habilitar);
+    }
+
+    private void InformacionInicio() {
+        habilitarInformacion(false);
+        jcbxGrupo.setEnabled(tienePermiso() && !grupos.isEmpty());
+    }
+
+    private void BotonesInicio() {
+        jbtnNuevo.setEnabled(grupoSeleccionado() != null);
+        jbtnGuardar.setEnabled(false);
+        jbtnModificar.setEnabled(false);
+        jbtnEliminar.setEnabled(false);
+        jbtnCancelar.setEnabled(false);
+        jtblHorarios.setEnabled(tienePermiso());
+    }
+
+    private void InformacionNuevo() {
+        habilitarInformacion(true);
+        jcbxGrupo.setEnabled(false);
+        jtblHorarios.setEnabled(false);
+        jbtnNuevo.setEnabled(false);
+        jbtnGuardar.setEnabled(true);
+        jbtnModificar.setEnabled(false);
+        jbtnEliminar.setEnabled(false);
+        jbtnCancelar.setEnabled(true);
+        jcbxDia.requestFocus();
+    }
+
+    private void InformacionEditar() {
+        habilitarInformacion(true);
+        jcbxGrupo.setEnabled(false);
+        jbtnNuevo.setEnabled(false);
+        jbtnGuardar.setEnabled(false);
+        jbtnModificar.setEnabled(true);
+        jbtnEliminar.setEnabled(true);
+        jbtnCancelar.setEnabled(true);
+    }
+
+    private void Limpiar() {
+        idHorarioSeleccionado = 0;
+        jtblHorarios.clearSelection();
+        jcbxDia.setSelectedIndex(0);
+        jtxtHoraInicio.setText("");
+        jtxtHoraFin.setText("");
+        jtxtAula.setText("");
+        horaInicioValidada = null;
+        horaFinValidada = null;
+    }
+
+    private void Cancelar() {
+        nuevo = false;
+        Limpiar();
+        InformacionInicio();
+        BotonesInicio();
+    }
+
+    private Time convertirHora(String texto) {
+        if (!texto.matches("([01][0-9]|2[0-3]):[0-5][0-9]")) {
+            throw new IllegalArgumentException("Formato HH:mm inválido.");
+        }
+        return Time.valueOf(texto + ":00");
+    }
+
+    private boolean validarCampos() {
+        if (!tienePermiso()) {
+            JOptionPane.showMessageDialog(this, "Su perfil no permite gestionar horarios.");
+            return false;
+        }
+        if (grupoSeleccionado() == null) {
+            JOptionPane.showMessageDialog(this, "Seleccione un grupo del periodo activo.");
+            jcbxGrupo.requestFocus();
+            return false;
+        }
+        if (jcbxDia.getSelectedIndex() < 1 || jcbxDia.getSelectedIndex() > 7) {
+            JOptionPane.showMessageDialog(this, "Seleccione un día de lunes a domingo.");
+            jcbxDia.requestFocus();
+            return false;
+        }
+        try {
+            horaInicioValidada = convertirHora(jtxtHoraInicio.getText().trim());
+        } catch (IllegalArgumentException ex) {
+            JOptionPane.showMessageDialog(this, "Ingrese la hora de inicio en formato HH:mm (00:00 a 23:59).");
+            jtxtHoraInicio.requestFocus();
+            return false;
+        }
+        try {
+            horaFinValidada = convertirHora(jtxtHoraFin.getText().trim());
+        } catch (IllegalArgumentException ex) {
+            JOptionPane.showMessageDialog(this, "Ingrese la hora de fin en formato HH:mm (00:00 a 23:59).");
+            jtxtHoraFin.requestFocus();
+            return false;
+        }
+        if (!horaInicioValidada.before(horaFinValidada)) {
+            JOptionPane.showMessageDialog(this, "La hora inicial debe ser menor que la hora final.");
+            jtxtHoraFin.requestFocus();
+            return false;
+        }
+        // schema.sql permite aula nula; si se escribe, admite hasta 20 caracteres.
+        if (jtxtAula.getText().trim().length() > 20) {
+            JOptionPane.showMessageDialog(this, "El aula admite hasta 20 caracteres y es opcional.");
+            jtxtAula.requestFocus();
+            return false;
+        }
+        return true;
+    }
+
+    private boolean validarSeleccion() {
+        if (!tienePermiso()) {
+            JOptionPane.showMessageDialog(this, "Su perfil no permite gestionar horarios.");
+            return false;
+        }
+        int fila = jtblHorarios.getSelectedRow();
+        if (nuevo || fila < 0 || idHorarioSeleccionado <= 0 || grupoSeleccionado() == null) {
+            JOptionPane.showMessageDialog(this, "Seleccione un horario de la tabla.");
+            jtblHorarios.requestFocus();
+            return false;
+        }
+        int indice = jtblHorarios.convertRowIndexToModel(fila);
+        if (indice >= horarios.size() || horarios.get(indice).getId() != idHorarioSeleccionado
+                || horarios.get(indice).getGrupoId() != grupoSeleccionado().getId()) {
+            JOptionPane.showMessageDialog(this, "El horario no pertenece al grupo seleccionado.");
+            jtblHorarios.requestFocus();
+            return false;
+        }
+        return true;
+    }
+
+    private void guardarHorario(boolean modificar) {
+        if (modificar) {
+            if (!validarSeleccion()) {
+                return;
+            }
+        } else if (!tienePermiso() || !nuevo) {
+            return;
+        }
+        if (!validarCampos() || !validarGrupo()) {
+            return;
+        }
+        Horario horario = new Horario();
+        horario.setId(idHorarioSeleccionado);
+        horario.setGrupoId(grupoSeleccionado().getId());
+        horario.setDiaSemana(jcbxDia.getSelectedIndex());
+        horario.setHoraInicio(horaInicioValidada);
+        horario.setHoraFin(horaFinValidada);
+        String aula = jtxtAula.getText().trim();
+        horario.setAula(aula.isEmpty() ? null : aula);
+        boolean resultado;
+        if (modificar) {
+            resultado = HorarioDAO.actualizar(horario);
+        } else {
+            resultado = HorarioDAO.insertar(horario);
+        }
+        if (resultado) {
+            cargarHorarios();
+            Cancelar();
+            JOptionPane.showMessageDialog(this, "Horario " + (modificar ? "modificado." : "registrado."));
+        } else {
+            JOptionPane.showMessageDialog(this,
+                    "No se pudo guardar el horario. Revise los datos y el mensaje del DAO.");
+        }
+    }
+
+    private void eliminarHorario() {
+        if (!validarSeleccion() || !validarGrupo()) {
+            return;
+        }
+        int respuesta = JOptionPane.showConfirmDialog(this,
+                "¿Desea eliminar el horario seleccionado?", "Eliminar horario",
+                JOptionPane.YES_NO_OPTION);
+        if (respuesta != JOptionPane.YES_OPTION) {
+            return;
+        }
+        // Verificar otra vez después de la confirmación, antes de escribir.
+        if (!validarGrupo()) {
+            return;
+        }
+        if (HorarioDAO.eliminar(idHorarioSeleccionado)) {
+            cargarHorarios();
+            Cancelar();
+            JOptionPane.showMessageDialog(this, "Horario eliminado.");
+        } else {
+            JOptionPane.showMessageDialog(this, "No se pudo eliminar el horario.");
+        }
     }
 
     @SuppressWarnings("unchecked")
@@ -147,27 +497,35 @@ public class FrmHorarios extends javax.swing.JInternalFrame {
     }// </editor-fold>//GEN-END:initComponents
 
     private void jcbxGrupoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jcbxGrupoActionPerformed
-        // La operación se incorpora en el commit de funcionalidad.
+        if (!cargandoGrupos) {
+            Cancelar();
+            cargarHorarios();
+            BotonesInicio();
+        }
     }//GEN-LAST:event_jcbxGrupoActionPerformed
 
     private void jbtnNuevoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jbtnNuevoActionPerformed
-        // La operación se incorpora en el commit de funcionalidad.
+        if (tienePermiso() && validarGrupo()) {
+            nuevo = true;
+            Limpiar();
+            InformacionNuevo();
+        }
     }//GEN-LAST:event_jbtnNuevoActionPerformed
 
     private void jbtnGuardarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jbtnGuardarActionPerformed
-        // La operación se incorpora en el commit de funcionalidad.
+        guardarHorario(false);
     }//GEN-LAST:event_jbtnGuardarActionPerformed
 
     private void jbtnModificarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jbtnModificarActionPerformed
-        // La operación se incorpora en el commit de funcionalidad.
+        guardarHorario(true);
     }//GEN-LAST:event_jbtnModificarActionPerformed
 
     private void jbtnEliminarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jbtnEliminarActionPerformed
-        // La operación se incorpora en el commit de funcionalidad.
+        eliminarHorario();
     }//GEN-LAST:event_jbtnEliminarActionPerformed
 
     private void jbtnCancelarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jbtnCancelarActionPerformed
-        // La operación se incorpora en el commit de funcionalidad.
+        Cancelar();
     }//GEN-LAST:event_jbtnCancelarActionPerformed
 
     public static void main(String args[]) {
