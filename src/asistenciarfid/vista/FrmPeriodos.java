@@ -5,6 +5,14 @@
 package asistenciarfid.vista;
 
 import asistenciarfid.modelo.Usuario;
+import asistenciarfid.controlador.CierrePeriodoControlador;
+import asistenciarfid.dao.PeriodoDAO;
+import asistenciarfid.modelo.Estudiante;
+import asistenciarfid.modelo.Matricula;
+import asistenciarfid.modelo.Periodo;
+import java.util.List;
+import javax.swing.JOptionPane;
+import javax.swing.table.DefaultTableModel;
 
 /**
  *
@@ -23,12 +31,111 @@ public class FrmPeriodos extends javax.swing.JInternalFrame {
     
     private Usuario usuario;
 
+        private List<Periodo> periodos;
+    private Periodo seleccionado;
+    private String modo = "";
+
     public FrmPeriodos(Usuario usuario) {
         initComponents();
         this.usuario = usuario;
         setClosable(true);
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
+        jtblPeriodos.setDefaultEditor(Object.class, null);
+        cargarPeriodos();
+        seleccionarPeriodo();
+        informacionInicio();
     }
+    
+        public void cargarPeriodos() {
+        String titulos[] = {"Nombre", "Inicio", "Fin", "Activo", "Matrícula"};
+        DefaultTableModel modelo = new DefaultTableModel(null, titulos);
+        periodos = PeriodoDAO.listar();
+        for (Periodo p : periodos) {
+            modelo.addRow(new Object[]{p.getNombre(), p.getFechaInicio(), p.getFechaFin(),
+                p.isActivo() ? "Sí" : "No", p.isMatriculaAbierta() ? "Abierta" : "Cerrada"});
+        }
+        jtblPeriodos.setModel(modelo);
+
+        Periodo activo = PeriodoDAO.obtenerActivo();
+        if (activo == null) {
+            jlblActivo.setText("No hay un periodo activo");
+        } else {
+            jlblActivo.setText("Periodo activo: " + activo.getNombre()
+                    + " (matrícula " + (activo.isMatriculaAbierta() ? "abierta" : "cerrada") + ")");
+        }
+    }
+
+    // Al seleccionar una fila se llenan las cajas, como en clase
+    public void seleccionarPeriodo() {
+        jtblPeriodos.getSelectionModel().addListSelectionListener(e -> {
+            int fila = jtblPeriodos.getSelectedRow();
+            if (fila != -1 && !e.getValueIsAdjusting()) {
+                seleccionado = periodos.get(fila);
+                jtxtNombre.setText(seleccionado.getNombre());
+                jtxtInicio.setText(String.valueOf(seleccionado.getFechaInicio()));
+                jtxtFin.setText(String.valueOf(seleccionado.getFechaFin()));
+                jtbtnMatricula.setSelected(seleccionado.isMatriculaAbierta());
+                informacionSeleccion();
+            }
+        });
+    }
+
+    private void habilitarCampos(boolean estado) {
+        jtxtNombre.setEnabled(estado);
+        jtxtInicio.setEnabled(estado);
+        jtxtFin.setEnabled(estado);
+    }
+
+    private void informacionInicio() {
+        modo = "";
+        seleccionado = null;
+        jtblPeriodos.clearSelection();
+        jtxtNombre.setText("");
+        jtxtInicio.setText("");
+        jtxtFin.setText("");
+        jtbtnMatricula.setSelected(false);
+        habilitarCampos(false);
+        jbtnNuevo.setEnabled(true);
+        jbtnGuardar.setEnabled(false);
+        jbtnEditar.setEnabled(false);
+        jbtnCancelar.setEnabled(false);
+        jbtnActivar.setEnabled(false);
+        jtbtnMatricula.setEnabled(false);
+        jbtnCerrarPeriodo.setEnabled(false);
+    }
+
+    private void informacionNuevo() {
+        modo = "NUEVO";
+        seleccionado = null;
+        jtblPeriodos.clearSelection();
+        jtxtNombre.setText("");
+        jtxtInicio.setText("");
+        jtxtFin.setText("");
+        habilitarCampos(true);
+        jbtnNuevo.setEnabled(false);
+        jbtnGuardar.setEnabled(true);
+        jbtnEditar.setEnabled(false);
+        jbtnCancelar.setEnabled(true);
+        jbtnActivar.setEnabled(false);
+        jtbtnMatricula.setEnabled(false);
+        jbtnCerrarPeriodo.setEnabled(false);
+        jtxtNombre.requestFocus();
+    }
+
+    // Con un periodo seleccionado: solo el periodo activo puede abrir la matrícula o cerrarse
+    private void informacionSeleccion() {
+        modo = "";
+        habilitarCampos(false);
+        jbtnNuevo.setEnabled(true);
+        jbtnGuardar.setEnabled(false);
+        jbtnEditar.setEnabled(true);
+        jbtnCancelar.setEnabled(true);
+        jbtnActivar.setEnabled(!seleccionado.isActivo());
+        jtbtnMatricula.setEnabled(seleccionado.isActivo());
+        jbtnCerrarPeriodo.setEnabled(seleccionado.isActivo());
+    }
+    
+    
 
     /**
      * This method is called from within the constructor to initialize the form.
@@ -48,13 +155,13 @@ public class FrmPeriodos extends javax.swing.JInternalFrame {
         jLabel1 = new javax.swing.JLabel();
         jLabel2 = new javax.swing.JLabel();
         jLabel3 = new javax.swing.JLabel();
-        jtbnNuevo = new javax.swing.JButton();
+        jbtnNuevo = new javax.swing.JButton();
         jbtnGuardar = new javax.swing.JButton();
         jbtnEditar = new javax.swing.JButton();
         jbtnCancelar = new javax.swing.JButton();
-        jtbnActivar = new javax.swing.JButton();
+        jbtnActivar = new javax.swing.JButton();
         jtbtnMatricula = new javax.swing.JToggleButton();
-        jtbnCerrarPeriodo = new javax.swing.JButton();
+        jbtnCerrarPeriodo = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
 
@@ -79,8 +186,8 @@ public class FrmPeriodos extends javax.swing.JInternalFrame {
 
         jLabel3.setText("Fin (aaaa-mm-dd)");
 
-        jtbnNuevo.setText("Nuevo");
-        jtbnNuevo.addActionListener(this::jtbnNuevoActionPerformed);
+        jbtnNuevo.setText("Nuevo");
+        jbtnNuevo.addActionListener(this::jbtnNuevoActionPerformed);
 
         jbtnGuardar.setText("Guardar");
         jbtnGuardar.addActionListener(this::jbtnGuardarActionPerformed);
@@ -91,14 +198,14 @@ public class FrmPeriodos extends javax.swing.JInternalFrame {
         jbtnCancelar.setText("Cancelar");
         jbtnCancelar.addActionListener(this::jbtnCancelarActionPerformed);
 
-        jtbnActivar.setText("Activar Periodo");
-        jtbnActivar.addActionListener(this::jtbnActivarActionPerformed);
+        jbtnActivar.setText("Activar Periodo");
+        jbtnActivar.addActionListener(this::jbtnActivarActionPerformed);
 
         jtbtnMatricula.setText("Matricula Abierta");
         jtbtnMatricula.addActionListener(this::jtbtnMatriculaActionPerformed);
 
-        jtbnCerrarPeriodo.setText("Cerrar Periodo");
-        jtbnCerrarPeriodo.addActionListener(this::jtbnCerrarPeriodoActionPerformed);
+        jbtnCerrarPeriodo.setText("Cerrar Periodo");
+        jbtnCerrarPeriodo.addActionListener(this::jbtnCerrarPeriodoActionPerformed);
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
@@ -126,14 +233,14 @@ public class FrmPeriodos extends javax.swing.JInternalFrame {
                             .addGroup(javax.swing.GroupLayout.Alignment.LEADING, layout.createSequentialGroup()
                                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                                     .addGroup(layout.createSequentialGroup()
-                                        .addComponent(jtbnNuevo)
+                                        .addComponent(jbtnNuevo)
                                         .addGap(60, 60, 60))
                                     .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                                        .addComponent(jtbnCerrarPeriodo)
+                                        .addComponent(jbtnCerrarPeriodo)
                                         .addGap(25, 25, 25)))
                                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                                     .addGroup(layout.createSequentialGroup()
-                                        .addComponent(jtbnActivar)
+                                        .addComponent(jbtnActivar)
                                         .addGap(18, 18, 18)
                                         .addComponent(jtbtnMatricula))
                                     .addGroup(layout.createSequentialGroup()
@@ -168,12 +275,12 @@ public class FrmPeriodos extends javax.swing.JInternalFrame {
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jbtnCancelar)
                     .addComponent(jbtnGuardar)
-                    .addComponent(jtbnNuevo)
+                    .addComponent(jbtnNuevo)
                     .addComponent(jbtnEditar))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jtbnCerrarPeriodo)
-                    .addComponent(jtbnActivar)
+                    .addComponent(jbtnCerrarPeriodo)
+                    .addComponent(jbtnActivar)
                     .addComponent(jtbtnMatricula))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 41, Short.MAX_VALUE)
                 .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 311, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -183,33 +290,38 @@ public class FrmPeriodos extends javax.swing.JInternalFrame {
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
-    private void jtbnNuevoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jtbnNuevoActionPerformed
-        // TODO add your handling code here:
-    }//GEN-LAST:event_jtbnNuevoActionPerformed
+    private void jbtnNuevoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jbtnNuevoActionPerformed
+        informacionNuevo();
+    }//GEN-LAST:event_jbtnNuevoActionPerformed
 
     private void jbtnGuardarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jbtnGuardarActionPerformed
         // TODO add your handling code here:
     }//GEN-LAST:event_jbtnGuardarActionPerformed
 
     private void jbtnEditarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jbtnEditarActionPerformed
-        // TODO add your handling code here:
+        modo = "EDITAR";
+        habilitarCampos(true);
+        jbtnNuevo.setEnabled(false);
+        jbtnEditar.setEnabled(false);
+        jbtnGuardar.setEnabled(true);
+        jtxtNombre.requestFocus();
     }//GEN-LAST:event_jbtnEditarActionPerformed
 
     private void jbtnCancelarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jbtnCancelarActionPerformed
-        // TODO add your handling code here:
+        informacionInicio();
     }//GEN-LAST:event_jbtnCancelarActionPerformed
 
-    private void jtbnActivarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jtbnActivarActionPerformed
+    private void jbtnActivarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jbtnActivarActionPerformed
         // TODO add your handling code here:
-    }//GEN-LAST:event_jtbnActivarActionPerformed
+    }//GEN-LAST:event_jbtnActivarActionPerformed
 
     private void jtbtnMatriculaActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jtbtnMatriculaActionPerformed
         // TODO add your handling code here:
     }//GEN-LAST:event_jtbtnMatriculaActionPerformed
 
-    private void jtbnCerrarPeriodoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jtbnCerrarPeriodoActionPerformed
+    private void jbtnCerrarPeriodoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jbtnCerrarPeriodoActionPerformed
         // TODO add your handling code here:
-    }//GEN-LAST:event_jtbnCerrarPeriodoActionPerformed
+    }//GEN-LAST:event_jbtnCerrarPeriodoActionPerformed
 
     /**
      * @param args the command line arguments
@@ -241,14 +353,14 @@ public class FrmPeriodos extends javax.swing.JInternalFrame {
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
     private javax.swing.JScrollPane jScrollPane1;
+    private javax.swing.JButton jbtnActivar;
     private javax.swing.JButton jbtnCancelar;
+    private javax.swing.JButton jbtnCerrarPeriodo;
     private javax.swing.JButton jbtnEditar;
     private javax.swing.JButton jbtnGuardar;
+    private javax.swing.JButton jbtnNuevo;
     private javax.swing.JLabel jlblActivo;
     private javax.swing.JTable jtblPeriodos;
-    private javax.swing.JButton jtbnActivar;
-    private javax.swing.JButton jtbnCerrarPeriodo;
-    private javax.swing.JButton jtbnNuevo;
     private javax.swing.JToggleButton jtbtnMatricula;
     private javax.swing.JTextField jtxtFin;
     private javax.swing.JTextField jtxtInicio;

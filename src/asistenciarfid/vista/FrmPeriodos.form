@@ -48,17 +48,17 @@
                           <Group type="102" alignment="0" attributes="0">
                               <Group type="103" groupAlignment="0" attributes="0">
                                   <Group type="102" alignment="0" attributes="0">
-                                      <Component id="jtbnNuevo" min="-2" max="-2" attributes="0"/>
+                                      <Component id="jbtnNuevo" min="-2" max="-2" attributes="0"/>
                                       <EmptySpace min="-2" pref="60" max="-2" attributes="0"/>
                                   </Group>
                                   <Group type="102" alignment="1" attributes="0">
-                                      <Component id="jtbnCerrarPeriodo" min="-2" max="-2" attributes="0"/>
+                                      <Component id="jbtnCerrarPeriodo" min="-2" max="-2" attributes="0"/>
                                       <EmptySpace min="-2" pref="25" max="-2" attributes="0"/>
                                   </Group>
                               </Group>
                               <Group type="103" groupAlignment="0" attributes="0">
                                   <Group type="102" attributes="0">
-                                      <Component id="jtbnActivar" min="-2" max="-2" attributes="0"/>
+                                      <Component id="jbtnActivar" min="-2" max="-2" attributes="0"/>
                                       <EmptySpace type="separate" max="-2" attributes="0"/>
                                       <Component id="jtbtnMatricula" min="-2" max="-2" attributes="0"/>
                                   </Group>
@@ -106,13 +106,13 @@
               <Group type="103" groupAlignment="3" attributes="0">
                   <Component id="jbtnCancelar" alignment="3" min="-2" max="-2" attributes="0"/>
                   <Component id="jbtnGuardar" alignment="3" min="-2" max="-2" attributes="0"/>
-                  <Component id="jtbnNuevo" alignment="3" min="-2" max="-2" attributes="0"/>
+                  <Component id="jbtnNuevo" alignment="3" min="-2" max="-2" attributes="0"/>
                   <Component id="jbtnEditar" alignment="3" min="-2" max="-2" attributes="0"/>
               </Group>
               <EmptySpace type="unrelated" max="-2" attributes="0"/>
               <Group type="103" groupAlignment="3" attributes="0">
-                  <Component id="jtbnCerrarPeriodo" alignment="3" min="-2" max="-2" attributes="0"/>
-                  <Component id="jtbnActivar" alignment="3" min="-2" max="-2" attributes="0"/>
+                  <Component id="jbtnCerrarPeriodo" alignment="3" min="-2" max="-2" attributes="0"/>
+                  <Component id="jbtnActivar" alignment="3" min="-2" max="-2" attributes="0"/>
                   <Component id="jtbtnMatricula" alignment="3" min="-2" max="-2" attributes="0"/>
               </Group>
               <EmptySpace pref="41" max="32767" attributes="0"/>
@@ -170,12 +170,12 @@
         <Property name="text" type="java.lang.String" value="Fin (aaaa-mm-dd)"/>
       </Properties>
     </Component>
-    <Component class="javax.swing.JButton" name="jtbnNuevo">
+    <Component class="javax.swing.JButton" name="jbtnNuevo">
       <Properties>
         <Property name="text" type="java.lang.String" value="Nuevo"/>
       </Properties>
       <Events>
-        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="jtbnNuevoActionPerformed"/>
+        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="jbtnNuevoActionPerformed"/>
       </Events>
     </Component>
     <Component class="javax.swing.JButton" name="jbtnGuardar">
@@ -202,12 +202,12 @@
         <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="jbtnCancelarActionPerformed"/>
       </Events>
     </Component>
-    <Component class="javax.swing.JButton" name="jtbnActivar">
+    <Component class="javax.swing.JButton" name="jbtnActivar">
       <Properties>
         <Property name="text" type="java.lang.String" value="Activar Periodo"/>
       </Properties>
       <Events>
-        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="jtbnActivarActionPerformed"/>
+        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="jbtnActivarActionPerformed"/>
       </Events>
     </Component>
     <Component class="javax.swing.JToggleButton" name="jtbtnMatricula">
@@ -218,12 +218,12 @@
         <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="jtbtnMatriculaActionPerformed"/>
       </Events>
     </Component>
-    <Component class="javax.swing.JButton" name="jtbnCerrarPeriodo">
+    <Component class="javax.swing.JButton" name="jbtnCerrarPeriodo">
       <Properties>
         <Property name="text" type="java.lang.String" value="Cerrar Periodo"/>
       </Properties>
       <Events>
-        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="jtbnCerrarPeriodoActionPerformed"/>
+        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="jbtnCerrarPeriodoActionPerformed"/>
       </Events>
     </Component>
   </SubComponents>
