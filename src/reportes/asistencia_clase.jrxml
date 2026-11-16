@@ -1,0 +1,233 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="null" language="groovy" pageWidth="595" pageHeight="842" columnWidth="555" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" uuid="f2772843-2bb5-4156-bfcb-86bee218884f">
+	<property name="ireport.zoom" value="1.0"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<parameter name="P_FECHA" class="java.lang.String"/>
+	<parameter name="P_GRUPO_ID" class="java.lang.String"/>
+	<queryString>
+		<![CDATA[SELECT c.nombre AS carrera,
+       s.nivel AS nivel, 
+       s.nombre AS asignatura, 
+       g.paralelo AS paralelo,
+       COALESCE(u.nombre, 'Sin docente') AS docente,
+       e.apellido, 
+       e.nombre, 
+       h.hora_inicio, 
+       a.hora AS hora_llegada,
+       IF(a.id IS NULL, 'FALTA', 'PRESENTE') AS estado
+FROM grupo g
+JOIN asignatura s ON s.id = g.asignatura_id
+JOIN carrera c ON c.id = s.carrera_id
+LEFT JOIN usuario u ON u.id = g.docente_id
+JOIN matricula m ON m.grupo_id = g.id
+JOIN estudiante e ON e.id = m.estudiante_id
+JOIN horario h ON h.grupo_id = g.id
+LEFT JOIN asistencia a ON a.estudiante_id = e.id
+                      AND a.horario_id = h.id
+                      AND a.fecha = $P{P_FECHA}
+WHERE g.id = $P{P_GRUPO_ID}
+  AND h.dia_semana = WEEKDAY($P{P_FECHA}) + 1
+ORDER BY e.apellido, e.nombre;]]>
+	</queryString>
+	<field name="carrera" class="java.lang.String"/>
+	<field name="nivel" class="java.lang.Integer">
+		<fieldDescription><![CDATA[]]></fieldDescription>
+	</field>
+	<field name="asignatura" class="java.lang.String"/>
+	<field name="paralelo" class="java.lang.String">
+		<fieldDescription><![CDATA[]]></fieldDescription>
+	</field>
+	<field name="docente" class="java.lang.String"/>
+	<field name="apellido" class="java.lang.String">
+		<fieldDescription><![CDATA[]]></fieldDescription>
+	</field>
+	<field name="nombre" class="java.lang.String">
+		<fieldDescription><![CDATA[]]></fieldDescription>
+	</field>
+	<field name="hora_inicio" class="java.sql.Time">
+		<fieldDescription><![CDATA[]]></fieldDescription>
+	</field>
+	<field name="hora_llegada" class="java.sql.Time"/>
+	<field name="estado" class="java.lang.String"/>
+	<variable name="VP" class="java.lang.Integer" calculation="Sum">
+		<variableExpression><![CDATA[$F{estado}.equals("PRESENTE") ? 1 : 0]]></variableExpression>
+		<initialValueExpression><![CDATA[0]]></initialValueExpression>
+	</variable>
+	<variable name="VF" class="java.lang.Integer" calculation="Sum">
+		<variableExpression><![CDATA[$F{estado}.equals("FALTA") ? 1 : 0]]></variableExpression>
+		<initialValueExpression><![CDATA[0]]></initialValueExpression>
+	</variable>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<title>
+		<band height="37" splitType="Stretch">
+			<staticText>
+				<reportElement x="0" y="0" width="157" height="20" uuid="46b89493-2083-4e21-80a5-b839369d3e49"/>
+				<textElement>
+					<font size="14" isBold="true" isItalic="true"/>
+				</textElement>
+				<text><![CDATA[Asistencia de la clase]]></text>
+			</staticText>
+		</band>
+	</title>
+	<pageHeader>
+		<band height="86" splitType="Stretch">
+			<staticText>
+				<reportElement x="7" y="24" width="60" height="20" uuid="0b910335-f7c9-4cb2-872a-e366d8deef6a"/>
+				<textElement>
+					<font isBold="true" isItalic="true"/>
+				</textElement>
+				<text><![CDATA[Asignatura:]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="7" y="44" width="60" height="20" uuid="abf4f6a7-8190-4a6e-b9cd-891de48391d3"/>
+				<textElement>
+					<font isBold="true" isItalic="true"/>
+				</textElement>
+				<text><![CDATA[Docente:]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="274" y="24" width="54" height="20" uuid="ae2ee93b-55ae-4876-8bd2-846563cbada0"/>
+				<textElement>
+					<font isBold="true" isItalic="true"/>
+				</textElement>
+				<text><![CDATA[Nivel:]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="274" y="44" width="54" height="20" uuid="0db296d0-5a41-4dca-9887-c865d0f20a08"/>
+				<textElement>
+					<font isBold="true" isItalic="true"/>
+				</textElement>
+				<text><![CDATA[Paralelo:]]></text>
+			</staticText>
+			<textField>
+				<reportElement x="67" y="24" width="197" height="20" uuid="3e1c3f91-337e-40ea-b063-376d17ed7e26"/>
+				<textFieldExpression><![CDATA[$F{asignatura}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="67" y="44" width="197" height="20" uuid="e75230f9-ba89-41c5-b808-bdc4029bce18"/>
+				<textFieldExpression><![CDATA[$F{docente}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="328" y="24" width="56" height="20" uuid="4b2c6e1c-6625-4b59-b63e-fad553e9cb11"/>
+				<textFieldExpression><![CDATA[$F{nivel}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="328" y="44" width="56" height="20" uuid="e9004112-b053-4562-abbd-19f3cc28bf23"/>
+				<textFieldExpression><![CDATA[$F{paralelo}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="401" y="24" width="42" height="20" uuid="03580fcd-f0fa-43ae-8f61-dd3ab34e13c6"/>
+				<textElement>
+					<font isBold="true" isItalic="true"/>
+				</textElement>
+				<text><![CDATA[Grupo:]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="401" y="44" width="42" height="20" uuid="73e1ddc3-4675-43a7-9788-9f07d7e7c04a"/>
+				<textElement>
+					<font isBold="true" isItalic="true"/>
+				</textElement>
+				<text><![CDATA[Fecha:]]></text>
+			</staticText>
+			<textField>
+				<reportElement x="443" y="44" width="100" height="20" uuid="055fa80a-467c-48e3-9c38-7b0d1d77e5fa"/>
+				<textFieldExpression><![CDATA[$P{P_FECHA}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="443" y="24" width="100" height="20" uuid="5deac3ec-eb5c-4b68-ad89-4940e8d70420"/>
+				<textFieldExpression><![CDATA[$P{P_GRUPO_ID}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="7" y="4" width="60" height="20" uuid="1510658c-b0d4-4413-8df2-10a9a5b80a03"/>
+				<textElement>
+					<font isBold="true" isItalic="true"/>
+				</textElement>
+				<text><![CDATA[Carrera:]]></text>
+			</staticText>
+			<textField>
+				<reportElement x="67" y="4" width="100" height="20" uuid="649a939c-7da1-4534-becc-356f6c538b64"/>
+				<textFieldExpression><![CDATA[$F{carrera}]]></textFieldExpression>
+			</textField>
+		</band>
+	</pageHeader>
+	<columnHeader>
+		<band height="21" splitType="Stretch">
+			<staticText>
+				<reportElement x="21" y="0" width="100" height="20" uuid="1f620777-5aae-46a9-aa4d-41848bd59ff0"/>
+				<textElement>
+					<font isBold="true" isItalic="true"/>
+				</textElement>
+				<text><![CDATA[Apellido]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="121" y="1" width="100" height="20" uuid="daeb4865-dad3-4539-bb45-9ae729854068"/>
+				<textElement>
+					<font isBold="true" isItalic="true"/>
+				</textElement>
+				<text><![CDATA[Nombre]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="221" y="1" width="100" height="20" uuid="ae741bf4-653f-4e08-85f3-c3c6ee018c90"/>
+				<textElement>
+					<font isBold="true" isItalic="true"/>
+				</textElement>
+				<text><![CDATA[Hora Inicio]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="321" y="0" width="100" height="20" uuid="146cb147-1e9e-47cd-9485-773ad1e99021"/>
+				<textElement>
+					<font isBold="true" isItalic="true"/>
+				</textElement>
+				<text><![CDATA[Hora Llegada]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="421" y="1" width="100" height="20" uuid="6eb13357-619d-44e1-b1cf-01eeef00acfc"/>
+				<textElement>
+					<font isBold="true" isItalic="true"/>
+				</textElement>
+				<text><![CDATA[Estado]]></text>
+			</staticText>
+		</band>
+	</columnHeader>
+	<detail>
+		<band height="21" splitType="Stretch">
+			<textField>
+				<reportElement x="21" y="0" width="100" height="20" uuid="99147bf5-d831-4dd0-873e-faabadb03045"/>
+				<textFieldExpression><![CDATA[$F{apellido}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="121" y="0" width="100" height="20" uuid="8dad2de6-0371-4666-9e09-df63b4de6914"/>
+				<textFieldExpression><![CDATA[$F{nombre}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="221" y="0" width="100" height="20" uuid="a0cefe19-45f5-4aeb-838e-f417a46f3130"/>
+				<textFieldExpression><![CDATA[$F{hora_inicio}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="421" y="0" width="100" height="20" uuid="a48050b1-e4ed-424e-b5a5-f5b95d4e616b"/>
+				<textFieldExpression><![CDATA[$F{estado}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="321" y="0" width="100" height="20" uuid="3991a735-db22-45f6-a7f0-0aad2072004f"/>
+				<textFieldExpression><![CDATA[$F{hora_llegada}]]></textFieldExpression>
+			</textField>
+		</band>
+	</detail>
+	<columnFooter>
+		<band height="45" splitType="Stretch"/>
+	</columnFooter>
+	<pageFooter>
+		<band height="54" splitType="Stretch"/>
+	</pageFooter>
+	<summary>
+		<band height="42" splitType="Stretch">
+			<textField>
+				<reportElement x="0" y="0" width="432" height="20" uuid="e7c87608-19f1-4f0f-9304-55acca1cb26a"/>
+				<textFieldExpression><![CDATA["Presentes: " + $V{VP} + "      Faltas: " + $V{VF} + "      Total: " + $V{REPORT_COUNT}]]></textFieldExpression>
+			</textField>
+		</band>
+	</summary>
+</jasperReport>
