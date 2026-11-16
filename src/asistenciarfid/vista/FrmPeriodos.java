@@ -217,6 +217,81 @@ public class FrmPeriodos extends javax.swing.JInternalFrame {
         }
     }
     
+        private boolean confirmar(String mensaje, String titulo) {
+        int op = JOptionPane.showConfirmDialog(null, mensaje, titulo, JOptionPane.YES_NO_OPTION);
+        return op == JOptionPane.YES_OPTION;
+    }
+
+    public void activar() {
+        if (!confirmar("¿Activar el periodo " + seleccionado.getNombre()
+                + "? El periodo activo actual quedará inactivo.", "Activar periodo")) {
+            return;
+        }
+        if (PeriodoDAO.activar(seleccionado.getId())) {
+            JOptionPane.showMessageDialog(null, "Periodo activado");
+            cargarPeriodos();
+            informacionInicio();
+        } else {
+            JOptionPane.showMessageDialog(null, "No se pudo activar el periodo");
+        }
+    }
+
+    public void cambiarMatricula() {
+        boolean abrir = jtbtnMatricula.isSelected();
+        if (PeriodoDAO.cambiarMatricula(seleccionado.getId(), abrir)) {
+            JOptionPane.showMessageDialog(null, abrir ? "Matrícula abierta" : "Matrícula cerrada");
+            cargarPeriodos();
+            informacionInicio();
+        } else {
+            jtbtnMatricula.setSelected(!abrir);
+            JOptionPane.showMessageDialog(null, "No se pudo cambiar la matrícula");
+        }
+    }
+
+    // Muestra la lista de notas que faltan. Devuelve true si falta alguna (entonces no se cierra)
+    private boolean faltanNotas() {
+        List<Matricula> faltantes = CierrePeriodoControlador.notasFaltantes();
+        if (faltantes.isEmpty()) {
+            return false;
+        }
+        String lista = "";
+        for (Matricula m : faltantes) {
+            lista += "- " + m.getEstudianteNombre() + " (" + m.getAsignaturaNombre()
+                    + " " + m.getParalelo() + ")\n";
+        }
+        JOptionPane.showMessageDialog(null, "No se puede cerrar: faltan las notas de:\n" + lista);
+        return true;
+    }
+
+    private void mostrarEstudiantesPorRevisar(List<Estudiante> porRevisar) {
+        String mensaje = "Periodo cerrado.";
+        if (!porRevisar.isEmpty()) {
+            mensaje += "\nEstudiantes por revisar (reprobaron alguna materia):\n";
+            for (Estudiante e : porRevisar) {
+                mensaje += "- " + e.getNombre() + " " + e.getApellido() + "\n";
+            }
+        }
+        JOptionPane.showMessageDialog(null, mensaje);
+    }
+
+    public void cerrarPeriodo() {
+        if (faltanNotas()) {
+            return;
+        }
+        if (!confirmar("¿Cerrar el periodo? Las notas pasarán a aprobada o reprobada y los estudiantes "
+                + "que aprobaron todo subirán de nivel.", "Cerrar periodo")) {
+            return;
+        }
+        List<Estudiante> porRevisar = CierrePeriodoControlador.cerrarPeriodo();
+        if (porRevisar == null) {
+            JOptionPane.showMessageDialog(null, "No se pudo cerrar el periodo");
+            return;
+        }
+        mostrarEstudiantesPorRevisar(porRevisar);
+        cargarPeriodos();
+        informacionInicio();
+    }
+    
 
     /**
      * This method is called from within the constructor to initialize the form.
@@ -376,7 +451,7 @@ public class FrmPeriodos extends javax.swing.JInternalFrame {
     }//GEN-LAST:event_jbtnNuevoActionPerformed
 
     private void jbtnGuardarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jbtnGuardarActionPerformed
-        // TODO add your handling code here:
+        guardar();
     }//GEN-LAST:event_jbtnGuardarActionPerformed
 
     private void jbtnEditarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jbtnEditarActionPerformed
@@ -388,15 +463,15 @@ public class FrmPeriodos extends javax.swing.JInternalFrame {
     }//GEN-LAST:event_jbtnCancelarActionPerformed
 
     private void jbtnActivarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jbtnActivarActionPerformed
-        // TODO add your handling code here:
+        activar();
     }//GEN-LAST:event_jbtnActivarActionPerformed
 
     private void jtbtnMatriculaActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jtbtnMatriculaActionPerformed
-        // TODO add your handling code here:
+        cambiarMatricula();
     }//GEN-LAST:event_jtbtnMatriculaActionPerformed
 
     private void jbtnCerrarPeriodoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jbtnCerrarPeriodoActionPerformed
-        // TODO add your handling code here:
+        cerrarPeriodo();
     }//GEN-LAST:event_jbtnCerrarPeriodoActionPerformed
 
     /**
