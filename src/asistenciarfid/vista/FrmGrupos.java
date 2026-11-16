@@ -16,6 +16,8 @@ import java.util.List;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JOptionPane;
 import javax.swing.table.DefaultTableModel;
+import asistenciarfid.dao.CarreraDAO;
+import asistenciarfid.modelo.Carrera;
 
 /**
  *
@@ -42,6 +44,8 @@ public class FrmGrupos extends javax.swing.JInternalFrame {
     private boolean camposActivos = false;                                 // true cuando se esta escribiendo (Nuevo o Editar)
     private boolean cargando = false;                                      // true mientras se llenan los combos por codigo (ignora sus eventos)
     private int grupoSeleccionadoId = 0;                                   // id del grupo elegido en la tabla
+    private List<Carrera> listaCarreras = new ArrayList<>();               // paralela al combo de carrera (indice - 1)
+
 
     public FrmGrupos(Usuario usuario) {
         initComponents();
@@ -49,6 +53,7 @@ public class FrmGrupos extends javax.swing.JInternalFrame {
         setClosable(true);
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
         cargarAsignaturas();
+        cargarCarreras();
         cargarNiveles();
         cargarDocentes();
         cargarTabla();
@@ -65,10 +70,78 @@ public class FrmGrupos extends javax.swing.JInternalFrame {
         jrbtnParaleloA.addActionListener(e -> actualizarHabilitados());
         jrbtnParaleloB.addActionListener(e -> actualizarHabilitados());
         jrbtnParaleloC.addActionListener(e -> actualizarHabilitados());
-        
+        jcbxCarrera.addActionListener(e -> alElegirCarrera());
+        // Si el usuario es COORDINADOR se oculta el combo (su carrera ya esta fija):
+        if (!usaCarrera()) {
+            jlblCarrera.setVisible(false);
+            jcbxCarrera.setVisible(false);
+        }
     }
 
-    
+    // El combo de carrera lo usan todos menos el COORDINADOR (el ya tiene una sola carrera)
+    private boolean usaCarrera() {
+        return !(usuario != null && Perfil.COORDINADOR.equals(usuario.getPerfil()));
+    }
+
+    private void cargarCarreras() {
+        listaCarreras = CarreraDAO.listar();
+        DefaultComboBoxModel<String> modelo = new DefaultComboBoxModel<>();
+        modelo.addElement("Seleccione");
+        for (Carrera c : listaCarreras) {
+            modelo.addElement(c.getNombre());
+        }
+        jcbxCarrera.setModel(modelo);
+    }
+
+    // Id de la carrera elegida; null si no se eligio ninguna (o si es coordinador)
+    private Integer carreraElegidaId() {
+        int indice = jcbxCarrera.getSelectedIndex();
+        if (!usaCarrera() || indice <= 0) {
+            return null;
+        }
+        return listaCarreras.get(indice - 1).getId();
+    }
+
+    // Asignaturas de la carrera elegida (vacio si todavia no se elige carrera)
+    private List<Asignatura> asignaturasDeLaCarrera() {
+        List<Asignatura> lista = new ArrayList<>();
+        Integer carreraId = carreraElegidaId();
+        if (usaCarrera() && carreraId == null) {
+            return lista;
+        }
+        for (Asignatura a : listaAsignaturas) {
+            if (carreraId == null || a.getCarreraId() == carreraId.intValue()) {
+                lista.add(a);
+            }
+        }
+        return lista;
+    }
+
+    private String nombreCarreraDe(int asignaturaId) {
+        for (Asignatura a : listaAsignaturas) {
+            if (a.getId() == asignaturaId) {
+                for (Carrera c : listaCarreras) {
+                    if (c.getId() == a.getCarreraId()) {
+                        return c.getNombre();
+                    }
+                }
+            }
+        }
+        return "";
+    }
+
+    private void alElegirCarrera() {
+        if (cargando) {
+            return;
+        }
+        cargarNiveles();                 // solo los niveles de esa carrera
+        llenarAsignaturasDelNivel();
+        bgParalelo.clearSelection();
+        jcbxDocente.setSelectedIndex(0);
+        actualizarHabilitados();
+    }
+
+   
     // El COORDINADOR solo trabaja con su carrera; los demas ven todas (null)
     private Integer carreraDelUsuario() {
         if (usuario != null && Perfil.COORDINADOR.equals(usuario.getPerfil())) {
@@ -81,10 +154,10 @@ public class FrmGrupos extends javax.swing.JInternalFrame {
         listaAsignaturas = AsignaturaDAO.listar(carreraDelUsuario());
     }
 
-    // Combo de nivel: los niveles que de verdad tienen asignaturas
+   // Combo de nivel: los niveles de la carrera elegida
     private void cargarNiveles() {
         listaNiveles = new ArrayList<>();
-        for (Asignatura a : listaAsignaturas) {
+        for (Asignatura a : asignaturasDeLaCarrera()) {
             if (!listaNiveles.contains(a.getNivel())) {
                 listaNiveles.add(a.getNivel());
             }
@@ -98,13 +171,14 @@ public class FrmGrupos extends javax.swing.JInternalFrame {
         jcbxNivel.setModel(modelo);
     }
 
-    // Combo de asignatura: SOLO las del nivel elegido (si no hay nivel, queda vacio)
+
+   // Combo de asignatura: SOLO las del nivel elegido y de la carrera elegida
     private void llenarAsignaturasDelNivel() {
         asignaturasDelNivel = new ArrayList<>();
         int indice = jcbxNivel.getSelectedIndex();
         if (indice > 0) {
             int nivel = listaNiveles.get(indice - 1);
-            for (Asignatura a : listaAsignaturas) {
+            for (Asignatura a : asignaturasDeLaCarrera()) {
                 if (a.getNivel() == nivel) {
                     asignaturasDelNivel.add(a);
                 }
@@ -118,6 +192,7 @@ public class FrmGrupos extends javax.swing.JInternalFrame {
         jcbxAsignatura.setModel(modelo);
     }
 
+
     private void cargarDocentes() {
         listaDocentes = UsuarioDAO.listarPorPerfil(Perfil.DOCENTE);
         DefaultComboBoxModel<String> modelo = new DefaultComboBoxModel<>();
@@ -129,7 +204,7 @@ public class FrmGrupos extends javax.swing.JInternalFrame {
     }
 
     private void cargarTabla() {
-        String titulos[] = {"Asignatura", "Nivel", "Paralelo", "Docente"};
+String titulos[] = {"Carrera", "Asignatura", "Nivel", "Paralelo", "Docente"};
         DefaultTableModel modelo = new DefaultTableModel(null, titulos);
         listaGrupos = GrupoDAO.listar(carreraDelUsuario(), null);
         for (Grupo g : listaGrupos) {
@@ -137,8 +212,7 @@ public class FrmGrupos extends javax.swing.JInternalFrame {
             if (docente == null) {
                 docente = "Sin docente";
             }
-            modelo.addRow(new Object[]{g.getAsignaturaNombre(), g.getAsignaturaNivel(), g.getParalelo(), docente});
-        }
+modelo.addRow(new Object[]{nombreCarreraDe(g.getAsignaturaId()), g.getAsignaturaNombre(),g.getAsignaturaNivel(), g.getParalelo(), docente});        }
         jtblGrupos.setModel(modelo);
     }
 
@@ -177,18 +251,23 @@ public class FrmGrupos extends javax.swing.JInternalFrame {
         actualizarHabilitados();
     }
 
-    // Decide que controles se pueden usar segun lo que ya se eligio
+       // Decide que controles se pueden usar segun lo que ya se eligio
     private void actualizarHabilitados() {
+        boolean hayCarrera = !usaCarrera() || jcbxCarrera.getSelectedIndex() > 0;
         boolean hayNivel = jcbxNivel.getSelectedIndex() > 0;
         boolean hayAsignatura = jcbxAsignatura.getSelectedIndex() > 0;
         boolean hayParalelo = !paraleloElegido().isEmpty();
-        jcbxNivel.setEnabled(camposActivos);
-        jcbxAsignatura.setEnabled(camposActivos && hayNivel);
-        jrbtnParaleloA.setEnabled(camposActivos && hayAsignatura);
-        jrbtnParaleloB.setEnabled(camposActivos && hayAsignatura);
-        jrbtnParaleloC.setEnabled(camposActivos && hayAsignatura);
+        // Al EDITAR solo se puede cambiar el docente; al crear un grupo nuevo se llena toda la cadena
+        boolean nuevo = camposActivos && !editando;
+        jcbxCarrera.setEnabled(nuevo && usaCarrera());
+        jcbxNivel.setEnabled(nuevo && hayCarrera);
+        jcbxAsignatura.setEnabled(nuevo && hayCarrera && hayNivel);
+        jrbtnParaleloA.setEnabled(nuevo && hayAsignatura);
+        jrbtnParaleloB.setEnabled(nuevo && hayAsignatura);
+        jrbtnParaleloC.setEnabled(nuevo && hayAsignatura);
         jcbxDocente.setEnabled(camposActivos && hayAsignatura && hayParalelo);
     }
+
 
     private void habilitarCampos(boolean estado) {
         camposActivos = estado;
@@ -205,6 +284,19 @@ public class FrmGrupos extends javax.swing.JInternalFrame {
         grupoSeleccionadoId = g.getId();
 
         cargando = true;
+        int carreraId = 0;
+        for (Asignatura a : listaAsignaturas) {
+            if (a.getId() == g.getAsignaturaId()) {
+                carreraId = a.getCarreraId();
+            }
+        }
+        jcbxCarrera.setSelectedIndex(0);
+        for (int i = 0; i < listaCarreras.size(); i++) {
+            if (listaCarreras.get(i).getId() == carreraId) {
+                jcbxCarrera.setSelectedIndex(i + 1);
+            }
+        }
+        cargarNiveles();
         jcbxNivel.setSelectedIndex(0);
         for (int i = 0; i < listaNiveles.size(); i++) {
             if (listaNiveles.get(i) == g.getAsignaturaNivel()) {
@@ -217,6 +309,7 @@ public class FrmGrupos extends javax.swing.JInternalFrame {
                 jcbxAsignatura.setSelectedIndex(i + 1);
             }
         }
+
         if (g.getParalelo().equals("A")) {
             jrbtnParaleloA.setSelected(true);
         } else if (g.getParalelo().equals("B")) {
@@ -241,6 +334,8 @@ public class FrmGrupos extends javax.swing.JInternalFrame {
 
     private void limpiarCampos() {
         cargando = true;
+        jcbxCarrera.setSelectedIndex(0);
+        cargarNiveles();
         jcbxNivel.setSelectedIndex(0);
         llenarAsignaturasDelNivel();
         bgParalelo.clearSelection();
@@ -288,6 +383,12 @@ public class FrmGrupos extends javax.swing.JInternalFrame {
     }
 
     private boolean validarCampos() {
+        if (usaCarrera() && jcbxCarrera.getSelectedIndex() == 0) {
+            JOptionPane.showMessageDialog(this, "Seleccione la carrera");
+            jcbxCarrera.requestFocus();
+            return false;
+        }
+
         if (jcbxNivel.getSelectedIndex() == 0) {
             JOptionPane.showMessageDialog(this, "Seleccione el nivel");
             jcbxNivel.requestFocus();
@@ -388,6 +489,8 @@ public class FrmGrupos extends javax.swing.JInternalFrame {
         jcbxDocente = new javax.swing.JComboBox<>();
         jLabel5 = new javax.swing.JLabel();
         jcbxNivel = new javax.swing.JComboBox<>();
+        jlblCarrera = new javax.swing.JLabel();
+        jcbxCarrera = new javax.swing.JComboBox<>();
         jLabel1 = new javax.swing.JLabel();
         jPanel2 = new javax.swing.JPanel();
         jbtnNuevo = new javax.swing.JButton();
@@ -430,6 +533,11 @@ public class FrmGrupos extends javax.swing.JInternalFrame {
 
         jcbxNivel.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Item 1", "Item 2", "Item 3", "Item 4" }));
 
+        jlblCarrera.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
+        jlblCarrera.setText("Carrera");
+
+        jcbxCarrera.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Item 1", "Item 2", "Item 3", "Item 4" }));
+
         javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
         jPanel1.setLayout(jPanel1Layout);
         jPanel1Layout.setHorizontalGroup(
@@ -440,7 +548,8 @@ public class FrmGrupos extends javax.swing.JInternalFrame {
                     .addComponent(jLabel4)
                     .addComponent(jLabel5)
                     .addComponent(jLabel2)
-                    .addComponent(jLabel3))
+                    .addComponent(jLabel3)
+                    .addComponent(jlblCarrera))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
                     .addGroup(jPanel1Layout.createSequentialGroup()
@@ -451,13 +560,18 @@ public class FrmGrupos extends javax.swing.JInternalFrame {
                         .addComponent(jrbtnParaleloC))
                     .addComponent(jcbxAsignatura, 0, 274, Short.MAX_VALUE)
                     .addComponent(jcbxDocente, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(jcbxNivel, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                    .addComponent(jcbxNivel, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(jcbxCarrera, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                 .addContainerGap(247, Short.MAX_VALUE))
         );
         jPanel1Layout.setVerticalGroup(
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel1Layout.createSequentialGroup()
-                .addContainerGap(14, Short.MAX_VALUE)
+                .addContainerGap(11, Short.MAX_VALUE)
+                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jlblCarrera)
+                    .addComponent(jcbxCarrera, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel5)
                     .addComponent(jcbxNivel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
@@ -577,7 +691,7 @@ public class FrmGrupos extends javax.swing.JInternalFrame {
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jPanel2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 393, Short.MAX_VALUE)
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 368, Short.MAX_VALUE)
                 .addContainerGap())
         );
 
@@ -593,6 +707,7 @@ public class FrmGrupos extends javax.swing.JInternalFrame {
         editando = true;
         habilitarCampos(true);
         BotonesNuevo();
+        jcbxDocente.requestFocus();
     }//GEN-LAST:event_jbtnEditarActionPerformed
 
     private void jbtnGuardarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jbtnGuardarActionPerformed
@@ -650,8 +765,10 @@ public class FrmGrupos extends javax.swing.JInternalFrame {
     private javax.swing.JButton jbtnGuardar;
     private javax.swing.JButton jbtnNuevo;
     private javax.swing.JComboBox<String> jcbxAsignatura;
+    private javax.swing.JComboBox<String> jcbxCarrera;
     private javax.swing.JComboBox<String> jcbxDocente;
     private javax.swing.JComboBox<String> jcbxNivel;
+    private javax.swing.JLabel jlblCarrera;
     private javax.swing.JRadioButton jrbtnParaleloA;
     private javax.swing.JRadioButton jrbtnParaleloB;
     private javax.swing.JRadioButton jrbtnParaleloC;
