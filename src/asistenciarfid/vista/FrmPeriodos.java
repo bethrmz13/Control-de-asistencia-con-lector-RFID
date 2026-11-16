@@ -145,6 +145,77 @@ public class FrmPeriodos extends javax.swing.JInternalFrame {
         jbtnCerrarPeriodo.setEnabled(seleccionado.isActivo());
     }
     
+        // Lee una fecha de una caja. Si el formato está mal, avisa y devuelve null.
+    private java.sql.Date leerFecha(javax.swing.JTextField caja, String nombreCampo, String ejemplo) {
+        try {
+            return java.sql.Date.valueOf(caja.getText().trim());
+        } catch (IllegalArgumentException ex) {
+            JOptionPane.showMessageDialog(null, nombreCampo + " inválida. Use el formato " + ejemplo);
+            caja.requestFocus();
+            return null;
+        }
+    }
+
+    private boolean validarCampos() {
+        if (jtxtNombre.getText().trim().isEmpty()) {
+            JOptionPane.showMessageDialog(null, "Ingrese el nombre del periodo");
+            jtxtNombre.requestFocus();
+            return false;
+        }
+        java.sql.Date inicio = leerFecha(jtxtInicio, "La fecha de inicio", "2026-09-28");
+        if (inicio == null) {
+            return false;
+        }
+        java.sql.Date fin = leerFecha(jtxtFin, "La fecha de fin", "2027-02-26");
+        if (fin == null) {
+            return false;
+        }
+        if (!inicio.before(fin)) {
+            JOptionPane.showMessageDialog(null, "La fecha de inicio debe ser anterior a la de fin");
+            jtxtInicio.requestFocus();
+            return false;
+        }
+        return true;
+    }
+
+    // Arma el Periodo con lo que hay en las cajas (se llama solo después de validarCampos)
+    private Periodo armarPeriodo() {
+        Periodo p = new Periodo();
+        p.setNombre(jtxtNombre.getText().trim());
+        p.setFechaInicio(java.sql.Date.valueOf(jtxtInicio.getText().trim()));
+        p.setFechaFin(java.sql.Date.valueOf(jtxtFin.getText().trim()));
+        if (modo.equals("EDITAR")) {
+            p.setId(seleccionado.getId());
+            p.setActivo(seleccionado.isActivo());
+            p.setMatriculaAbierta(seleccionado.isMatriculaAbierta());
+        } else {
+            p.setActivo(false);
+            p.setMatriculaAbierta(false);
+        }
+        return p;
+    }
+
+    public void guardar() {
+        if (!validarCampos()) {
+            return;
+        }
+        Periodo p = armarPeriodo();
+
+        boolean ok;
+        if (modo.equals("NUEVO")) {
+            ok = PeriodoDAO.insertar(p);
+        } else {
+            ok = PeriodoDAO.actualizar(p);
+        }
+
+        if (ok) {
+            JOptionPane.showMessageDialog(null, "Periodo guardado correctamente");
+            cargarPeriodos();
+            informacionInicio();
+        } else {
+            JOptionPane.showMessageDialog(null, "No se pudo guardar el periodo");
+        }
+    }
     
 
     /**
@@ -309,12 +380,7 @@ public class FrmPeriodos extends javax.swing.JInternalFrame {
     }//GEN-LAST:event_jbtnGuardarActionPerformed
 
     private void jbtnEditarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jbtnEditarActionPerformed
-        modo = "EDITAR";
-        habilitarCampos(true);
-        jbtnNuevo.setEnabled(false);
-        jbtnEditar.setEnabled(false);
-        jbtnGuardar.setEnabled(true);
-        jtxtNombre.requestFocus();
+        informacionEditar();
     }//GEN-LAST:event_jbtnEditarActionPerformed
 
     private void jbtnCancelarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jbtnCancelarActionPerformed
