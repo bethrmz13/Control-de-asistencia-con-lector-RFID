@@ -33,6 +33,7 @@ public class VentanaPrincipal extends javax.swing.JFrame {
         setExtendedState(javax.swing.JFrame.MAXIMIZED_BOTH);
         configurarMenuSegunPerfil();
         agregarMenuMiHorario();
+        agregarMenuInscritos();
         if (usuario.getPerfil().equals(Perfil.REGISTRO)) {
             iniciarModoRegistro();
         } 
@@ -131,6 +132,22 @@ public class VentanaPrincipal extends javax.swing.JFrame {
         });
         menu.add(jmniMiHorario);
     }
+    
+        // "Inscritos": consulta de solo lectura en el menú Asistencia para ADMIN, COORDINADOR y DOCENTE
+    private void agregarMenuInscritos() {
+        String perfil = usuario.getPerfil();
+        if (!perfil.equals(Perfil.ADMIN) && !perfil.equals(Perfil.COORDINADOR)
+                && !perfil.equals(Perfil.DOCENTE)) {
+            return;
+        }
+        javax.swing.JMenuItem jmniInscritos = new javax.swing.JMenuItem("Inscritos");
+        jmniInscritos.addActionListener(e -> {
+            if (puedeAbrir("INSCRITOS")) {
+                abrirVentana(new FrmInscritos(usuario));
+            }
+        });
+        jmnuAsistencia.add(jmniInscritos);
+    }
 
     // Abre una ventana interna en el escritorio. Si ya hay una de la misma clase, la trae al frente.
     public void abrirVentana(JInternalFrame ventana) {
@@ -158,11 +175,11 @@ public class VentanaPrincipal extends javax.swing.JFrame {
         String[] permitidas = {};
         if (perfil.equals(Perfil.ADMIN)) {
             permitidas = new String[]{"USUARIOS", "ESTUDIANTES", "PERIODOS", "ASIGNATURAS",
-                "GRUPOS", "HORARIOS", "REGISTRO", "NOTAS", "REPORTES"};
+                "GRUPOS", "HORARIOS", "REGISTRO", "NOTAS", "REPORTES", "INSCRITOS"};
         } else if (perfil.equals(Perfil.COORDINADOR)) {
-            permitidas = new String[]{"ESTUDIANTES", "ASIGNATURAS", "GRUPOS", "HORARIOS", "REPORTES"};
+            permitidas = new String[]{"ESTUDIANTES", "ASIGNATURAS", "GRUPOS", "HORARIOS", "REPORTES", "INSCRITOS"};
         } else if (perfil.equals(Perfil.DOCENTE)) {
-            permitidas = new String[]{"NOTAS", "REPORTES", "MI_HORARIO"};
+            permitidas = new String[]{"NOTAS", "REPORTES", "MI_HORARIO", "INSCRITOS"};
         } else if (perfil.equals(Perfil.REGISTRO)) {
             permitidas = new String[]{"REGISTRO"};
         } else if (perfil.equals(Perfil.ESTUDIANTE)) {
