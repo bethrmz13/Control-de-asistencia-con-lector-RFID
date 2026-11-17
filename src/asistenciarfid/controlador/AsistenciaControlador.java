@@ -41,7 +41,8 @@ public class AsistenciaControlador {
         Horario elegido = null;
         for (Horario h : horarios) {
             int inicio = Fechas.minutosDelDia(h.getHoraInicio());
-            if (minutosAhora >= inicio && minutosAhora <= inicio + Parametros.TOLERANCIA_MINUTOS) {
+            int fin = Fechas.minutosDelDia(h.getHoraFin());
+            if (minutosAhora >= inicio && minutosAhora < fin) {
                 elegido = h;
                 break;
             }
