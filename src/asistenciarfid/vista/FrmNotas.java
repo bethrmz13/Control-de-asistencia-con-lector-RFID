@@ -52,6 +52,11 @@ public class FrmNotas extends javax.swing.JInternalFrame {
         this.usuario = usuario;
         setClosable(true);
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
+        if (!tienePermiso()) {
+            JOptionPane.showMessageDialog(this, "Solo ADMIN o DOCENTE pueden registrar notas.");
+            jbtnGuardar.setEnabled(false);
+            return;
+        }
         cargarGrupos();
         if (usuario != null && Perfil.DOCENTE.equals(usuario.getPerfil())) {
             jlblDocente.setVisible(false);
@@ -90,6 +95,12 @@ public class FrmNotas extends javax.swing.JInternalFrame {
         } else {
             listaGrupos = GrupoDAO.listar(null, null);
         }
+    }
+    
+        // Las notas solo las registra el ADMIN o un DOCENTE
+    private boolean tienePermiso() {
+        return usuario != null && (Perfil.ADMIN.equals(usuario.getPerfil())
+                || Perfil.DOCENTE.equals(usuario.getPerfil()));
     }
 
     // ---- Filtros en cadena ----
@@ -244,6 +255,10 @@ public class FrmNotas extends javax.swing.JInternalFrame {
     }
 
     private void guardarNotas() {
+        if (!tienePermiso()) {
+            JOptionPane.showMessageDialog(this, "Su perfil no permite registrar notas.");
+            return;
+        }
         // Si el usuario todavia esta escribiendo en una celda, se termina la edicion
         if (jtblNotas.isEditing()) {
             jtblNotas.getCellEditor().stopCellEditing();
@@ -283,14 +298,41 @@ public class FrmNotas extends javax.swing.JInternalFrame {
         }
 
         // 2) Si todo esta bien, se guarda fila por fila
+        // Si una falla, las que ya se guardaron se devuelven a su nota anterior.
         int guardadas = 0;
+        int falla = -1;
         for (int i = 0; i < listaMatriculas.size(); i++) {
             Matricula m = listaMatriculas.get(i);
-            if (MatriculaDAO.actualizarNota(m.getEstudianteId(), m.getGrupoId(), notas[i])) {
-                guardadas++;
+            if (!MatriculaDAO.actualizarNota(m.getEstudianteId(), m.getGrupoId(), notas[i])) {
+                falla = i;
+                break;
             }
+            guardadas++;
         }
-        JOptionPane.showMessageDialog(this, "Se guardaron " + guardadas + " de " + listaMatriculas.size() + " notas");
+
+        if (falla != -1) {
+            // listaMatriculas todavia tiene las notas de antes de guardar
+            int noDevueltas = 0;
+            for (int i = guardadas - 1; i >= 0; i--) {
+                Matricula m = listaMatriculas.get(i);
+                if (!MatriculaDAO.actualizarNota(m.getEstudianteId(), m.getGrupoId(), m.getNota())) {
+                    noDevueltas++;
+                }
+            }
+            String quien = jtblNotas.getValueAt(falla, 0) + " (" + jtblNotas.getValueAt(falla, 1)
+                    + " " + jtblNotas.getValueAt(falla, 2) + ")";
+            String mensaje = "No se pudo guardar la nota de " + quien + ".";
+            if (noDevueltas == 0) {
+                mensaje += "\nSe devolvieron las notas ya guardadas, no se cambió ninguna. Intente de nuevo.";
+            } else {
+                mensaje += "\nNo se pudieron devolver " + noDevueltas
+                        + " notas. Revise la tabla antes de volver a guardar.";
+            }
+            JOptionPane.showMessageDialog(this, mensaje);
+            cargarTabla();
+            return;
+        }
+        JOptionPane.showMessageDialog(this, "Se guardaron las " + guardadas + " notas");
         cargarTabla();
     }
 
