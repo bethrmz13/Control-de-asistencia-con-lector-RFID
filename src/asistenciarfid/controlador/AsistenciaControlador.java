@@ -35,8 +35,8 @@ public class AsistenciaControlador {
                     est.getNombre() + " no tiene clases hoy");
         }
 
-        // c) Buscar el horario donde la hora está entre el inicio y el inicio + tolerancia.
-        // Nada antes del inicio.
+        // c) Buscar el horario donde la hora está entre el inicio y el fin de la clase.
+        // Nada antes del inicio ni desde la hora de fin.
         int minutosAhora = Fechas.minutosDelDia(ahora);
         Horario elegido = null;
         for (Horario h : horarios) {
@@ -63,9 +63,14 @@ public class AsistenciaControlador {
         // e) Registrar
         boolean ok = AsistenciaDAO.registrar(est.getId(), elegido.getId(), fecha, hora);
         if (!ok) {
+            // Si falló, puede ser que otra lectura la guardó justo antes: se revisa de nuevo
+            if (AsistenciaDAO.existe(est.getId(), elegido.getId(), fecha)) {
+                return new ResultadoRegistro(Estado.YA_REGISTRADO, est, elegido,
+                        "Ya registró asistencia en " + elegido.getAsignaturaNombre());
+            }
             // El DAO ya mostró el error de la base de datos
-            return new ResultadoRegistro(Estado.NO_ENCONTRADO, est, elegido,
-                    "No se pudo guardar la asistencia");
+            return new ResultadoRegistro(Estado.ERROR_GUARDADO, est, elegido,
+                    "No se pudo guardar la asistencia. Intente de nuevo");
         }
         String horaTexto = new SimpleDateFormat("HH:mm").format(ahora);
         return new ResultadoRegistro(Estado.REGISTRADO, est, elegido,

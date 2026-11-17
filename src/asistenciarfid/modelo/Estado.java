@@ -15,4 +15,6 @@ public class Estado {
     public static final String NO_ENCONTRADO = "NO_ENCONTRADO";
     public static final String SIN_CLASES_HOY = "SIN_CLASES_HOY";
     public static final String FUERA_DE_HORARIO = "FUERA_DE_HORARIO";
+    public static final String ERROR_GUARDADO = "ERROR_GUARDADO";
 }
+
