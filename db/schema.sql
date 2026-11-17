@@ -1,7 +1,23 @@
--- DROP DATABASE IF EXISTS asistencia_rfid;  -- descomentar al reimportar
+-- =====================================================================
+-- Control de asistencia con lector RFID - Base de datos (MySQL / XAMPP)
+--
+-- Como usarlo:
+--   1. Iniciar Apache y MySQL en XAMPP.
+--   2. Si ya existe una version anterior, borrar la base de datos
+--      asistencia_rfid en phpMyAdmin (pestana Operaciones > Eliminar).
+--   3. phpMyAdmin > Importar > elegir este archivo > Continuar.
+--   4. Debe quedar con 10 tablas.
+--
+-- Guardar este archivo en UTF-8 para que las tildes se vean bien.
+-- =====================================================================
+
 CREATE DATABASE IF NOT EXISTS asistencia_rfid
   CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;
 USE asistencia_rfid;
+
+-- ---------------------------------------------------------------------
+-- TABLAS
+-- ---------------------------------------------------------------------
 
 CREATE TABLE IF NOT EXISTS carrera (
   id INT AUTO_INCREMENT PRIMARY KEY,
@@ -13,15 +29,16 @@ CREATE TABLE IF NOT EXISTS periodo (
   nombre VARCHAR(60) NOT NULL UNIQUE,
   fecha_inicio DATE NOT NULL,
   fecha_fin DATE NOT NULL,
-  activo TINYINT(1) NOT NULL DEFAULT 0
+  activo TINYINT(1) NOT NULL DEFAULT 0,
+  matricula_abierta TINYINT(1) NOT NULL DEFAULT 0
 );
 
 CREATE TABLE IF NOT EXISTS usuario (
   id INT AUTO_INCREMENT PRIMARY KEY,
   username VARCHAR(30) NOT NULL UNIQUE,
-  password_hash CHAR(64) NOT NULL,
+  clave VARCHAR(50) NOT NULL,
   nombre VARCHAR(80) NOT NULL,
-  perfil ENUM('ADMIN','COORDINADOR','DOCENTE','REGISTRO') NOT NULL,
+  perfil ENUM('ADMIN','COORDINADOR','DOCENTE','REGISTRO','ESTUDIANTE') NOT NULL,
   carrera_id INT NULL COMMENT 'solo para COORDINADOR',
   activo TINYINT(1) NOT NULL DEFAULT 1,
   FOREIGN KEY (carrera_id) REFERENCES carrera(id) ON DELETE SET NULL
@@ -29,11 +46,14 @@ CREATE TABLE IF NOT EXISTS usuario (
 
 CREATE TABLE IF NOT EXISTS estudiante (
   id INT AUTO_INCREMENT PRIMARY KEY,
+  usuario_id INT NULL UNIQUE,
   codigo_rfid VARCHAR(20) NOT NULL UNIQUE,
   nombre VARCHAR(60) NOT NULL,
   apellido VARCHAR(60) NOT NULL,
   correo VARCHAR(80),
   carrera_id INT NOT NULL,
+  nivel TINYINT NOT NULL DEFAULT 1 COMMENT 'nivel maximo del que puede escoger materias',
+  FOREIGN KEY (usuario_id) REFERENCES usuario(id) ON DELETE SET NULL,
   FOREIGN KEY (carrera_id) REFERENCES carrera(id)
 );
 
@@ -46,6 +66,17 @@ CREATE TABLE IF NOT EXISTS asignatura (
   UNIQUE KEY uq_asignatura (carrera_id, nombre)
 );
 
+-- Tabla de materias de cada estudiante (aprobada, reprobada o aun no cursa)
+CREATE TABLE IF NOT EXISTS registro_academico (
+  estudiante_id INT NOT NULL,
+  asignatura_id INT NOT NULL,
+  estado ENUM('AUN_NO_CURSA','APROBADA','REPROBADA') NOT NULL DEFAULT 'AUN_NO_CURSA',
+  PRIMARY KEY (estudiante_id, asignatura_id),
+  FOREIGN KEY (estudiante_id) REFERENCES estudiante(id) ON DELETE CASCADE,
+  FOREIGN KEY (asignatura_id) REFERENCES asignatura(id) ON DELETE CASCADE
+);
+
+-- Un grupo es una asignatura con su paralelo, en un periodo
 CREATE TABLE IF NOT EXISTS grupo (
   id INT AUTO_INCREMENT PRIMARY KEY,
   periodo_id INT NOT NULL,
@@ -58,6 +89,7 @@ CREATE TABLE IF NOT EXISTS grupo (
   UNIQUE KEY uq_grupo (periodo_id, asignatura_id, paralelo)
 );
 
+-- Un horario es una clase semanal de un grupo (ej. lunes 16:00 a 18:00)
 CREATE TABLE IF NOT EXISTS horario (
   id INT AUTO_INCREMENT PRIMARY KEY,
   grupo_id INT NOT NULL,
@@ -72,6 +104,7 @@ CREATE TABLE IF NOT EXISTS horario (
 CREATE TABLE IF NOT EXISTS matricula (
   estudiante_id INT NOT NULL,
   grupo_id INT NOT NULL,
+  nota DECIMAL(4,2) NULL COMMENT 'de 0 a 10, vacia hasta que el docente la registre',
   PRIMARY KEY (estudiante_id, grupo_id),
   FOREIGN KEY (estudiante_id) REFERENCES estudiante(id) ON DELETE CASCADE,
   FOREIGN KEY (grupo_id) REFERENCES grupo(id) ON DELETE CASCADE
@@ -88,57 +121,110 @@ CREATE TABLE IF NOT EXISTS asistencia (
   UNIQUE KEY uq_asistencia (estudiante_id, horario_id, fecha)
 );
 
-CREATE TABLE IF NOT EXISTS feriado (
-  fecha DATE PRIMARY KEY,
-  descripcion VARCHAR(80)
-);
+-- ---------------------------------------------------------------------
+-- DATOS DE PRUEBA
+-- (se pueden importar varias veces sin duplicar)
+-- ---------------------------------------------------------------------
 
--- ===== DATOS DE PRUEBA (ajustar fechas del periodo) =====
 INSERT IGNORE INTO carrera (nombre) VALUES ('Software'), ('Telecomunicaciones');
 
-INSERT IGNORE INTO periodo (nombre, fecha_inicio, fecha_fin, activo)
-VALUES ('Periodo de prueba', '2026-09-28', '2027-02-26', 1);
+-- Periodo activo con matriculas abiertas
+INSERT IGNORE INTO periodo (nombre, fecha_inicio, fecha_fin, activo, matricula_abierta)
+VALUES ('Periodo de prueba', '2026-09-28', '2027-02-26', 1, 1);
 
-INSERT IGNORE INTO usuario (username, password_hash, nombre, perfil, carrera_id) VALUES
-('admin',    SHA2('admin123',256),    'Administrador', 'ADMIN', NULL),
-('coordsw',  SHA2('coord123',256),    'Coordinador Software', 'COORDINADOR',
-   (SELECT id FROM carrera WHERE nombre='Software')),
-('docente1', SHA2('docente123',256),  'Docente Prueba', 'DOCENTE', NULL),
-('registro', SHA2('registro123',256), 'Puesto de lectura', 'REGISTRO', NULL);
+-- Usuarios (la clave se guarda tal cual). Ver la tabla de claves en el README
+INSERT IGNORE INTO usuario (username, clave, nombre, perfil, carrera_id) VALUES
+('admin',    'admin123',    'Administrador',        'ADMIN',       NULL),
+('coordsw',  'coord123',    'Coordinador Software', 'COORDINADOR', (SELECT id FROM carrera WHERE nombre='Software')),
+('docente1', 'docente123',  'Docente Prueba',       'DOCENTE',     NULL),
+('registro', 'registro123', 'Puesto de lectura',    'REGISTRO',    NULL),
+('maria',    'est123',      'María Torres',         'ESTUDIANTE',  NULL),
+('luis',     'est123',      'Luis Gómez',           'ESTUDIANTE',  NULL);
 
+-- Asignaturas de Software. Las tres de nivel 2 al final (Estadistica, Redes y
+-- Sistemas Operativos) existen para probar el limite de 5 materias y el choque de horarios.
 INSERT IGNORE INTO asignatura (carrera_id, nombre, nivel)
-SELECT c.id, x.nombre, x.nivel FROM carrera c
-JOIN (SELECT 'Cálculo' nombre, 1 nivel
-      UNION SELECT 'Programación Orientada a Objetos', 2
-      UNION SELECT 'Base de Datos', 2) x
-WHERE c.nombre='Software';
+SELECT c.id, x.nombre, x.nivel
+FROM carrera c
+CROSS JOIN (SELECT 'Cálculo' AS nombre, 1 AS nivel
+            UNION SELECT 'Programación Orientada a Objetos', 2
+            UNION SELECT 'Base de Datos', 2
+            UNION SELECT 'Estadística', 2
+            UNION SELECT 'Redes de Computadores', 2
+            UNION SELECT 'Sistemas Operativos', 2
+            UNION SELECT 'Ingeniería de Software', 3) x
+WHERE c.nombre = 'Software';
 
+-- Una asignatura de otra carrera, para probar que el coordinador solo ve la suya
+INSERT IGNORE INTO asignatura (carrera_id, nombre, nivel)
+SELECT id, 'Circuitos Eléctricos', 1 FROM carrera WHERE nombre = 'Telecomunicaciones';
+
+-- Un grupo (paralelo A) por cada asignatura de Software, con el docente de prueba
 INSERT IGNORE INTO grupo (periodo_id, asignatura_id, paralelo, docente_id)
-SELECT p.id, a.id, 'A', (SELECT id FROM usuario WHERE username='docente1')
-FROM periodo p, asignatura a
-WHERE p.activo=1 AND a.carrera_id=(SELECT id FROM carrera WHERE nombre='Software');
+SELECT p.id, a.id, 'A', (SELECT id FROM usuario WHERE username = 'docente1')
+FROM periodo p
+JOIN asignatura a ON a.carrera_id = (SELECT id FROM carrera WHERE nombre = 'Software')
+WHERE p.activo = 1;
 
--- Lunes: Cálculo 08-10 (nivel 1, mañana); POO 16-18 y BD 18-20 (nivel 2, tarde)
-INSERT IGNORE INTO horario (grupo_id, dia_semana, hora_inicio, hora_fin, aula)
-SELECT g.id, 1, '08:00:00', '10:00:00', 'A-101' FROM grupo g
-JOIN asignatura a ON a.id=g.asignatura_id WHERE a.nombre='Cálculo';
-INSERT IGNORE INTO horario (grupo_id, dia_semana, hora_inicio, hora_fin, aula)
-SELECT g.id, 1, '16:00:00', '18:00:00', 'A-102' FROM grupo g
-JOIN asignatura a ON a.id=g.asignatura_id WHERE a.nombre='Programación Orientada a Objetos';
-INSERT IGNORE INTO horario (grupo_id, dia_semana, hora_inicio, hora_fin, aula)
-SELECT g.id, 1, '18:00:00', '20:00:00', 'A-102' FROM grupo g
-JOIN asignatura a ON a.id=g.asignatura_id WHERE a.nombre='Base de Datos';
+-- Horarios (1 = lunes ... 7 = domingo)
+-- Sistemas Operativos choca a proposito con POO (lunes 16:00 a 18:00)
+INSERT IGNORE INTO horario (grupo_id, dia_semana, hora_inicio, hora_fin, aula) VALUES
+((SELECT g.id FROM grupo g JOIN asignatura a ON a.id = g.asignatura_id WHERE a.nombre = 'Cálculo' AND g.paralelo = 'A'),
+  1, '08:00:00', '10:00:00', 'A-101'),
+-- Cálculo tiene una segunda clase: martes 14:00 a 17:00 (para la presentación,
+-- María tiene clase activa ese día y Luis no)
+((SELECT g.id FROM grupo g JOIN asignatura a ON a.id = g.asignatura_id WHERE a.nombre = 'Cálculo' AND g.paralelo = 'A'),
+  2, '14:00:00', '17:00:00', 'A-101'),
+((SELECT g.id FROM grupo g JOIN asignatura a ON a.id = g.asignatura_id WHERE a.nombre = 'Programación Orientada a Objetos' AND g.paralelo = 'A'),
+  1, '16:00:00', '18:00:00', 'A-102'),
+((SELECT g.id FROM grupo g JOIN asignatura a ON a.id = g.asignatura_id WHERE a.nombre = 'Base de Datos' AND g.paralelo = 'A'),
+  1, '18:00:00', '20:00:00', 'A-102'),
+((SELECT g.id FROM grupo g JOIN asignatura a ON a.id = g.asignatura_id WHERE a.nombre = 'Sistemas Operativos' AND g.paralelo = 'A'),
+  1, '16:00:00', '18:00:00', 'A-105'),
+((SELECT g.id FROM grupo g JOIN asignatura a ON a.id = g.asignatura_id WHERE a.nombre = 'Ingeniería de Software' AND g.paralelo = 'A'),
+  2, '10:00:00', '12:00:00', 'A-103'),
+((SELECT g.id FROM grupo g JOIN asignatura a ON a.id = g.asignatura_id WHERE a.nombre = 'Estadística' AND g.paralelo = 'A'),
+  3, '08:00:00', '10:00:00', 'A-104'),
+((SELECT g.id FROM grupo g JOIN asignatura a ON a.id = g.asignatura_id WHERE a.nombre = 'Redes de Computadores' AND g.paralelo = 'A'),
+  4, '08:00:00', '10:00:00', 'A-106');
 
-INSERT IGNORE INTO estudiante (codigo_rfid, nombre, apellido, correo, carrera_id)
-SELECT x.cod, x.nom, x.ape, x.mail, c.id FROM carrera c
-JOIN (SELECT '0001234567' cod, 'María' nom, 'Torres' ape, 'maria@correo.com' mail
-      UNION SELECT '0007654321', 'Luis', 'Gómez', 'luis@correo.com') x
-WHERE c.nombre='Software';
+-- Estudiantes de nivel 2, con tarjetas reales.
+--   María  0013411540 -> tiene clase los martes de 14:00 a 17:00 (Cálculo)
+--   Luis   0013411565 -> no tiene clases los martes
+-- Tarjetas que NO se registran aquí (quedan libres para la presentación):
+--   0002293528 -> para probar "Tarjeta no registrada"
+--   0001736514 -> para crear un estudiante nuevo desde la ventana de Estudiantes
+--   0001736800 -> de reserva
+INSERT IGNORE INTO estudiante (usuario_id, codigo_rfid, nombre, apellido, correo, carrera_id, nivel) VALUES
+((SELECT id FROM usuario WHERE username = 'maria'), '0013411540', 'María', 'Torres', 'maria@correo.com',
+  (SELECT id FROM carrera WHERE nombre = 'Software'), 2),
+((SELECT id FROM usuario WHERE username = 'luis'),  '0013411565', 'Luis',  'Gómez',  'luis@correo.com',
+  (SELECT id FROM carrera WHERE nombre = 'Software'), 2);
 
--- María (nivel 2) repite Cálculo de nivel 1: está en los 3 grupos. Luis solo en los 2 de la tarde.
+-- Tabla de materias de cada estudiante: niveles menores al suyo = APROBADA, el resto
+-- AUN_NO_CURSA. Excepcion: Maria tiene Calculo REPROBADA (la esta repitiendo).
+INSERT IGNORE INTO registro_academico (estudiante_id, asignatura_id, estado)
+SELECT e.id, a.id,
+  CASE WHEN a.nivel < e.nivel
+       THEN (CASE WHEN e.nombre = 'María' AND a.nombre = 'Cálculo' THEN 'REPROBADA' ELSE 'APROBADA' END)
+       ELSE 'AUN_NO_CURSA'
+  END
+FROM estudiante e
+JOIN asignatura a ON a.carrera_id = e.carrera_id;
+
+-- Matriculas: Maria repite Calculo y toma POO y Base de Datos. Luis solo POO y Base de Datos.
 INSERT IGNORE INTO matricula (estudiante_id, grupo_id)
-SELECT e.id, g.id FROM estudiante e, grupo g WHERE e.nombre='María';
+SELECT e.id, g.id
+FROM estudiante e
+CROSS JOIN grupo g
+JOIN asignatura a ON a.id = g.asignatura_id
+WHERE e.nombre = 'María'
+  AND a.nombre IN ('Cálculo', 'Programación Orientada a Objetos', 'Base de Datos');
+
 INSERT IGNORE INTO matricula (estudiante_id, grupo_id)
-SELECT e.id, g.id FROM estudiante e, grupo g
-JOIN asignatura a ON a.id=g.asignatura_id
-WHERE e.nombre='Luis' AND a.nombre IN ('Programación Orientada a Objetos','Base de Datos');
+SELECT e.id, g.id
+FROM estudiante e
+CROSS JOIN grupo g
+JOIN asignatura a ON a.id = g.asignatura_id
+WHERE e.nombre = 'Luis'
+  AND a.nombre IN ('Programación Orientada a Objetos', 'Base de Datos');

@@ -1,0 +1,455 @@
+/*
+ * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
+ * Click nbfs://nbhost/SystemFileSystem/Templates/GUIForms/JFrame.java to edit this template
+ */
+package asistenciarfid.vista;
+
+import asistenciarfid.modelo.Perfil;
+import asistenciarfid.modelo.Usuario;
+import javax.swing.JInternalFrame;
+import javax.swing.JOptionPane;
+
+/**
+ *
+ * @author USER
+ */
+public class VentanaPrincipal extends javax.swing.JFrame {
+    
+    private static final java.util.logging.Logger logger = java.util.logging.Logger.getLogger(VentanaPrincipal.class.getName());
+
+    /**
+     * Creates new form VentanaPrincipal
+     */
+    public VentanaPrincipal() {
+        initComponents();
+    }
+    
+        private Usuario usuario;
+
+    public VentanaPrincipal(Usuario usuario) {
+        initComponents();
+        this.usuario = usuario;
+        setTitle("Control de asistencia - " + usuario.getNombre() + " (" + usuario.getPerfil() + ")");
+        setExtendedState(javax.swing.JFrame.MAXIMIZED_BOTH);
+        configurarMenuSegunPerfil();
+        agregarMenuMiHorario();
+        agregarMenuInscritos();
+        if (usuario.getPerfil().equals(Perfil.REGISTRO)) {
+            iniciarModoRegistro();
+        } 
+    }
+    
+
+    private void iniciarModoRegistro() {
+        getJMenuBar().setVisible(false);
+
+        FrmRegistro ventana = new FrmRegistro(usuario);
+        ventana.setClosable(false);
+        jdskPrincipal.add(ventana);
+        ventana.setVisible(true);
+
+       
+        javax.swing.SwingUtilities.invokeLater(() -> {
+            try {
+                ventana.setMaximum(true);
+            } catch (java.beans.PropertyVetoException ex) {
+                JOptionPane.showMessageDialog(null, ex);
+            }
+        });
+    }
+    
+
+    public void configurarMenuSegunPerfil() {
+        String perfil = usuario.getPerfil();
+
+
+        jmnuAdministracion.setVisible(false);
+        jmnuAsistencia.setVisible(false);
+        jmnuMatricula.setVisible(false);
+        jmniUsuarios.setVisible(false);
+        jmniEstudiantes.setVisible(false);
+        jmniPeriodos.setVisible(false);
+        jmniAsignaturas.setVisible(false);
+        jmniGrupos.setVisible(false);
+        jmniHorarios.setVisible(false);
+        jmniRegistro.setVisible(false);
+        jmniNotas.setVisible(false);
+        jmniReportes.setVisible(false);
+                jmniConsulta.setVisible(false);
+
+ 
+        if (perfil.equals(Perfil.ADMIN)) {
+            jmnuAdministracion.setVisible(true);
+            jmnuAsistencia.setVisible(true);
+            jmniUsuarios.setVisible(true);
+            jmniEstudiantes.setVisible(true);
+            jmniPeriodos.setVisible(true);
+            jmniAsignaturas.setVisible(true);
+            jmniGrupos.setVisible(true);
+            jmniHorarios.setVisible(true);
+            jmniRegistro.setVisible(true);
+            jmniNotas.setVisible(true);
+            jmniReportes.setVisible(true);
+        } else if (perfil.equals(Perfil.COORDINADOR)) {
+            jmnuAdministracion.setVisible(true);
+            jmnuAsistencia.setVisible(true);
+            jmniEstudiantes.setVisible(true);
+            jmniAsignaturas.setVisible(true);
+            jmniGrupos.setVisible(true);
+            jmniHorarios.setVisible(true);
+            jmniReportes.setVisible(true);
+        } else if (perfil.equals(Perfil.DOCENTE)) {
+            jmnuAsistencia.setVisible(true);
+            jmniNotas.setVisible(true);
+            jmniReportes.setVisible(true);
+        } else if (perfil.equals(Perfil.REGISTRO)) {
+            jmnuAsistencia.setVisible(true);
+            jmniRegistro.setVisible(true);
+        } else if (perfil.equals(Perfil.ESTUDIANTE)) {
+            jmnuMatricula.setVisible(true);
+            jmniConsulta.setVisible(true);
+        }
+    }
+
+
+    private void agregarMenuMiHorario() {
+        javax.swing.JMenu menu = null;
+        if (usuario.getPerfil().equals(Perfil.DOCENTE)) {
+            menu = jmnuAsistencia;
+        } else if (usuario.getPerfil().equals(Perfil.ESTUDIANTE)) {
+            menu = jmnuMatricula;
+        }
+        if (menu == null) {
+            return;
+        }
+        javax.swing.JMenuItem jmniMiHorario = new javax.swing.JMenuItem("Mi horario");
+        jmniMiHorario.addActionListener(e -> {
+            if (puedeAbrir("MI_HORARIO")) {
+                abrirVentana(new FrmMiHorario(usuario));
+            }
+        });
+        menu.add(jmniMiHorario);
+    }
+    
+        
+    private void agregarMenuInscritos() {
+        String perfil = usuario.getPerfil();
+        if (!perfil.equals(Perfil.ADMIN) && !perfil.equals(Perfil.COORDINADOR)
+                && !perfil.equals(Perfil.DOCENTE)) {
+            return;
+        }
+        javax.swing.JMenuItem jmniInscritos = new javax.swing.JMenuItem("Inscritos");
+        jmniInscritos.addActionListener(e -> {
+            if (puedeAbrir("INSCRITOS")) {
+                abrirVentana(new FrmInscritos(usuario));
+            }
+        });
+        jmnuAsistencia.add(jmniInscritos);
+    }
+
+   
+    public void abrirVentana(JInternalFrame ventana) {
+        for (JInternalFrame f : jdskPrincipal.getAllFrames()) {
+            if (f.getClass() == ventana.getClass() && !f.isClosed()) {
+                try {
+                    f.setSelected(true);
+                    f.toFront();
+                } catch (java.beans.PropertyVetoException ex) {
+                    JOptionPane.showMessageDialog(null, ex);
+                }
+                return;
+            }
+        }
+        jdskPrincipal.add(ventana);
+        ventana.setVisible(true);
+    }
+    
+       
+    private boolean tienePermiso(String ventana) {
+        if (usuario == null) {
+            return false;
+        }
+        String perfil = usuario.getPerfil();
+        String[] permitidas = {};
+        if (perfil.equals(Perfil.ADMIN)) {
+            permitidas = new String[]{"USUARIOS", "ESTUDIANTES", "PERIODOS", "ASIGNATURAS",
+                "GRUPOS", "HORARIOS", "REGISTRO", "NOTAS", "REPORTES", "INSCRITOS"};
+        } else if (perfil.equals(Perfil.COORDINADOR)) {
+            permitidas = new String[]{"ESTUDIANTES", "ASIGNATURAS", "GRUPOS", "HORARIOS", "REPORTES", "INSCRITOS"};
+        } else if (perfil.equals(Perfil.DOCENTE)) {
+            permitidas = new String[]{"NOTAS", "REPORTES", "MI_HORARIO", "INSCRITOS"};
+        } else if (perfil.equals(Perfil.REGISTRO)) {
+            permitidas = new String[]{"REGISTRO"};
+        } else if (perfil.equals(Perfil.ESTUDIANTE)) {
+            permitidas = new String[]{"MATRICULA", "CONSULTA", "MI_HORARIO"};
+        }
+        for (String p : permitidas) {
+            if (p.equals(ventana)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    
+    private boolean puedeAbrir(String ventana) {
+        if (tienePermiso(ventana)) {
+            return true;
+        }
+        JOptionPane.showMessageDialog(this, "Su perfil no tiene permiso para abrir esta ventana.");
+        return false;
+    }
+    
+    
+
+    /**
+     * This method is called from within the constructor to initialize the form.
+     * WARNING: Do NOT modify this code. The content of this method is always
+     * regenerated by the Form Editor.
+     */
+    @SuppressWarnings("unchecked")
+    // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
+    private void initComponents() {
+
+        jdskPrincipal = new javax.swing.JDesktopPane();
+        Matricularme = new javax.swing.JMenuBar();
+        jmnuArchivo = new javax.swing.JMenu();
+        jmniCerrarSesion = new javax.swing.JMenuItem();
+        jmniSalir = new javax.swing.JMenuItem();
+        jmnuAdministracion = new javax.swing.JMenu();
+        jmniUsuarios = new javax.swing.JMenuItem();
+        jmniEstudiantes = new javax.swing.JMenuItem();
+        jmniPeriodos = new javax.swing.JMenuItem();
+        jmniAsignaturas = new javax.swing.JMenuItem();
+        jmniGrupos = new javax.swing.JMenuItem();
+        jmniHorarios = new javax.swing.JMenuItem();
+        jmnuAsistencia = new javax.swing.JMenu();
+        jmniRegistro = new javax.swing.JMenuItem();
+        jmniNotas = new javax.swing.JMenuItem();
+        jmniReportes = new javax.swing.JMenuItem();
+        jmnuMatricula = new javax.swing.JMenu();
+        jmniMatricula = new javax.swing.JMenuItem();
+        jmniConsulta = new javax.swing.JMenuItem();
+
+        setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
+
+        javax.swing.GroupLayout jdskPrincipalLayout = new javax.swing.GroupLayout(jdskPrincipal);
+        jdskPrincipal.setLayout(jdskPrincipalLayout);
+        jdskPrincipalLayout.setHorizontalGroup(
+            jdskPrincipalLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 779, Short.MAX_VALUE)
+        );
+        jdskPrincipalLayout.setVerticalGroup(
+            jdskPrincipalLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 418, Short.MAX_VALUE)
+        );
+
+        jmnuArchivo.setText("Archivo");
+
+        jmniCerrarSesion.setText("Cerrar Sesion");
+        jmniCerrarSesion.addActionListener(this::jmniCerrarSesionActionPerformed);
+        jmnuArchivo.add(jmniCerrarSesion);
+
+        jmniSalir.setText("Salir");
+        jmniSalir.addActionListener(this::jmniSalirActionPerformed);
+        jmnuArchivo.add(jmniSalir);
+
+        Matricularme.add(jmnuArchivo);
+
+        jmnuAdministracion.setText("Administracion");
+
+        jmniUsuarios.setText("Usuarios");
+        jmniUsuarios.addActionListener(this::jmniUsuariosActionPerformed);
+        jmnuAdministracion.add(jmniUsuarios);
+
+        jmniEstudiantes.setText("Estudiantes");
+        jmniEstudiantes.addActionListener(this::jmniEstudiantesActionPerformed);
+        jmnuAdministracion.add(jmniEstudiantes);
+
+        jmniPeriodos.setText("Periodos");
+        jmniPeriodos.addActionListener(this::jmniPeriodosActionPerformed);
+        jmnuAdministracion.add(jmniPeriodos);
+
+        jmniAsignaturas.setText("Asignaturas");
+        jmniAsignaturas.addActionListener(this::jmniAsignaturasActionPerformed);
+        jmnuAdministracion.add(jmniAsignaturas);
+
+        jmniGrupos.setText("Grupos");
+        jmniGrupos.addActionListener(this::jmniGruposActionPerformed);
+        jmnuAdministracion.add(jmniGrupos);
+
+        jmniHorarios.setText("Horarios");
+        jmniHorarios.addActionListener(this::jmniHorariosActionPerformed);
+        jmnuAdministracion.add(jmniHorarios);
+
+        Matricularme.add(jmnuAdministracion);
+
+        jmnuAsistencia.setText("Asistencia");
+
+        jmniRegistro.setText("Registro");
+        jmniRegistro.addActionListener(this::jmniRegistroActionPerformed);
+        jmnuAsistencia.add(jmniRegistro);
+
+        jmniNotas.setText("Notas");
+        jmniNotas.addActionListener(this::jmniNotasActionPerformed);
+        jmnuAsistencia.add(jmniNotas);
+
+        jmniReportes.setText("Reportes");
+        jmniReportes.addActionListener(this::jmniReportesActionPerformed);
+        jmnuAsistencia.add(jmniReportes);
+
+        Matricularme.add(jmnuAsistencia);
+
+        jmnuMatricula.setText("Matricula");
+
+        jmniMatricula.setText("Matricularme");
+        jmniMatricula.addActionListener(this::jmniMatriculaActionPerformed);
+        jmnuMatricula.add(jmniMatricula);
+
+        jmniConsulta.setText("Mis notas y asistencia");
+        jmniConsulta.addActionListener(this::jmniConsultaActionPerformed);
+        jmnuMatricula.add(jmniConsulta);
+
+        Matricularme.add(jmnuMatricula);
+
+        setJMenuBar(Matricularme);
+
+        javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
+        getContentPane().setLayout(layout);
+        layout.setHorizontalGroup(
+            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addComponent(jdskPrincipal)
+        );
+        layout.setVerticalGroup(
+            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addComponent(jdskPrincipal)
+        );
+
+        pack();
+    }// </editor-fold>//GEN-END:initComponents
+
+    private void jmniMatriculaActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jmniMatriculaActionPerformed
+        if (puedeAbrir("MATRICULA")) {
+            abrirVentana(new FrmMatricula(usuario));
+        }
+    }//GEN-LAST:event_jmniMatriculaActionPerformed
+
+    private void jmniCerrarSesionActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jmniCerrarSesionActionPerformed
+        this.dispose();
+        new VentanaLogin().setVisible(true);
+    }//GEN-LAST:event_jmniCerrarSesionActionPerformed
+
+    private void jmniSalirActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jmniSalirActionPerformed
+        int opcion = JOptionPane.showConfirmDialog(null, "¿Desea salir del sistema?", "Salir", JOptionPane.YES_NO_OPTION);
+        if (opcion == JOptionPane.YES_OPTION) {
+            System.exit(0);
+        }
+    }//GEN-LAST:event_jmniSalirActionPerformed
+
+    private void jmniUsuariosActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jmniUsuariosActionPerformed
+        if (puedeAbrir("USUARIOS")) {
+            abrirVentana(new FrmUsuarios(usuario));
+        }
+    }//GEN-LAST:event_jmniUsuariosActionPerformed
+
+    private void jmniEstudiantesActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jmniEstudiantesActionPerformed
+        if (puedeAbrir("ESTUDIANTES")) {
+            abrirVentana(new FrmEstudiantes(usuario));
+        }
+    }//GEN-LAST:event_jmniEstudiantesActionPerformed
+
+    private void jmniPeriodosActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jmniPeriodosActionPerformed
+        if (puedeAbrir("PERIODOS")) {
+            abrirVentana(new FrmPeriodos(usuario));
+        }
+    }//GEN-LAST:event_jmniPeriodosActionPerformed
+
+    private void jmniAsignaturasActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jmniAsignaturasActionPerformed
+        if (puedeAbrir("ASIGNATURAS")) {
+            abrirVentana(new FrmAsignaturas(usuario));
+        }
+    }//GEN-LAST:event_jmniAsignaturasActionPerformed
+
+    private void jmniGruposActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jmniGruposActionPerformed
+        if (puedeAbrir("GRUPOS")) {
+            abrirVentana(new FrmGrupos(usuario));
+        }
+    }//GEN-LAST:event_jmniGruposActionPerformed
+
+    private void jmniHorariosActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jmniHorariosActionPerformed
+        if (puedeAbrir("HORARIOS")) {
+            abrirVentana(new FrmHorarios(usuario));
+        }
+    }//GEN-LAST:event_jmniHorariosActionPerformed
+
+    private void jmniRegistroActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jmniRegistroActionPerformed
+        if (puedeAbrir("REGISTRO")) {
+            abrirVentana(new FrmRegistro(usuario));
+        }
+    }//GEN-LAST:event_jmniRegistroActionPerformed
+
+    private void jmniNotasActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jmniNotasActionPerformed
+        if (puedeAbrir("NOTAS")) {
+            abrirVentana(new FrmNotas(usuario));
+        }
+    }//GEN-LAST:event_jmniNotasActionPerformed
+
+    private void jmniReportesActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jmniReportesActionPerformed
+        if (puedeAbrir("REPORTES")) {
+            abrirVentana(new FrmReportes(usuario));
+        }
+    }//GEN-LAST:event_jmniReportesActionPerformed
+
+    private void jmniConsultaActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jmniConsultaActionPerformed
+        if (puedeAbrir("CONSULTA")) {
+            abrirVentana(new FrmConsultaEstudiante(usuario));
+        }
+    }//GEN-LAST:event_jmniConsultaActionPerformed
+
+    /**
+     * @param args the command line arguments
+     */
+    public static void main(String args[]) {
+        /* Set the Nimbus look and feel */
+        //<editor-fold defaultstate="collapsed" desc=" Look and feel setting code (optional) ">
+        /* If Nimbus (introduced in Java SE 6) is not available, stay with the default look and feel.
+         * For details see http://download.oracle.com/javase/tutorial/uiswing/lookandfeel/plaf.html 
+         */
+        try {
+            for (javax.swing.UIManager.LookAndFeelInfo info : javax.swing.UIManager.getInstalledLookAndFeels()) {
+                if ("Nimbus".equals(info.getName())) {
+                    javax.swing.UIManager.setLookAndFeel(info.getClassName());
+                    break;
+                }
+            }
+        } catch (ReflectiveOperationException | javax.swing.UnsupportedLookAndFeelException ex) {
+            logger.log(java.util.logging.Level.SEVERE, null, ex);
+        }
+        //</editor-fold>
+
+        /* Create and display the form */
+        java.awt.EventQueue.invokeLater(() -> new VentanaPrincipal().setVisible(true));
+    }
+
+    // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JMenuBar Matricularme;
+    private javax.swing.JDesktopPane jdskPrincipal;
+    private javax.swing.JMenuItem jmniAsignaturas;
+    private javax.swing.JMenuItem jmniCerrarSesion;
+    private javax.swing.JMenuItem jmniConsulta;
+    private javax.swing.JMenuItem jmniEstudiantes;
+    private javax.swing.JMenuItem jmniGrupos;
+    private javax.swing.JMenuItem jmniHorarios;
+    private javax.swing.JMenuItem jmniMatricula;
+    private javax.swing.JMenuItem jmniNotas;
+    private javax.swing.JMenuItem jmniPeriodos;
+    private javax.swing.JMenuItem jmniRegistro;
+    private javax.swing.JMenuItem jmniReportes;
+    private javax.swing.JMenuItem jmniSalir;
+    private javax.swing.JMenuItem jmniUsuarios;
+    private javax.swing.JMenu jmnuAdministracion;
+    private javax.swing.JMenu jmnuArchivo;
+    private javax.swing.JMenu jmnuAsistencia;
+    private javax.swing.JMenu jmnuMatricula;
+    // End of variables declaration//GEN-END:variables
+}
