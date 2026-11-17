@@ -4,9 +4,7 @@
  */
 package asistenciarfid.util;
 
-public class Parametros {
-
-    public static final int TOLERANCIA_MINUTOS = 15;     
+public class Parametros { 
     public static final int MAX_MATERIAS = 5;            
     public static final double NOTA_APROBACION = 7.0;   
     public static final double NOTA_MAXIMA = 10.0;

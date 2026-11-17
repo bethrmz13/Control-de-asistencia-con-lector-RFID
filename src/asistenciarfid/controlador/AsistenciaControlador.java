@@ -9,7 +9,6 @@ import asistenciarfid.modelo.Horario;
 import asistenciarfid.modelo.ResultadoRegistro;
 import asistenciarfid.util.BaseDatos;
 import asistenciarfid.util.Fechas;
-import asistenciarfid.util.Parametros;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
