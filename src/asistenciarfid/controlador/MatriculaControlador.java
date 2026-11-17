@@ -13,6 +13,7 @@ import asistenciarfid.modelo.Estudiante;
 import asistenciarfid.modelo.Grupo;
 import asistenciarfid.modelo.Horario;
 import asistenciarfid.modelo.Periodo;
+import asistenciarfid.util.BaseDatos;
 import asistenciarfid.util.Parametros;
 import java.util.ArrayList;
 import java.util.List;
@@ -21,6 +22,10 @@ public class MatriculaControlador {
 
     // Devuelve null si se matriculó bien, o el mensaje del primer error encontrado
     public static String matricular(int estudianteId, int grupoId) {
+        if (!BaseDatos.disponible()) {
+            return "No hay conexión con la base de datos";
+        }
+
         // 1. La matrícula debe estar abierta
         Periodo periodo = PeriodoDAO.obtenerActivo();
         if (periodo == null) {
@@ -109,6 +114,11 @@ public class MatriculaControlador {
     // (cumplen las reglas 3 y 4: materia permitida y no repetida)
     public static List<Grupo> gruposDisponibles(Estudiante estudiante) {
         List<Grupo> disponibles = new ArrayList<>();
+        // Solo se ofrecen grupos si hay un periodo activo con la matrícula abierta
+        Periodo periodo = PeriodoDAO.obtenerActivo();
+        if (periodo == null || !periodo.isMatriculaAbierta()) {
+            return disponibles;
+        }
         List<Grupo> grupos = GrupoDAO.listar(estudiante.getCarreraId(), null);
         for (Grupo g : grupos) {
             Asignatura asig = AsignaturaDAO.buscarPorId(g.getAsignaturaId());
