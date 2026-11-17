@@ -59,7 +59,13 @@ public class UsuarioDAO {
             return lista;
         }
         try {
-            String sql = "SELECT * FROM usuario ORDER BY nombre";
+            // La carrera de un ESTUDIANTE no está en usuario.carrera_id (solo se usa para
+            // COORDINADOR) sino en estudiante.carrera_id, por eso se une con esa tabla.
+            // El alias carrera_id permite reutilizar armarUsuario sin cambios.
+            String sql = "SELECT u.id, u.username, u.nombre, u.perfil, u.activo, "
+                    + "CASE WHEN u.perfil = 'ESTUDIANTE' THEN e.carrera_id ELSE u.carrera_id END AS carrera_id "
+                    + "FROM usuario u LEFT JOIN estudiante e ON e.usuario_id = u.id "
+                    + "ORDER BY u.nombre";
             PreparedStatement ps = cc.prepareStatement(sql);
             ResultSet rs = ps.executeQuery();
             while (rs.next()) {
