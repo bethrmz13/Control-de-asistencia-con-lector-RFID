@@ -171,6 +171,10 @@ WHERE p.activo = 1;
 INSERT IGNORE INTO horario (grupo_id, dia_semana, hora_inicio, hora_fin, aula) VALUES
 ((SELECT g.id FROM grupo g JOIN asignatura a ON a.id = g.asignatura_id WHERE a.nombre = 'Cálculo' AND g.paralelo = 'A'),
   1, '08:00:00', '10:00:00', 'A-101'),
+-- Cálculo tiene una segunda clase: martes 14:00 a 17:00 (para la presentación,
+-- María tiene clase activa ese día y Luis no)
+((SELECT g.id FROM grupo g JOIN asignatura a ON a.id = g.asignatura_id WHERE a.nombre = 'Cálculo' AND g.paralelo = 'A'),
+  2, '14:00:00', '17:00:00', 'A-101'),
 ((SELECT g.id FROM grupo g JOIN asignatura a ON a.id = g.asignatura_id WHERE a.nombre = 'Programación Orientada a Objetos' AND g.paralelo = 'A'),
   1, '16:00:00', '18:00:00', 'A-102'),
 ((SELECT g.id FROM grupo g JOIN asignatura a ON a.id = g.asignatura_id WHERE a.nombre = 'Base de Datos' AND g.paralelo = 'A'),
@@ -184,12 +188,17 @@ INSERT IGNORE INTO horario (grupo_id, dia_semana, hora_inicio, hora_fin, aula) V
 ((SELECT g.id FROM grupo g JOIN asignatura a ON a.id = g.asignatura_id WHERE a.nombre = 'Redes de Computadores' AND g.paralelo = 'A'),
   4, '08:00:00', '10:00:00', 'A-106');
 
--- Estudiantes de nivel 2.
--- OJO: los codigos son de mentira. Cambiarlos por los de las tarjetas reales.
+-- Estudiantes de nivel 2, con tarjetas reales.
+--   María  0013411540 -> tiene clase los martes de 14:00 a 17:00 (Cálculo)
+--   Luis   0013411565 -> no tiene clases los martes
+-- Tarjetas que NO se registran aquí (quedan libres para la presentación):
+--   0002293528 -> para probar "Tarjeta no registrada"
+--   0001736514 -> para crear un estudiante nuevo desde la ventana de Estudiantes
+--   0001736800 -> de reserva
 INSERT IGNORE INTO estudiante (usuario_id, codigo_rfid, nombre, apellido, correo, carrera_id, nivel) VALUES
-((SELECT id FROM usuario WHERE username = 'maria'), '0001234567', 'María', 'Torres', 'maria@correo.com',
+((SELECT id FROM usuario WHERE username = 'maria'), '0013411540', 'María', 'Torres', 'maria@correo.com',
   (SELECT id FROM carrera WHERE nombre = 'Software'), 2),
-((SELECT id FROM usuario WHERE username = 'luis'),  '0007654321', 'Luis',  'Gómez',  'luis@correo.com',
+((SELECT id FROM usuario WHERE username = 'luis'),  '0013411565', 'Luis',  'Gómez',  'luis@correo.com',
   (SELECT id FROM carrera WHERE nombre = 'Software'), 2);
 
 -- Tabla de materias de cada estudiante: niveles menores al suyo = APROBADA, el resto
