@@ -15,16 +15,15 @@ import java.util.List;
 
 public class AsistenciaControlador {
 
-    // La pantalla pasa new Date() (la hora actual). Las pruebas pasan una hora
-    // inventada creada con Fechas.crear(...).
+    
     public static ResultadoRegistro registrarPorCodigo(String codigo, Date ahora) {
-        // Sin conexión, los DAO devuelven null o listas vacías: se avisa en vez de decir "no registrada"
+        
         if (!BaseDatos.disponible()) {
             return new ResultadoRegistro(Estado.ERROR_GUARDADO, null, null,
                     "Sin conexión a la base de datos");
         }
 
-        // a) Buscar al estudiante por el código de la tarjeta
+        
         Estudiante est = null;
         if (codigo != null) {
             est = EstudianteDAO.buscarPorCodigo(codigo.trim());
@@ -34,15 +33,14 @@ public class AsistenciaControlador {
                     "Tarjeta no registrada");
         }
 
-        // b) Horarios de hoy del estudiante
+        
         List<Horario> horarios = HorarioDAO.listarDeEstudianteEnDia(est.getId(), Fechas.diaSemana(ahora));
         if (horarios.isEmpty()) {
             return new ResultadoRegistro(Estado.SIN_CLASES_HOY, est, null,
                     est.getNombre() + " no tiene clases hoy");
         }
 
-        // c) Buscar el horario donde la hora está entre el inicio y el inicio + tolerancia.
-        // Nada antes del inicio.
+        
         int minutosAhora = Fechas.minutosDelDia(ahora);
         Horario elegido = null;
         for (Horario h : horarios) {
@@ -58,7 +56,7 @@ public class AsistenciaControlador {
                     "Fuera del horario de registro");
         }
 
-        // d) ¿Ya registró en esta clase hoy?
+        
         java.sql.Date fecha = new java.sql.Date(ahora.getTime());
         java.sql.Time hora = new java.sql.Time(ahora.getTime());
         if (AsistenciaDAO.existe(est.getId(), elegido.getId(), fecha)) {
@@ -66,11 +64,10 @@ public class AsistenciaControlador {
                     "Ya registró asistencia en " + elegido.getAsignaturaNombre());
         }
 
-        // e) Registrar
+        
         boolean ok = AsistenciaDAO.registrar(est.getId(), elegido.getId(), fecha, hora);
         if (!ok) {
-            // Puede ser que otro puesto la guardó justo antes (la base no permite repetidas).
-            // Se vuelve a revisar: si ya existe, no es un error.
+            
             if (AsistenciaDAO.existe(est.getId(), elegido.getId(), fecha)) {
                 return new ResultadoRegistro(Estado.YA_REGISTRADO, est, elegido,
                         "Ya registró asistencia en " + elegido.getAsignaturaNombre());

@@ -11,7 +11,6 @@ import javax.swing.JOptionPane;
 
 public class HorarioDAO {
 
-    // Consulta base para obtener la información completa de un horario.
     private static final String SELECT_BASE
             = "SELECT h.id, h.grupo_id, h.dia_semana, h.hora_inicio, h.hora_fin, h.aula, "
             + "a.nombre AS asignatura, g.paralelo "
@@ -19,7 +18,7 @@ public class HorarioDAO {
             + "JOIN grupo g ON g.id = h.grupo_id "
             + "JOIN asignatura a ON a.id = g.asignatura_id ";
 
-    // Convierte una fila del ResultSet en un objeto Horario.
+
     private static Horario armarHorario(ResultSet rs) throws Exception {
         Horario h = new Horario();
 
@@ -35,9 +34,6 @@ public class HorarioDAO {
         return h;
     }
 
-    // ============================================================
-    // LISTAR HORARIOS DE UN GRUPO
-    // ============================================================
 
     public static List<Horario> listarPorGrupo(int grupoId) {
         List<Horario> lista = new ArrayList<>();
@@ -74,9 +70,6 @@ public class HorarioDAO {
         return lista;
     }
 
-    // ============================================================
-    // HORARIOS DE UN ESTUDIANTE
-    // ============================================================
 
     public static List<Horario> listarDeEstudiante(int estudianteId) {
         List<Horario> lista = new ArrayList<>();
@@ -116,9 +109,6 @@ public class HorarioDAO {
         return lista;
     }
 
-    // ============================================================
-    // HORARIOS DE UN ESTUDIANTE EN UN DÍA
-    // ============================================================
 
     public static List<Horario> listarDeEstudianteEnDia(
             int estudianteId,
@@ -163,9 +153,6 @@ public class HorarioDAO {
         return lista;
     }
 
-    // ============================================================
-    // HORARIOS DE UN DOCENTE
-    // ============================================================
 
     public static List<Horario> listarDeDocente(int docenteId) {
         List<Horario> lista = new ArrayList<>();
@@ -203,23 +190,6 @@ public class HorarioDAO {
 
         return lista;
     }
-
-    // ============================================================
-    // BUSCAR CHOQUES DE HORARIO
-    // ============================================================
-    //
-    // Comprueba tres posibles conflictos:
-    //
-    // 1. El mismo grupo ya tiene otro horario que se cruza.
-    // 2. El docente ya tiene otra clase a esa hora.
-    // 3. El aula ya está ocupada a esa hora.
-    //
-    // horarioIdExcluido:
-    //   0 = horario nuevo
-    //   >0 = horario que se está modificando
-    //
-    // Solo se consideran horarios pertenecientes al período activo.
-    //
 
     public static String buscarChoque(
             int grupoId,
@@ -329,7 +299,6 @@ public class HorarioDAO {
         return choque;
     }
 
-    // Obtiene el docente asignado a un grupo.
     private static int docenteDelGrupo(
             Connection cc,
             int grupoId) throws Exception {
@@ -362,17 +331,6 @@ public class HorarioDAO {
 
         return -1;
     }
-
-    // ============================================================
-    // COMPROBAR ESTUDIANTES MATRICULADOS
-    // ============================================================
-    //
-    // Se utiliza cuando se modifica el horario de un grupo que
-    // ya tiene estudiantes matriculados.
-    //
-    // Evita que al cambiar el horario se cree un choque en el
-    // horario de uno de esos estudiantes.
-    //
 
     public static String buscarChoqueConMatriculados(Horario n) {
 
@@ -432,9 +390,6 @@ public class HorarioDAO {
         return resultado;
     }
 
-    // ============================================================
-    // INSERTAR
-    // ============================================================
 
     public static boolean insertar(Horario h) {
 
@@ -472,9 +427,6 @@ public class HorarioDAO {
         return ok;
     }
 
-    // ============================================================
-    // ACTUALIZAR
-    // ============================================================
 
     public static boolean actualizar(Horario h) {
 
@@ -514,10 +466,6 @@ public class HorarioDAO {
 
         return ok;
     }
-
-    // ============================================================
-    // ELIMINAR
-    // ============================================================
 
     public static boolean eliminar(int id) {
 

@@ -16,7 +16,7 @@ public class Asistencia {
     private Date fecha;
     private Time hora;
 
-    // Solo para mostrar en tablas
+
     private String estudianteNombre;
 
     public Asistencia() {

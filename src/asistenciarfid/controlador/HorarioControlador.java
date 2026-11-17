@@ -12,22 +12,12 @@ import asistenciarfid.modelo.Horario;
 
 public class HorarioControlador {
 
-    /**
-     * Valida si un horario puede ser creado o modificado.
-     *
-     * Devuelve:
-     *   null = el horario es válido.
-     *   texto = existe algún conflicto.
-     */
+
     public static String validarChoques(Horario nuevo) {
 
         if (nuevo == null) {
             return "El horario no puede ser nulo";
         }
-
-        // --------------------------------------------------------
-        // 1. Validar datos básicos
-        // --------------------------------------------------------
 
         if (nuevo.getHoraInicio() == null
                 || nuevo.getHoraFin() == null) {
@@ -46,32 +36,14 @@ public class HorarioControlador {
             return "El día de la semana no es válido";
         }
 
-        // --------------------------------------------------------
-        // 2. Buscar el grupo
-        // --------------------------------------------------------
-
         Grupo grupo = GrupoDAO.buscarPorId(nuevo.getGrupoId());
 
         if (grupo == null) {
             return "El grupo no existe";
         }
 
-        // --------------------------------------------------------
-        // 3. Obtener el docente del grupo
-        // --------------------------------------------------------
-
         Integer docenteId = grupo.getDocenteId();
 
-        // --------------------------------------------------------
-        // 4. Validar choque de:
-        //
-        //    - mismo grupo
-        //    - mismo docente
-        //    - misma aula
-        //
-        // El DAO ignora el propio horario cuando se está
-        // modificando.
-        // --------------------------------------------------------
 
         String choque = HorarioDAO.buscarChoque(
                 nuevo.getGrupoId(),
@@ -87,11 +59,6 @@ public class HorarioControlador {
             return choque;
         }
 
-        // --------------------------------------------------------
-        // 5. Si el grupo ya tiene estudiantes matriculados,
-        //    comprobar que este cambio no les cree un choque
-        //    con otra materia.
-        // --------------------------------------------------------
 
         String choqueEstudiante
                 = HorarioDAO.buscarChoqueConMatriculados(nuevo);
@@ -102,10 +69,6 @@ public class HorarioControlador {
                     + "matriculado:\n"
                     + choqueEstudiante;
         }
-
-        // --------------------------------------------------------
-        // 6. Todo correcto
-        // --------------------------------------------------------
 
         return null;
     }

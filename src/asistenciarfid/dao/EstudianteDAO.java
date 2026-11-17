@@ -13,13 +13,14 @@ import java.util.ArrayList;
 import java.util.List;
 import javax.swing.JOptionPane;
 
+
 public class EstudianteDAO {
 
     private static final String SELECT_BASE
             = "SELECT id, usuario_id, codigo_rfid, nombre, apellido, correo, carrera_id, nivel "
             + "FROM estudiante ";
 
-    // Convierte la fila actual del ResultSet en un Estudiante
+    
     private static Estudiante armarEstudiante(ResultSet rs) throws SQLException {
         Estudiante e = new Estudiante();
         e.setId(rs.getInt("id"));
@@ -38,7 +39,7 @@ public class EstudianteDAO {
         return e;
     }
 
-    // Cuenta filas con una consulta que tiene un solo "?"
+    
     private static int contar(Connection cc, String sql, String valor) throws SQLException {
         PreparedStatement ps = cc.prepareStatement(sql);
         ps.setString(1, valor);
@@ -57,7 +58,7 @@ public class EstudianteDAO {
         }
     }
 
-    // Busca un estudiante con una condición que tiene un solo "?". null si no existe
+    
     private static Estudiante buscarUno(String condicion, Object valor) {
         Estudiante est = null;
         Connection cc = new Conexion().conectar();
@@ -79,7 +80,7 @@ public class EstudianteDAO {
         return est;
     }
 
-    // null si no existe
+   
     public static Estudiante buscarPorCodigo(String codigoRfid) {
         return buscarUno("codigo_rfid = ?", codigoRfid);
     }
@@ -108,7 +109,7 @@ public class EstudianteDAO {
         return existe;
     }
 
-    // carreraId null = todas las carreras
+    
     public static List<Estudiante> listar(Integer carreraId) {
         List<Estudiante> lista = new ArrayList<>();
         Connection cc = new Conexion().conectar();
@@ -135,15 +136,14 @@ public class EstudianteDAO {
         return lista;
     }
 
-    // Guarda el usuario, el estudiante y las materias, con consultas simples una tras otra.
-    // Si un paso falla, borra lo que ya se había guardado y devuelve false.
+    
     public static boolean insertarConUsuario(Estudiante e, String username, String passwordPlano,List<RegistroAcademico> materias) {
         Connection cc = new Conexion().conectar();
         if (cc == null) {
             return false;
         }
         try {
-            // Antes de guardar nada: el usuario y el código RFID no deben existir ya
+           
             if (contar(cc, "SELECT COUNT(*) FROM usuario WHERE username = ?", username) > 0
                     || contar(cc, "SELECT COUNT(*) FROM estudiante WHERE codigo_rfid = ?",e.getCodigoRfid()) > 0) {
                 return false;
@@ -162,7 +162,7 @@ public class EstudianteDAO {
         }
     }
 
-    // Paso 1: el usuario. Luego se busca su id para usarlo en el estudiante
+    
     private static boolean insertarUsuario(Connection cc, Estudiante e, String username,String passwordPlano) throws SQLException {
         PreparedStatement ps = cc.prepareStatement("INSERT INTO usuario (username, clave, nombre, perfil, activo) VALUES (?, ?, ?, ?, 1)");
         ps.setString(1, username);
@@ -182,7 +182,7 @@ public class EstudianteDAO {
         return true;
     }
 
-    // Paso 2: el estudiante. Luego se busca su id para usarlo en sus materias
+    
     private static boolean insertarEstudiante(Connection cc, Estudiante e) throws SQLException {
         PreparedStatement ps = cc.prepareStatement("INSERT INTO estudiante (usuario_id, codigo_rfid, nombre, apellido, correo, carrera_id, nivel) "
                 + "VALUES (?, ?, ?, ?, ?, ?, ?)");
@@ -206,7 +206,7 @@ public class EstudianteDAO {
         return true;
     }
 
-    // Paso 3: una fila de registro_academico por cada materia de la lista
+    
     private static boolean insertarMaterias(Connection cc, Estudiante e,List<RegistroAcademico> materias) throws SQLException {
         PreparedStatement ps = cc.prepareStatement("INSERT INTO registro_academico (estudiante_id, asignatura_id, estado) VALUES (?, ?, ?)");
         for (RegistroAcademico r : materias) {
@@ -220,8 +220,7 @@ public class EstudianteDAO {
         return true;
     }
 
-    // Deshace el alta: borra el estudiante (sus materias se borran solas por ON DELETE CASCADE)
-    // y luego el usuario. Se busca por código y usuario, que ya se verificó que eran nuevos.
+    
     private static void borrarInsertados(Connection cc, String codigoRfid, String username) {
         try {
             PreparedStatement ps = cc.prepareStatement("DELETE FROM estudiante WHERE codigo_rfid = ?");
@@ -235,7 +234,7 @@ public class EstudianteDAO {
         }
     }
 
-    // Modifica los datos del estudiante (y el nombre de su usuario). No cambia la clave ni las materias
+    
     public static boolean actualizar(Estudiante e) {
         boolean ok = false;
         Connection cc = new Conexion().conectar();
@@ -269,8 +268,7 @@ public class EstudianteDAO {
         return ok;
     }
 
-    // true si el estudiante tiene al menos una matrícula (en cualquier periodo).
-    // Ante un error de base de datos devuelve true, para no permitir el cambio a ciegas.
+    
     public static boolean tieneMatriculas(int estudianteId) {
         boolean tiene = true;
         Connection cc = new Conexion().conectar();
@@ -292,9 +290,7 @@ public class EstudianteDAO {
         return tiene;
     }
 
-    // Cambia la carrera de un estudiante que aún no tiene matrículas y rehace su récord
-    // académico con las materias de la nueva carrera (las anteriores ya no le corresponden).
-    // Todo ocurre en una transacción: si algo falla, no se cambia nada.
+    
     public static boolean cambiarCarrera(int estudianteId, int carreraId) {
         Connection cc = new Conexion().conectar();
         if (cc == null) {
@@ -302,7 +298,7 @@ public class EstudianteDAO {
         }
         try {
             cc.setAutoCommit(false);
-            // Se vuelve a comprobar aquí, por si lo matricularon mientras el formulario estaba abierto
+            
             if (contarPorId(cc, "SELECT COUNT(*) FROM matricula WHERE estudiante_id = ?", estudianteId) > 0) {
                 cc.rollback();
                 return false;
@@ -343,7 +339,7 @@ public class EstudianteDAO {
             try {
                 cc.rollback();
             } catch (SQLException ex2) {
-                // sin más que hacer: se muestra el error original
+                
             }
             JOptionPane.showMessageDialog(null, ex);
             return false;
@@ -351,13 +347,13 @@ public class EstudianteDAO {
             try {
                 cc.setAutoCommit(true);
             } catch (SQLException ex) {
-                // la conexión se cierra enseguida
+                
             }
             cerrar(cc);
         }
     }
 
-    // Igual que contar, pero con un id entero
+   
     private static int contarPorId(Connection cc, String sql, int valor) throws SQLException {
         PreparedStatement ps = cc.prepareStatement(sql);
         ps.setInt(1, valor);
@@ -366,7 +362,7 @@ public class EstudianteDAO {
         return rs.getInt(1);
     }
 
-    // También elimina su usuario
+    
     public static boolean eliminar(int id) {
         Estudiante est = buscarPorId(id);
         if (est == null) {

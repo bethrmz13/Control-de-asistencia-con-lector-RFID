@@ -43,7 +43,7 @@ public class FrmRegistro extends javax.swing.JInternalFrame {
         setClosable(true);
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
         jtxtFechaSimulada.setEnabled(false);
-        // En el puesto de lectura (perfil REGISTRO) no se puede simular la hora: solo la usa el personal
+        
         if (usuario.getPerfil().equals(Perfil.REGISTRO)) {
             jchkSimular.setVisible(false);
             jtxtFechaSimulada.setVisible(false);
@@ -51,7 +51,7 @@ public class FrmRegistro extends javax.swing.JInternalFrame {
         limpiarResultado();
     }
     
-        // Se llama al pulsar Enter en la caja del código (el lector escribe el código y pulsa Enter)
+        
     public void registrar() {
         String codigo = jtxtCodigo.getText().trim();
         if (codigo.isEmpty()) {
@@ -100,11 +100,11 @@ public class FrmRegistro extends javax.swing.JInternalFrame {
 
         String estado = res.getEstado();
         if (estado.equals(Estado.REGISTRADO)) {
-            jpnlResultado.setBackground(new Color(144, 238, 144));    // verde
+            jpnlResultado.setBackground(new Color(144, 238, 144));    
         } else if (estado.equals(Estado.YA_REGISTRADO)) {
-            jpnlResultado.setBackground(new Color(255, 235, 130));    // amarillo
+            jpnlResultado.setBackground(new Color(255, 235, 130));    
         } else {
-            jpnlResultado.setBackground(new Color(255, 150, 150));    // rojo
+            jpnlResultado.setBackground(new Color(255, 150, 150));    
         }
     }
 

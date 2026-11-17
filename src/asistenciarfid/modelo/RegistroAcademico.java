@@ -8,9 +8,7 @@ public class RegistroAcademico {
 
     private int estudianteId;
     private int asignaturaId;
-    private String estado;            // usa las constantes de EstadoMateria
-
-    // Solo para mostrar en tablas
+    private String estado;            
     private String asignaturaNombre;
     private int asignaturaNivel;
 

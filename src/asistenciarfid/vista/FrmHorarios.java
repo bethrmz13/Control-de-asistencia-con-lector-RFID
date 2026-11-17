@@ -111,7 +111,7 @@ public class FrmHorarios extends javax.swing.JInternalFrame {
         return null;
     }
 
-    // Reconsulta la lista autorizada: un grupo puede cambiar de periodo o carrera.
+    
     private boolean validarGrupo() {
         Grupo seleccionado = grupoSeleccionado();
         if (seleccionado == null) {
@@ -280,7 +280,7 @@ public class FrmHorarios extends javax.swing.JInternalFrame {
             jtxtHoraFin.requestFocus();
             return false;
         }
-        // schema.sql permite aula nula; si se escribe, admite hasta 20 caracteres.
+        
         if (jtxtAula.getText().trim().length() > 20) {
             JOptionPane.showMessageDialog(this, "El aula admite hasta 20 caracteres y es opcional.");
             jtxtAula.requestFocus();
@@ -360,7 +360,7 @@ public class FrmHorarios extends javax.swing.JInternalFrame {
         if (respuesta != JOptionPane.YES_OPTION) {
             return;
         }
-        // Verificar otra vez después de la confirmación, antes de escribir.
+        
         if (!validarGrupo()) {
             return;
         }

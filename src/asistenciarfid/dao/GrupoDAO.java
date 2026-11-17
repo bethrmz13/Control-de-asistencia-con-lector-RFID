@@ -12,8 +12,7 @@ import javax.swing.JOptionPane;
 
 public class GrupoDAO {
 
-    // Consulta base: trae el grupo con el nombre y nivel de la asignatura y el nombre del docente.
-    // El LEFT JOIN con usuario es porque docente_id puede ser NULL.
+
     private static final String SQL_BASE
             = "SELECT g.id, g.periodo_id, g.asignatura_id, g.paralelo, g.docente_id, "
             + "a.nombre AS asignatura_nombre, a.nivel AS asignatura_nivel, "
@@ -22,7 +21,6 @@ public class GrupoDAO {
             + "JOIN asignatura a ON a.id = g.asignatura_id "
             + "LEFT JOIN usuario u ON u.id = g.docente_id ";
 
-    // Convierte la fila actual del ResultSet en un Grupo
     private static Grupo armarGrupo(ResultSet rs) throws SQLException {
         Grupo g = new Grupo();
         g.setId(rs.getInt("id"));
@@ -41,7 +39,7 @@ public class GrupoDAO {
         return g;
     }
 
-    // Grupos del periodo ACTIVO. Si carreraId o docenteId son null, no se filtra por ellos.
+
     public static List<Grupo> listar(Integer carreraId, Integer docenteId) {
         List<Grupo> lista = new ArrayList<>();
         Connection cc = new Conexion().conectar();
@@ -79,7 +77,7 @@ public class GrupoDAO {
         return lista;
     }
 
-    // Del periodo activo
+
     public static List<Grupo> listarPorAsignatura(int asignaturaId) {
         List<Grupo> lista = new ArrayList<>();
         Connection cc = new Conexion().conectar();
@@ -125,7 +123,7 @@ public class GrupoDAO {
         return g;
     }
 
-    // El periodo_id sale del periodo ACTIVO (el SELECT devuelve 0 filas si no hay uno activo)
+
     public static boolean insertar(Grupo g) {
         boolean ok = false;
         Connection cc = new Conexion().conectar();

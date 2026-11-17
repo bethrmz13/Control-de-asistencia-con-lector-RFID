@@ -33,8 +33,8 @@ public class FrmInscritos extends javax.swing.JInternalFrame {
     }
     
         private Usuario usuario;
-    private List<Grupo> listaGrupos = new ArrayList<>();   // grupos que este usuario puede ver
-    private boolean cargando = false;                      // true mientras se llenan los combos por código
+    private List<Grupo> listaGrupos = new ArrayList<>();   
+    private boolean cargando = false;                      
 
     public FrmInscritos(Usuario usuario) {
         initComponents();
@@ -59,14 +59,14 @@ public class FrmInscritos extends javax.swing.JInternalFrame {
         cargarTabla();
     }
     
-        // Solo ADMIN, COORDINADOR y DOCENTE consultan inscritos
+        
     private boolean tienePermiso() {
         return usuario != null && (Perfil.ADMIN.equals(usuario.getPerfil())
                 || Perfil.COORDINADOR.equals(usuario.getPerfil())
                 || Perfil.DOCENTE.equals(usuario.getPerfil()));
     }
 
-    // DOCENTE: solo sus grupos. COORDINADOR: los de su carrera. ADMIN: todos.
+    
     private void cargarGrupos() {
         if (Perfil.DOCENTE.equals(usuario.getPerfil())) {
             listaGrupos = GrupoDAO.listar(null, usuario.getId());
@@ -77,7 +77,7 @@ public class FrmInscritos extends javax.swing.JInternalFrame {
         }
     }
 
-    // Llena el combo de asignaturas con los nombres que hay en los grupos visibles
+    
     private void cargarAsignaturas() {
         List<String> nombres = new ArrayList<>();
         for (Grupo g : listaGrupos) {
@@ -97,7 +97,7 @@ public class FrmInscritos extends javax.swing.JInternalFrame {
         cargarParalelos();
     }
 
-    // Cuando se elige otra asignatura se rehacen los paralelos y la tabla
+    
     private void asignaturaCambio() {
         if (cargando) {
             return;
@@ -106,7 +106,7 @@ public class FrmInscritos extends javax.swing.JInternalFrame {
         cargarTabla();
     }
 
-    // Llena el combo de paralelos solo con los de la asignatura elegida
+    
     private void cargarParalelos() {
         List<String> paralelos = new ArrayList<>();
         boolean hayAsignatura = jcbxAsignatura.getSelectedIndex() > 0;
@@ -130,7 +130,7 @@ public class FrmInscritos extends javax.swing.JInternalFrame {
         cargando = false;
     }
 
-    // Muestra los estudiantes inscritos en la asignatura y el paralelo elegidos
+    
     private void cargarTabla() {
         String titulos[] = {"Nro", "Estudiante", "Asignatura", "Paralelo"};
         DefaultTableModel modelo = new DefaultTableModel(null, titulos) {

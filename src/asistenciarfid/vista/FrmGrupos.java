@@ -35,16 +35,16 @@ public class FrmGrupos extends javax.swing.JInternalFrame {
     }
     
     private Usuario usuario;
-   private List<Grupo> listaGrupos;                                       // paralela a las filas de la tabla
-    private List<Asignatura> listaAsignaturas = new ArrayList<>();         // todas las asignaturas que puede ver el usuario
-    private List<Integer> listaNiveles = new ArrayList<>();                // paralela al combo de nivel (indice - 1)
-    private List<Asignatura> asignaturasDelNivel = new ArrayList<>();      // paralela al combo de asignatura (indice - 1)
-    private List<Usuario> listaDocentes;                                   // paralela al combo de docente (indice - 1)
-    private boolean editando = false;                                      // false = Nuevo, true = Editar
-    private boolean camposActivos = false;                                 // true cuando se esta escribiendo (Nuevo o Editar)
-    private boolean cargando = false;                                      // true mientras se llenan los combos por codigo (ignora sus eventos)
-    private int grupoSeleccionadoId = 0;                                   // id del grupo elegido en la tabla
-    private List<Carrera> listaCarreras = new ArrayList<>();               // paralela al combo de carrera (indice - 1)
+   private List<Grupo> listaGrupos;                                      
+    private List<Asignatura> listaAsignaturas = new ArrayList<>();         
+    private List<Integer> listaNiveles = new ArrayList<>();                
+    private List<Asignatura> asignaturasDelNivel = new ArrayList<>();      
+    private List<Usuario> listaDocentes;                                   
+    private boolean editando = false;                                      
+    private boolean camposActivos = false;                                 
+    private boolean cargando = false;                                      
+    private int grupoSeleccionadoId = 0;                                   
+    private List<Carrera> listaCarreras = new ArrayList<>();               
 
 
     public FrmGrupos(Usuario usuario) {
@@ -64,21 +64,21 @@ public class FrmGrupos extends javax.swing.JInternalFrame {
                 seleccionarFila();
             }
         });
-        // La cadena de filtros
+        
         jcbxNivel.addActionListener(e -> alElegirNivel());
         jcbxAsignatura.addActionListener(e -> alElegirAsignatura());
         jrbtnParaleloA.addActionListener(e -> actualizarHabilitados());
         jrbtnParaleloB.addActionListener(e -> actualizarHabilitados());
         jrbtnParaleloC.addActionListener(e -> actualizarHabilitados());
         jcbxCarrera.addActionListener(e -> alElegirCarrera());
-        // Si el usuario es COORDINADOR se oculta el combo (su carrera ya esta fija):
+        
         if (!usaCarrera()) {
             jlblCarrera.setVisible(false);
             jcbxCarrera.setVisible(false);
         }
     }
 
-    // El combo de carrera lo usan todos menos el COORDINADOR (el ya tiene una sola carrera)
+    
     private boolean usaCarrera() {
         return !(usuario != null && Perfil.COORDINADOR.equals(usuario.getPerfil()));
     }
@@ -93,7 +93,7 @@ public class FrmGrupos extends javax.swing.JInternalFrame {
         jcbxCarrera.setModel(modelo);
     }
 
-    // Id de la carrera elegida; null si no se eligio ninguna (o si es coordinador)
+    
     private Integer carreraElegidaId() {
         int indice = jcbxCarrera.getSelectedIndex();
         if (!usaCarrera() || indice <= 0) {
@@ -102,7 +102,7 @@ public class FrmGrupos extends javax.swing.JInternalFrame {
         return listaCarreras.get(indice - 1).getId();
     }
 
-    // Asignaturas de la carrera elegida (vacio si todavia no se elige carrera)
+    
     private List<Asignatura> asignaturasDeLaCarrera() {
         List<Asignatura> lista = new ArrayList<>();
         Integer carreraId = carreraElegidaId();
@@ -134,7 +134,7 @@ public class FrmGrupos extends javax.swing.JInternalFrame {
         if (cargando) {
             return;
         }
-        cargarNiveles();                 // solo los niveles de esa carrera
+        cargarNiveles();                 
         llenarAsignaturasDelNivel();
         bgParalelo.clearSelection();
         jcbxDocente.setSelectedIndex(0);
@@ -142,7 +142,7 @@ public class FrmGrupos extends javax.swing.JInternalFrame {
     }
 
    
-    // El COORDINADOR solo trabaja con su carrera; los demas ven todas (null)
+    
     private Integer carreraDelUsuario() {
         if (usuario != null && Perfil.COORDINADOR.equals(usuario.getPerfil())) {
             return usuario.getCarreraId();
@@ -154,7 +154,7 @@ public class FrmGrupos extends javax.swing.JInternalFrame {
         listaAsignaturas = AsignaturaDAO.listar(carreraDelUsuario());
     }
 
-   // Combo de nivel: los niveles de la carrera elegida
+   
     private void cargarNiveles() {
         listaNiveles = new ArrayList<>();
         for (Asignatura a : asignaturasDeLaCarrera()) {
@@ -172,7 +172,7 @@ public class FrmGrupos extends javax.swing.JInternalFrame {
     }
 
 
-   // Combo de asignatura: SOLO las del nivel elegido y de la carrera elegida
+   
     private void llenarAsignaturasDelNivel() {
         asignaturasDelNivel = new ArrayList<>();
         int indice = jcbxNivel.getSelectedIndex();
@@ -216,7 +216,7 @@ modelo.addRow(new Object[]{nombreCarreraDe(g.getAsignaturaId()), g.getAsignatura
         jtblGrupos.setModel(modelo);
     }
 
-    // Devuelve "A", "B" o "C"; si no hay ninguno marcado devuelve ""
+    
     private String paraleloElegido() {
         if (jrbtnParaleloA.isSelected()) {
             return "A";
@@ -230,14 +230,14 @@ modelo.addRow(new Object[]{nombreCarreraDe(g.getAsignaturaId()), g.getAsignatura
         return "";
     }
 
-    // ---- La cadena: cada paso habilita el siguiente ----
+    
 
     private void alElegirNivel() {
         if (cargando) {
             return;
         }
-        llenarAsignaturasDelNivel();     // solo las asignaturas de ese nivel
-        bgParalelo.clearSelection();     // lo que sigue se reinicia
+        llenarAsignaturasDelNivel();     
+        bgParalelo.clearSelection();     
         jcbxDocente.setSelectedIndex(0);
         actualizarHabilitados();
     }
@@ -251,13 +251,12 @@ modelo.addRow(new Object[]{nombreCarreraDe(g.getAsignaturaId()), g.getAsignatura
         actualizarHabilitados();
     }
 
-       // Decide que controles se pueden usar segun lo que ya se eligio
+       
     private void actualizarHabilitados() {
         boolean hayCarrera = !usaCarrera() || jcbxCarrera.getSelectedIndex() > 0;
         boolean hayNivel = jcbxNivel.getSelectedIndex() > 0;
         boolean hayAsignatura = jcbxAsignatura.getSelectedIndex() > 0;
         boolean hayParalelo = !paraleloElegido().isEmpty();
-        // Al EDITAR solo se puede cambiar el docente; al crear un grupo nuevo se llena toda la cadena
         boolean nuevo = camposActivos && !editando;
         jcbxCarrera.setEnabled(nuevo && usaCarrera());
         jcbxNivel.setEnabled(nuevo && hayCarrera);
@@ -274,7 +273,7 @@ modelo.addRow(new Object[]{nombreCarreraDe(g.getAsignaturaId()), g.getAsignatura
         actualizarHabilitados();
     }
 
-    // Al hacer clic en una fila se llenan los controles con ese grupo (en el mismo orden de la cadena)
+    
     private void seleccionarFila() {
         int fila = jtblGrupos.getSelectedRow();
         if (fila < 0) {
@@ -346,7 +345,7 @@ modelo.addRow(new Object[]{nombreCarreraDe(g.getAsignaturaId()), g.getAsignatura
         cargando = false;
     }
 
-    // ---- Estados de la ventana (como en clase) ----
+    
     private void InformacionInicio() {
         limpiarCampos();
         habilitarCampos(false);
@@ -362,7 +361,7 @@ modelo.addRow(new Object[]{nombreCarreraDe(g.getAsignaturaId()), g.getAsignatura
 
     private void InformacionNuevo() {
         limpiarCampos();
-        habilitarCampos(true);      // solo queda habilitado el nivel
+        habilitarCampos(true);      
         jcbxNivel.requestFocus();
     }
 
@@ -405,7 +404,7 @@ modelo.addRow(new Object[]{nombreCarreraDe(g.getAsignaturaId()), g.getAsignatura
             jrbtnParaleloA.requestFocus();
             return false;
         }
-        // No se puede repetir la misma asignatura con el mismo paralelo
+        
         int asignaturaId = asignaturasDelNivel.get(jcbxAsignatura.getSelectedIndex() - 1).getId();
         List<Grupo> existentes = GrupoDAO.listarPorAsignatura(asignaturaId);
         for (Grupo g : existentes) {

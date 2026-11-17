@@ -65,7 +65,7 @@ public class FrmPeriodos extends javax.swing.JInternalFrame {
         }
     }
 
-    // Al seleccionar una fila se llenan las cajas, como en clase
+    
     public void seleccionarPeriodo() {
         jtblPeriodos.getSelectionModel().addListSelectionListener(e -> {
             int fila = jtblPeriodos.getSelectedRow();
@@ -132,7 +132,7 @@ public class FrmPeriodos extends javax.swing.JInternalFrame {
         jtxtNombre.requestFocus();
     }
 
-    // Con un periodo seleccionado: solo el periodo activo puede abrir la matrícula o cerrarse
+    
     private void informacionSeleccion() {
         modo = "";
         habilitarCampos(false);
@@ -145,7 +145,7 @@ public class FrmPeriodos extends javax.swing.JInternalFrame {
         jbtnCerrarPeriodo.setEnabled(seleccionado.isActivo());
     }
     
-        // Lee una fecha de una caja. Si el formato está mal, avisa y devuelve null.
+       
     private java.sql.Date leerFecha(javax.swing.JTextField caja, String nombreCampo, String ejemplo) {
         try {
             return java.sql.Date.valueOf(caja.getText().trim());
@@ -178,7 +178,7 @@ public class FrmPeriodos extends javax.swing.JInternalFrame {
         return true;
     }
 
-    // Arma el Periodo con lo que hay en las cajas (se llama solo después de validarCampos)
+    
     private Periodo armarPeriodo() {
         Periodo p = new Periodo();
         p.setNombre(jtxtNombre.getText().trim());
@@ -248,7 +248,7 @@ public class FrmPeriodos extends javax.swing.JInternalFrame {
         }
     }
 
-    // Muestra la lista de notas que faltan. Devuelve true si falta alguna (entonces no se cierra)
+    
     private boolean faltanNotas() {
         List<Matricula> faltantes = CierrePeriodoControlador.notasFaltantes();
         if (faltantes.isEmpty()) {

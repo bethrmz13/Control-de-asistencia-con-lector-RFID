@@ -51,8 +51,7 @@ public class FrmEstudiantes extends javax.swing.JInternalFrame {
         inicio();
     }
 
-    //Estados de los botones 
-    // Al abrir y al cancelar: cajas deshabilitadas y solo está activo Nuevo
+
     private void inicio() {
         modoNuevo = false;
         enEdicion = false;
@@ -64,7 +63,6 @@ public class FrmEstudiantes extends javax.swing.JInternalFrame {
         jbtnEliminar.setEnabled(false);
     }
 
-    // Nuevo: se habilitan las cajas, incluidos el usuario y la clave
     private void informacionNuevo() {
         enEdicion = true;
         habilitarCajas(true);
@@ -74,7 +72,6 @@ public class FrmEstudiantes extends javax.swing.JInternalFrame {
         botonesEdicion();
     }
 
-    // Editar: igual que Nuevo, pero el usuario, la clave y la carrera no se cambian
     private void informacionEditar() {
         enEdicion = true;
         habilitarCajas(true);
@@ -92,7 +89,6 @@ public class FrmEstudiantes extends javax.swing.JInternalFrame {
         jbtnEliminar.setEnabled(false);
     }
 
-    // Habilita o deshabilita las cajas comunes. El usuario, la clave y la carrera se manejan aparte
     private void habilitarCajas(boolean on) {
         jtxtCodigo.setEnabled(on);
         jtxtNombre.setEnabled(on);
@@ -109,9 +105,7 @@ public class FrmEstudiantes extends javax.swing.JInternalFrame {
         return Perfil.COORDINADOR.equals(usuario.getPerfil());
     }
 
-    //Carga de datos 
 
-    // Llena el combo de carreras. El coordinador solo ve la suya
     private void cargarCarreras() {
         DefaultComboBoxModel modelo = new DefaultComboBoxModel();
         modelo.addElement("Seleccione");
@@ -127,7 +121,6 @@ public class FrmEstudiantes extends javax.swing.JInternalFrame {
         }
     }
 
-    // Llena la tabla de estudiantes (el coordinador solo ve los de su carrera)
     private void cargarEstudiantes() {
         Integer carreraId = null;
         if (esCoordinador()) {
@@ -148,7 +141,6 @@ public class FrmEstudiantes extends javax.swing.JInternalFrame {
         jtblEstudiantes.setModel(modelo);
     }
 
-    // En Nuevo: arma la lista de materias según la carrera y el nivel elegidos
     private void cargarMaterias() {
         Carrera c = carreraSeleccionada();
         if (c == null) {
@@ -159,7 +151,6 @@ public class FrmEstudiantes extends javax.swing.JInternalFrame {
         mostrarMaterias();
     }
 
-    // Muestra listaMaterias en la tabla. Solo la columna Estado se puede cambiar, con un combo
     private void mostrarMaterias() {
         String titulos[] = {"Nivel", "Asignatura", "Estado"};
         DefaultTableModel modelo = new DefaultTableModel(null, titulos) {
@@ -177,7 +168,6 @@ public class FrmEstudiantes extends javax.swing.JInternalFrame {
         jtblMaterias.getColumnModel().getColumn(2).setCellEditor(new DefaultCellEditor(combo));
     }
 
-    // Pasa a listaMaterias los estados que el usuario escogió en la tabla
     private void leerEstadosMaterias() {
         if (jtblMaterias.isEditing()) {
             jtblMaterias.getCellEditor().stopCellEditing();
@@ -187,7 +177,7 @@ public class FrmEstudiantes extends javax.swing.JInternalFrame {
         }
     }
 
-    //Ayudas 
+
     private Carrera carreraSeleccionada() {
         Object item = jcbxCarrera.getSelectedItem();
         if (item instanceof Carrera) {
@@ -196,7 +186,7 @@ public class FrmEstudiantes extends javax.swing.JInternalFrame {
         return null;
     }
 
-    // Selecciona en el combo la carrera con ese id
+
     private void seleccionarCarrera(int carreraId) {
         for (int i = 0; i < jcbxCarrera.getItemCount(); i++) {
             Object item = jcbxCarrera.getItemAt(i);
@@ -207,7 +197,7 @@ public class FrmEstudiantes extends javax.swing.JInternalFrame {
         }
     }
 
-    // Lee las cajas y arma el Estudiante
+
     private Estudiante armarEstudiante() {
         Estudiante est = new Estudiante();
         est.setCodigoRfid(jtxtCodigo.getText().trim());
@@ -239,14 +229,14 @@ public class FrmEstudiantes extends javax.swing.JInternalFrame {
         JOptionPane.showMessageDialog(this, texto);
     }
 
-    // Avisa, da el foco al campo que está mal y devuelve false
+
     private boolean fallar(String texto, java.awt.Component campo) {
         JOptionPane.showMessageDialog(this, texto);
         campo.requestFocus();
         return false;
     }
 
-    // Revisa que tenga una @ con texto antes, y un punto después
+
     private boolean correoValido(String correo) {
         int arroba = correo.indexOf('@');
         int punto = correo.lastIndexOf('.');
@@ -254,7 +244,7 @@ public class FrmEstudiantes extends javax.swing.JInternalFrame {
                 && correo.indexOf(' ') < 0;
     }
 
-    //Validaciones
+ 
     private boolean validarCampos() {
         String codigo = jtxtCodigo.getText().trim();
         if (codigo.isEmpty() || codigo.contains(" ")) {
@@ -282,7 +272,7 @@ public class FrmEstudiantes extends javax.swing.JInternalFrame {
                 return fallar("Escriba la clave", jpwdClave);
             }
         }
-        // La tarjeta no puede repetirse. En Editar solo se revisa si cambió
+ 
         boolean cambio = modoNuevo || !codigo.equals(seleccionado.getCodigoRfid());
         if (cambio && EstudianteDAO.existeCodigo(codigo)) {
             return fallar("Esa tarjeta ya está registrada", jtxtCodigo);
@@ -290,7 +280,7 @@ public class FrmEstudiantes extends javax.swing.JInternalFrame {
         return true;
     }
 
-    // Lo que escribe el lector al pasar la tarjeta
+
     private void validarCodigoLeido() {
         if (!modoNuevo) {
             return;
@@ -309,7 +299,6 @@ public class FrmEstudiantes extends javax.swing.JInternalFrame {
         jtxtNombre.requestFocus();
     }
 
-    //Acciones de los botones 
 
     private void accionNuevo() {
         modoNuevo = true;
@@ -367,7 +356,7 @@ public class FrmEstudiantes extends javax.swing.JInternalFrame {
         }
     }
 
-    // Después de guardar: recarga la tabla y vuelve al inicio
+ 
     private void terminar() {
         cargarEstudiantes();
         limpiar();
@@ -565,11 +554,12 @@ public class FrmEstudiantes extends javax.swing.JInternalFrame {
                     .addComponent(jtxtUsuario, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(jLabel6))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jtxtNombre, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jLabel3, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jLabel7)
-                    .addComponent(jpwdClave, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(jLabel7, javax.swing.GroupLayout.Alignment.TRAILING)
+                    .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                        .addComponent(jtxtNombre, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addComponent(jLabel3, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addComponent(jpwdClave, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jtxtApellido, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)

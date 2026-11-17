@@ -20,13 +20,11 @@ import java.util.List;
 
 public class MatriculaControlador {
 
-    // Devuelve null si se matriculó bien, o el mensaje del primer error encontrado
     public static String matricular(int estudianteId, int grupoId) {
         if (!BaseDatos.disponible()) {
             return "No hay conexión con la base de datos";
         }
 
-        // 1. La matrícula debe estar abierta
         Periodo periodo = PeriodoDAO.obtenerActivo();
         if (periodo == null) {
             return "No hay un periodo activo";
@@ -35,7 +33,6 @@ public class MatriculaControlador {
             return "Las matrículas están cerradas";
         }
 
-        // 2. El grupo debe ser del periodo activo
         Grupo grupo = GrupoDAO.buscarPorId(grupoId);
         if (grupo == null) {
             return "El grupo no existe";
@@ -44,7 +41,6 @@ public class MatriculaControlador {
             return "El grupo no es del periodo activo";
         }
 
-        // 3. Materia permitida: carrera, nivel y estado
         Estudiante est = EstudianteDAO.buscarPorId(estudianteId);
         if (est == null) {
             return "El estudiante no existe";
@@ -58,23 +54,19 @@ public class MatriculaControlador {
             return errorMateria;
         }
 
-        // 4. No repetida en el periodo
         if (MatriculaDAO.existeEnAsignatura(estudianteId, asig.getId())) {
             return "Ya está matriculado en " + asig.getNombre() + " en este periodo";
         }
 
-        // 5. Máximo de materias
         if (MatriculaDAO.contarEnPeriodoActivo(estudianteId) >= Parametros.MAX_MATERIAS) {
             return "Ya tiene el máximo de " + Parametros.MAX_MATERIAS + " materias";
         }
 
-        // 6. Sin choque de horarios con sus otros grupos
         List<Horario> nuevos = HorarioDAO.listarPorGrupo(grupoId);
         List<Horario> actuales = HorarioDAO.listarDeEstudiante(estudianteId);
         for (Horario n : nuevos) {
             for (Horario a : actuales) {
-                // Dos horarios chocan si son el mismo día y se cruzan:
-                // cada uno empieza antes de que termine el otro
+
                 if (n.getDiaSemana() == a.getDiaSemana()
                         && n.getHoraInicio().before(a.getHoraFin())
                         && a.getHoraInicio().before(n.getHoraFin())) {
@@ -85,14 +77,12 @@ public class MatriculaControlador {
             }
         }
 
-        // Todo bien: se guarda
         if (!MatriculaDAO.matricular(estudianteId, grupoId)) {
             return "No se pudo guardar la matrícula";
         }
         return null;
     }
 
-    // Revisa la regla 3: devuelve el mensaje de error o null si la materia está permitida
     private static String revisarMateria(Estudiante est, Asignatura asig) {
         if (asig.getCarreraId() != est.getCarreraId()) {
             return "La materia no es de su carrera";
@@ -110,11 +100,8 @@ public class MatriculaControlador {
         return null;
     }
 
-    // Grupos del periodo activo que el estudiante puede escoger ahora
-    // (cumplen las reglas 3 y 4: materia permitida y no repetida)
     public static List<Grupo> gruposDisponibles(Estudiante estudiante) {
         List<Grupo> disponibles = new ArrayList<>();
-        // Solo se ofrecen grupos si hay un periodo activo con la matrícula abierta
         Periodo periodo = PeriodoDAO.obtenerActivo();
         if (periodo == null || !periodo.isMatriculaAbierta()) {
             return disponibles;

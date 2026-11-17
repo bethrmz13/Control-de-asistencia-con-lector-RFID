@@ -39,8 +39,7 @@ public class VentanaPrincipal extends javax.swing.JFrame {
         } 
     }
     
-    // Modo puesto de lectura: sin menú y con la pantalla de registro fija, para que quien pase la
-    // tarjeta no pueda entrar a nada más del sistema
+
     private void iniciarModoRegistro() {
         getJMenuBar().setVisible(false);
 
@@ -49,7 +48,7 @@ public class VentanaPrincipal extends javax.swing.JFrame {
         jdskPrincipal.add(ventana);
         ventana.setVisible(true);
 
-        // Se maximiza cuando la ventana principal ya se mostró; si no, queda con tamaño cero
+       
         javax.swing.SwingUtilities.invokeLater(() -> {
             try {
                 ventana.setMaximum(true);
@@ -59,11 +58,11 @@ public class VentanaPrincipal extends javax.swing.JFrame {
         });
     }
     
-    // Muestra solo las opciones que le corresponden a cada perfil
+
     public void configurarMenuSegunPerfil() {
         String perfil = usuario.getPerfil();
 
-        // 1. Se oculta todo
+
         jmnuAdministracion.setVisible(false);
         jmnuAsistencia.setVisible(false);
         jmnuMatricula.setVisible(false);
@@ -78,7 +77,7 @@ public class VentanaPrincipal extends javax.swing.JFrame {
         jmniReportes.setVisible(false);
                 jmniConsulta.setVisible(false);
 
-        // 2. Se muestra lo que corresponde
+ 
         if (perfil.equals(Perfil.ADMIN)) {
             jmnuAdministracion.setVisible(true);
             jmnuAsistencia.setVisible(true);
@@ -112,8 +111,7 @@ public class VentanaPrincipal extends javax.swing.JFrame {
         }
     }
 
-    // "Mi horario": solo lectura, para el docente (en su menú Asistencia) y el estudiante (en su
-    // menú Matrícula). Se agrega por código para no tocar el bloque generado por NetBeans.
+
     private void agregarMenuMiHorario() {
         javax.swing.JMenu menu = null;
         if (usuario.getPerfil().equals(Perfil.DOCENTE)) {
@@ -133,7 +131,7 @@ public class VentanaPrincipal extends javax.swing.JFrame {
         menu.add(jmniMiHorario);
     }
     
-        // "Inscritos": consulta de solo lectura en el menú Asistencia para ADMIN, COORDINADOR y DOCENTE
+        
     private void agregarMenuInscritos() {
         String perfil = usuario.getPerfil();
         if (!perfil.equals(Perfil.ADMIN) && !perfil.equals(Perfil.COORDINADOR)
@@ -149,7 +147,7 @@ public class VentanaPrincipal extends javax.swing.JFrame {
         jmnuAsistencia.add(jmniInscritos);
     }
 
-    // Abre una ventana interna en el escritorio. Si ya hay una de la misma clase, la trae al frente.
+   
     public void abrirVentana(JInternalFrame ventana) {
         for (JInternalFrame f : jdskPrincipal.getAllFrames()) {
             if (f.getClass() == ventana.getClass() && !f.isClosed()) {
@@ -166,7 +164,7 @@ public class VentanaPrincipal extends javax.swing.JFrame {
         ventana.setVisible(true);
     }
     
-        // Ventanas que puede abrir cada perfil (las mismas reglas del menú)
+       
     private boolean tienePermiso(String ventana) {
         if (usuario == null) {
             return false;
@@ -193,7 +191,7 @@ public class VentanaPrincipal extends javax.swing.JFrame {
         return false;
     }
 
-    // Se llama antes de crear la ventana: ocultar el menú no basta, también se comprueba al abrir
+    
     private boolean puedeAbrir(String ventana) {
         if (tienePermiso(ventana)) {
             return true;

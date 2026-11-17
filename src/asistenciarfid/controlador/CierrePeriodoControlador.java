@@ -20,23 +20,20 @@ import javax.swing.JOptionPane;
 
 public class CierrePeriodoControlador {
 
-    // Matrículas del periodo activo que todavía no tienen nota
+    
     public static List<Matricula> notasFaltantes() {
         return MatriculaDAO.listarSinNota();
     }
 
-    // Cierra el periodo activo. Devuelve los estudiantes "por revisar" (los que
-    // reprobaron algo), o null si no se pudo cerrar (faltan notas o hubo un error).
-    // Sin transacciones: antes de cambiar algo se guarda el valor anterior, y si un paso
-    // falla se devuelve todo lo ya cambiado a como estaba.
+    
     public static List<Estudiante> cerrarPeriodo() {
-        // Sin conexión, notasFaltantes() devolvería una lista vacía y parecería que no falta nada
+        
         if (!BaseDatos.disponible()) {
             JOptionPane.showMessageDialog(null, "No se pudo cerrar el periodo: no hay conexión con la base de datos");
             return null;
         }
 
-        // Lo ya cambiado y su valor anterior (listas paralelas), para poder deshacer
+        
         List<Integer> estudiantesEstado = new ArrayList<>();
         List<Integer> asignaturasEstado = new ArrayList<>();
         List<String> estadosAntes = new ArrayList<>();
@@ -44,7 +41,7 @@ public class CierrePeriodoControlador {
         List<Integer> nivelesAntes = new ArrayList<>();
 
         try {
-            // Primero: si falta alguna nota no se cambia nada
+            
             if (!notasFaltantes().isEmpty()) {
                 return null;
             }
@@ -54,8 +51,7 @@ public class CierrePeriodoControlador {
                 return null;
             }
 
-            // Segundo: cada matrícula pasa su materia a APROBADA o REPROBADA.
-            // Se anotan los estudiantes y cuáles reprobaron algo (dos listas de ids).
+        
             List<Integer> estudiantes = new ArrayList<>();
             List<Integer> conReprobadas = new ArrayList<>();
             List<Grupo> grupos = GrupoDAO.listar(null, null);
@@ -67,7 +63,7 @@ public class CierrePeriodoControlador {
                         return fallar("falta la nota de " + quien, estudiantesEstado, asignaturasEstado,
                                 estadosAntes, estudiantesNivel, nivelesAntes);
                     }
-                    // Estado anterior de la materia (null = el estudiante no tiene esa materia en su registro)
+                   
                     String antes = RegistroAcademicoDAO.estadoDe(m.getEstudianteId(), g.getAsignaturaId());
                     if (antes == null) {
                         return fallar(quien + " no está en el registro académico del estudiante",
@@ -86,7 +82,7 @@ public class CierrePeriodoControlador {
                         return fallar("no se pudo guardar el estado de " + quien, estudiantesEstado,
                                 asignaturasEstado, estadosAntes, estudiantesNivel, nivelesAntes);
                     }
-                    // Recién guardado: se anota el valor anterior para poder devolverlo
+                   
                     estudiantesEstado.add(m.getEstudianteId());
                     asignaturasEstado.add(g.getAsignaturaId());
                     estadosAntes.add(antes);
@@ -96,7 +92,6 @@ public class CierrePeriodoControlador {
                 }
             }
 
-            // Tercero: sube de nivel quien aprobó todo; los demás quedan "por revisar"
             List<Estudiante> porRevisar = new ArrayList<>();
             for (Integer estudianteId : estudiantes) {
                 Estudiante est = EstudianteDAO.buscarPorId(estudianteId);
@@ -121,7 +116,6 @@ public class CierrePeriodoControlador {
                 }
             }
 
-            // Al final: el periodo queda inactivo y con la matrícula cerrada
             periodo.setActivo(false);
             periodo.setMatriculaAbierta(false);
             if (!PeriodoDAO.actualizar(periodo)) {
@@ -135,12 +129,10 @@ public class CierrePeriodoControlador {
         }
     }
 
-    // Devuelve lo ya cambiado a su valor anterior, avisa qué pasó y devuelve null (no se cerró)
     private static List<Estudiante> fallar(String motivo, List<Integer> estudiantesEstado,
             List<Integer> asignaturasEstado, List<String> estadosAntes,
             List<Integer> estudiantesNivel, List<Integer> nivelesAntes) {
         int noDevueltos = 0;
-        // Se deshace en orden inverso: primero los niveles, luego los estados de materia
         for (int i = nivelesAntes.size() - 1; i >= 0; i--) {
             try {
                 Estudiante est = EstudianteDAO.buscarPorId(estudiantesNivel.get(i));
@@ -173,7 +165,6 @@ public class CierrePeriodoControlador {
         return null;
     }
 
-    // Nivel más alto de las asignaturas de una carrera
     private static int nivelMasAlto(int carreraId) {
         int maximo = 0;
         List<Asignatura> asignaturas = AsignaturaDAO.listar(carreraId);

@@ -15,6 +15,5 @@ public class Estado {
     public static final String NO_ENCONTRADO = "NO_ENCONTRADO";
     public static final String SIN_CLASES_HOY = "SIN_CLASES_HOY";
     public static final String FUERA_DE_HORARIO = "FUERA_DE_HORARIO";
-    // No se pudo guardar la asistencia (error de la base de datos o sin conexión)
     public static final String ERROR_GUARDADO = "ERROR_GUARDADO";
 }
