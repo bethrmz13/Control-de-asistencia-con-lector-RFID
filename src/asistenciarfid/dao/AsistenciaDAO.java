@@ -56,6 +56,14 @@ public class AsistenciaDAO {
             ps.setTime(4, hora);
             ok = ps.executeUpdate() > 0;
             cc.close();
+        } catch (java.sql.SQLIntegrityConstraintViolationException ex) {
+            // Error 1062 = ya existe esa asistencia (otro puesto la guardó justo antes). No es un error
+            // para el usuario: devuelve false y el controlador vuelve a revisar con existe().
+            // Cualquier otro error de integridad (por ejemplo una clave foránea) sí se muestra.
+            ok = false;
+            if (ex.getErrorCode() != 1062) {
+                JOptionPane.showMessageDialog(null, ex);
+            }
         } catch (Exception ex) {
             JOptionPane.showMessageDialog(null, ex);
         }

@@ -7,6 +7,7 @@ import asistenciarfid.modelo.Estado;
 import asistenciarfid.modelo.Estudiante;
 import asistenciarfid.modelo.Horario;
 import asistenciarfid.modelo.ResultadoRegistro;
+import asistenciarfid.util.BaseDatos;
 import asistenciarfid.util.Fechas;
 import asistenciarfid.util.Parametros;
 import java.text.SimpleDateFormat;
@@ -18,6 +19,12 @@ public class AsistenciaControlador {
     // La pantalla pasa new Date() (la hora actual). Las pruebas pasan una hora
     // inventada creada con Fechas.crear(...).
     public static ResultadoRegistro registrarPorCodigo(String codigo, Date ahora) {
+        // Sin conexión, los DAO devuelven null o listas vacías: se avisa en vez de decir "no registrada"
+        if (!BaseDatos.disponible()) {
+            return new ResultadoRegistro(Estado.ERROR_GUARDADO, null, null,
+                    "Sin conexión a la base de datos");
+        }
+
         // a) Buscar al estudiante por el código de la tarjeta
         Estudiante est = null;
         if (codigo != null) {
@@ -63,9 +70,14 @@ public class AsistenciaControlador {
         // e) Registrar
         boolean ok = AsistenciaDAO.registrar(est.getId(), elegido.getId(), fecha, hora);
         if (!ok) {
-            // El DAO ya mostró el error de la base de datos
-            return new ResultadoRegistro(Estado.NO_ENCONTRADO, est, elegido,
-                    "No se pudo guardar la asistencia");
+            // Puede ser que otro puesto la guardó justo antes (la base no permite repetidas).
+            // Se vuelve a revisar: si ya existe, no es un error.
+            if (AsistenciaDAO.existe(est.getId(), elegido.getId(), fecha)) {
+                return new ResultadoRegistro(Estado.YA_REGISTRADO, est, elegido,
+                        "Ya registró asistencia en " + elegido.getAsignaturaNombre());
+            }
+            return new ResultadoRegistro(Estado.ERROR_GUARDADO, est, elegido,
+                    "No se pudo guardar la asistencia. Intente de nuevo");
         }
         String horaTexto = new SimpleDateFormat("HH:mm").format(ahora);
         return new ResultadoRegistro(Estado.REGISTRADO, est, elegido,
