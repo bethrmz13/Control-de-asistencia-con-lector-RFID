@@ -2,6 +2,7 @@ package asistenciarfid.dao;
 
 import asistenciarfid.db.Conexion;
 import asistenciarfid.modelo.Estudiante;
+import asistenciarfid.modelo.EstadoMateria;
 import asistenciarfid.modelo.Perfil;
 import asistenciarfid.modelo.RegistroAcademico;
 import java.sql.Connection;
@@ -266,6 +267,103 @@ public class EstudianteDAO {
             cerrar(cc);
         }
         return ok;
+    }
+
+    // true si el estudiante tiene al menos una matrícula (en cualquier periodo).
+    // Ante un error de base de datos devuelve true, para no permitir el cambio a ciegas.
+    public static boolean tieneMatriculas(int estudianteId) {
+        boolean tiene = true;
+        Connection cc = new Conexion().conectar();
+        if (cc == null) {
+            return true;
+        }
+        try {
+            PreparedStatement ps = cc.prepareStatement("SELECT COUNT(*) FROM matricula WHERE estudiante_id = ?");
+            ps.setInt(1, estudianteId);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                tiene = rs.getInt(1) > 0;
+            }
+        } catch (SQLException ex) {
+            JOptionPane.showMessageDialog(null, ex);
+        } finally {
+            cerrar(cc);
+        }
+        return tiene;
+    }
+
+    // Cambia la carrera de un estudiante que aún no tiene matrículas y rehace su récord
+    // académico con las materias de la nueva carrera (las anteriores ya no le corresponden).
+    // Todo ocurre en una transacción: si algo falla, no se cambia nada.
+    public static boolean cambiarCarrera(int estudianteId, int carreraId) {
+        Connection cc = new Conexion().conectar();
+        if (cc == null) {
+            return false;
+        }
+        try {
+            cc.setAutoCommit(false);
+            // Se vuelve a comprobar aquí, por si lo matricularon mientras el formulario estaba abierto
+            if (contarPorId(cc, "SELECT COUNT(*) FROM matricula WHERE estudiante_id = ?", estudianteId) > 0) {
+                cc.rollback();
+                return false;
+            }
+            PreparedStatement ps = cc.prepareStatement("SELECT nivel FROM estudiante WHERE id = ?");
+            ps.setInt(1, estudianteId);
+            ResultSet rs = ps.executeQuery();
+            if (!rs.next()) {
+                cc.rollback();
+                return false;
+            }
+            int nivelEstudiante = rs.getInt("nivel");
+
+            ps = cc.prepareStatement("UPDATE estudiante SET carrera_id = ? WHERE id = ?");
+            ps.setInt(1, carreraId);
+            ps.setInt(2, estudianteId);
+            ps.executeUpdate();
+
+            ps = cc.prepareStatement("DELETE FROM registro_academico WHERE estudiante_id = ?");
+            ps.setInt(1, estudianteId);
+            ps.executeUpdate();
+
+            ps = cc.prepareStatement("SELECT id, nivel FROM asignatura WHERE carrera_id = ?");
+            ps.setInt(1, carreraId);
+            rs = ps.executeQuery();
+            PreparedStatement insertar = cc.prepareStatement(
+                    "INSERT INTO registro_academico (estudiante_id, asignatura_id, estado) VALUES (?, ?, ?)");
+            while (rs.next()) {
+                insertar.setInt(1, estudianteId);
+                insertar.setInt(2, rs.getInt("id"));
+                insertar.setString(3, rs.getInt("nivel") < nivelEstudiante
+                        ? EstadoMateria.APROBADA : EstadoMateria.AUN_NO_CURSA);
+                insertar.executeUpdate();
+            }
+            cc.commit();
+            return true;
+        } catch (SQLException ex) {
+            try {
+                cc.rollback();
+            } catch (SQLException ex2) {
+                // sin más que hacer: se muestra el error original
+            }
+            JOptionPane.showMessageDialog(null, ex);
+            return false;
+        } finally {
+            try {
+                cc.setAutoCommit(true);
+            } catch (SQLException ex) {
+                // la conexión se cierra enseguida
+            }
+            cerrar(cc);
+        }
+    }
+
+    // Igual que contar, pero con un id entero
+    private static int contarPorId(Connection cc, String sql, int valor) throws SQLException {
+        PreparedStatement ps = cc.prepareStatement(sql);
+        ps.setInt(1, valor);
+        ResultSet rs = ps.executeQuery();
+        rs.next();
+        return rs.getInt(1);
     }
 
     // También elimina su usuario

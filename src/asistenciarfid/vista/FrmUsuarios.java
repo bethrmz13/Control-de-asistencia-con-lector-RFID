@@ -12,6 +12,8 @@ import javax.swing.JOptionPane;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.table.DefaultTableModel;
+import asistenciarfid.modelo.Estudiante;
+import asistenciarfid.dao.EstudianteDAO;
 
 public class FrmUsuarios extends javax.swing.JInternalFrame {
 
@@ -33,6 +35,8 @@ public class FrmUsuarios extends javax.swing.JInternalFrame {
     private List<Usuario> usuarios = new ArrayList<>();
     private int idUsuarioSeleccionado;
     private boolean nuevo;
+    private Estudiante estudianteSeleccionado;
+    private boolean carreraEstudianteEditable;
 
     private boolean tienePermiso() {
         return usuario != null && Perfil.ADMIN.equals(usuario.getPerfil());
@@ -116,13 +120,21 @@ public class FrmUsuarios extends javax.swing.JInternalFrame {
         }
         Usuario seleccionado = usuarios.get(fila);
         idUsuarioSeleccionado = seleccionado.getId();
+        estudianteSeleccionado = null;
+carreraEstudianteEditable = false;
+if (Perfil.ESTUDIANTE.equals(seleccionado.getPerfil())) {
+    estudianteSeleccionado = EstudianteDAO.buscarPorUsuarioId(seleccionado.getId());
+    carreraEstudianteEditable = estudianteSeleccionado != null
+            && !EstudianteDAO.tieneMatriculas(estudianteSeleccionado.getId());
+}
         jtxtUsuario.setText(seleccionado.getUsername());
         jtxtNombre.setText(seleccionado.getNombre());
         jpwdClave.setText("");
         jcbxPerfil.setSelectedItem(seleccionado.getPerfil());
         jcbxCarrera.setSelectedIndex(0);
-        if (Perfil.COORDINADOR.equals(seleccionado.getPerfil())
-                && seleccionado.getCarreraId() != null) {
+        if ((Perfil.COORDINADOR.equals(seleccionado.getPerfil())
+        || Perfil.ESTUDIANTE.equals(seleccionado.getPerfil()))
+        && seleccionado.getCarreraId() != null) {
             for (int i = 1; i < jcbxCarrera.getItemCount(); i++) {
                 Carrera carrera = (Carrera) jcbxCarrera.getItemAt(i);
                 if (carrera.getId() == seleccionado.getCarreraId()) {
@@ -145,12 +157,18 @@ public class FrmUsuarios extends javax.swing.JInternalFrame {
     }
 
     private void actualizarCarrera() {
-        boolean coordinador = Perfil.COORDINADOR.equals(jcbxPerfil.getSelectedItem());
-        jcbxCarrera.setEnabled(tienePermiso() && jcbxPerfil.isEnabled() && coordinador);
-        if (!coordinador) {
-            jcbxCarrera.setSelectedIndex(0);
-        }
+    Object perfil = jcbxPerfil.getSelectedItem();
+    boolean coordinador = Perfil.COORDINADOR.equals(perfil);
+    boolean estudiante = Perfil.ESTUDIANTE.equals(perfil)
+            && !nuevo && estudianteSeleccionado != null;
+    boolean editable = coordinador || (estudiante && carreraEstudianteEditable);
+    jcbxCarrera.setEnabled(tienePermiso() && jcbxPerfil.isEnabled() && editable);
+    jcbxCarrera.setToolTipText(estudiante && !carreraEstudianteEditable
+            ? "No se puede cambiar: el estudiante ya está matriculado en alguna materia" : null);
+    if (!coordinador && !estudiante) {
+        jcbxCarrera.setSelectedIndex(0);
     }
+}
 
     private void InformacionInicio() {
         habilitarInformacion(false);
@@ -187,6 +205,8 @@ public class FrmUsuarios extends javax.swing.JInternalFrame {
 
     private void Limpiar() {
         idUsuarioSeleccionado = 0;
+        estudianteSeleccionado = null;
+carreraEstudianteEditable = false;
         jtblUsuarios.clearSelection();
         jtxtUsuario.setText("");
         jpwdClave.setText("");
@@ -245,6 +265,13 @@ public class FrmUsuarios extends javax.swing.JInternalFrame {
             jcbxCarrera.requestFocus();
             return false;
         }
+        if (Perfil.ESTUDIANTE.equals(perfil) && jcbxCarrera.isEnabled()
+        && (jcbxCarrera.getSelectedIndex() <= 0
+        || !(jcbxCarrera.getSelectedItem() instanceof Carrera))) {
+    JOptionPane.showMessageDialog(this, "Seleccione una carrera para el estudiante.");
+    jcbxCarrera.requestFocus();
+    return false;
+}
         return true;
     }
 
@@ -290,6 +317,9 @@ public class FrmUsuarios extends javax.swing.JInternalFrame {
             return;
         }
         Usuario registrado = obtenerDatos();
+        if (modificar && !cambiarCarreraEstudiante()) {
+    return;
+}
         char[] caracteres = jpwdClave.getPassword();
         String clave = new String(caracteres);
         java.util.Arrays.fill(caracteres, '\0');
@@ -309,6 +339,33 @@ public class FrmUsuarios extends javax.swing.JInternalFrame {
         }
     }
 
+    private boolean cambiarCarreraEstudiante() {
+    if (estudianteSeleccionado == null || !carreraEstudianteEditable
+            || !jcbxCarrera.isEnabled()
+            || !Perfil.ESTUDIANTE.equals(jcbxPerfil.getSelectedItem())) {
+        return true;
+    }
+    Carrera nueva = (Carrera) jcbxCarrera.getSelectedItem();
+    if (nueva.getId() == estudianteSeleccionado.getCarreraId()) {
+        return true;
+    }
+    int respuesta = JOptionPane.showConfirmDialog(this,
+            "Se cambiará la carrera a \"" + nueva.getNombre() + "\" y se rehará el récord\n"
+            + "académico del estudiante con las materias de esa carrera.\n¿Desea continuar?",
+            "Cambiar carrera", JOptionPane.YES_NO_OPTION);
+    if (respuesta != JOptionPane.YES_OPTION) {
+        return false;
+    }
+    if (EstudianteDAO.cambiarCarrera(estudianteSeleccionado.getId(), nueva.getId())) {
+        return true;
+    }
+    JOptionPane.showMessageDialog(this,
+            "No se pudo cambiar la carrera. Es posible que el estudiante ya esté matriculado.");
+    cargarUsuarios();
+    Cancelar();
+    return false;
+}
+    
     private void eliminarUsuario() {
         if (!validarSeleccion()) {
             return;
