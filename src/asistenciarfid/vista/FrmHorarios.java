@@ -1,5 +1,6 @@
 package asistenciarfid.vista;
 
+import asistenciarfid.controlador.HorarioControlador;
 import asistenciarfid.modelo.Usuario;
 import asistenciarfid.modelo.Grupo;
 import asistenciarfid.modelo.Horario;
@@ -328,6 +329,11 @@ public class FrmHorarios extends javax.swing.JInternalFrame {
         horario.setHoraFin(horaFinValidada);
         String aula = jtxtAula.getText().trim();
         horario.setAula(aula.isEmpty() ? null : aula);
+        String errorChoque = HorarioControlador.validarChoques(horario);
+        if (errorChoque != null) {
+            JOptionPane.showMessageDialog(this, errorChoque);
+            return;
+        }
         boolean resultado;
         if (modificar) {
             resultado = HorarioDAO.actualizar(horario);
