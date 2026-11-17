@@ -11,12 +11,10 @@ public class Horario {
 
     private int id;
     private int grupoId;
-    private int diaSemana;            // 1 = lunes ... 7 = domingo
+    private int diaSemana;            
     private Time horaInicio;
     private Time horaFin;
     private String aula;
-
-    // Solo para mostrar en tablas
     private String asignaturaNombre;
     private String paralelo;
 
@@ -47,7 +45,6 @@ public class Horario {
     public String getParalelo() { return paralelo; }
     public void setParalelo(String paralelo) { this.paralelo = paralelo; }
 
-    // Nombre del dia para mostrar en tablas
     public String getNombreDia() {
         String[] dias = {"", "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"};
         if (diaSemana < 1 || diaSemana > 7) {

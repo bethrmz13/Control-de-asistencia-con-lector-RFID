@@ -21,18 +21,14 @@ import javax.swing.JTextArea;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableCellRenderer;
 
-/**
- * "Mi horario": muestra, solo en lectura, las clases semanales del periodo activo.
- *  - DOCENTE: las clases de los grupos que dicta.
- *  - ESTUDIANTE: las clases de los grupos en los que está matriculado.
- */
+
 public class FrmMiHorario extends javax.swing.JInternalFrame {
 
     private static final String[] DIAS = {"Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"};
 
     private Usuario usuario;
 
-    // Para que NetBeans pueda abrir el diseño
+    
     public FrmMiHorario() {
         initComponents();
     }
@@ -49,7 +45,7 @@ public class FrmMiHorario extends javax.swing.JInternalFrame {
         cargarHorario();
     }
 
-    // Busca las clases según el perfil y llena las dos tablas
+    
     private void cargarHorario() {
         List<Horario> horarios = new ArrayList<>();
         if (usuario == null) {
@@ -93,7 +89,7 @@ public class FrmMiHorario extends javax.swing.JInternalFrame {
         return t.toString().substring(0, 5);
     }
 
-    // Tabla en lista: una fila por clase, ordenada por día y hora
+    
     private void llenarLista(List<Horario> horarios) {
         String[] titulos = {"Día", "Inicio", "Fin", "Asignatura", "Paralelo", "Aula"};
         DefaultTableModel modelo = new DefaultTableModel(null, titulos);
@@ -104,8 +100,7 @@ public class FrmMiHorario extends javax.swing.JInternalFrame {
         jtblLista.setModel(modelo);
     }
 
-    // Tabla semanal: una fila por franja (inicio-fin) y una columna por día.
-    // Sábado y domingo solo aparecen si hay clases.
+    
     private void llenarSemana(List<Horario> horarios) {
         int ultimoDia = 5;
         for (Horario h : horarios) {
@@ -120,7 +115,7 @@ public class FrmMiHorario extends javax.swing.JInternalFrame {
                 franjas.add(franja);
             }
         }
-        java.util.Collections.sort(franjas);   // "HH:mm - HH:mm" se ordena bien como texto
+        java.util.Collections.sort(franjas);  
 
         String[] titulos = new String[ultimoDia + 1];
         titulos[0] = "Hora";
@@ -153,7 +148,7 @@ public class FrmMiHorario extends javax.swing.JInternalFrame {
         }
     }
 
-    // Muestra varias líneas dentro de una celda
+    
     private static class RenderizadorMultilinea extends JTextArea implements TableCellRenderer {
 
         RenderizadorMultilinea() {

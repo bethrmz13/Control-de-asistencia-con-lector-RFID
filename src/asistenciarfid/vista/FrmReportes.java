@@ -49,11 +49,11 @@ public class FrmReportes extends javax.swing.JInternalFrame {
     }
     
     private Usuario usuario;
-        private List<Grupo> listaGrupos = new ArrayList<>();   // grupos que este usuario puede ver
-    private int[] cadena = {4, 0, 1, 2, 3};                // orden de los filtros: 4 carrera, 0 nivel, 1 asignatura, 2 paralelo, 3 docente
-    private Map<Integer, String> carreraDeAsignatura = new HashMap<>();   // id de asignatura -> nombre de su carrera
-    private boolean cargando = false;                      // true mientras se llenan los combos por codigo
-    private Grupo grupoElegido = null;                     // grupo unico que queda con los filtros (null si todavia no)
+        private List<Grupo> listaGrupos = new ArrayList<>();   
+    private int[] cadena = {4, 0, 1, 2, 3};                
+    private Map<Integer, String> carreraDeAsignatura = new HashMap<>();   
+    private boolean cargando = false;                      
+    private Grupo grupoElegido = null;                     
 
     public FrmReportes(Usuario usuario) {
         initComponents();
@@ -63,12 +63,12 @@ public class FrmReportes extends javax.swing.JInternalFrame {
         cargarGrupos();
         cargarGrupos();
         if (usuario != null && Perfil.DOCENTE.equals(usuario.getPerfil())) {
-            // El docente filtra por carrera, nivel, asignatura y paralelo (solo ve sus grupos)
+           
             jlblDocente.setVisible(false);
             jcbxDocente.setVisible(false);
             cadena = new int[]{4, 0, 1, 2};
         } else if (usuario != null && Perfil.COORDINADOR.equals(usuario.getPerfil())) {
-            // El coordinador solo ve su carrera: no necesita ese filtro
+          
             jlblCarrera.setVisible(false);
             jcbxCarrera.setVisible(false);
             cadena = new int[]{0, 1, 2, 3};
@@ -85,9 +85,9 @@ public class FrmReportes extends javax.swing.JInternalFrame {
 
 
     }
-// DOCENTE: sus grupos. COORDINADOR: los de su carrera. ADMIN: todos.
+
     private void cargarGrupos() {
-        // Nombre de la carrera de cada asignatura (asi no hace falta cambiar el modelo Grupo)
+       
         carreraDeAsignatura.clear();
         Map<Integer, String> carreras = new HashMap<>();
         for (Carrera c : CarreraDAO.listar()) {
@@ -105,9 +105,7 @@ public class FrmReportes extends javax.swing.JInternalFrame {
         }
     }
 
-    // ---- Filtros en cadena ----
-    // Cada filtro tiene un numero: 0 = nivel, 1 = asignatura, 2 = paralelo, 3 = docente, 4 = carrera
-
+    
     private JComboBox<String> comboDe(int campo) {
         if (campo == 4) {
             return jcbxCarrera;
@@ -191,7 +189,7 @@ public class FrmReportes extends javax.swing.JInternalFrame {
         return lista;
     }
 
-    // Vuelve a llenar los combos desde la posicion "desde"; cada uno solo se habilita si el anterior tiene algo elegido
+   
     private void reconstruir(int desde) {
         cargando = true;
         for (int pos = desde; pos < cadena.length; pos++) {
@@ -218,9 +216,7 @@ public class FrmReportes extends javax.swing.JInternalFrame {
         actualizarGrupo();
     }
 
-    // ---- Grupo elegido, horario y fechas ----
-
-    // El grupo queda definido cuando ya se eligieron asignatura y paralelo y solo coincide uno
+    
     private void actualizarGrupo() {
         grupoElegido = null;
         jlblHorario.setText(" ");
@@ -240,7 +236,7 @@ public class FrmReportes extends javax.swing.JInternalFrame {
         cargarFechas();
     }
 
-    // Muestra el horario del grupo y llena el combo de fechas con los dias en que hubo clase
+    
     private void cargarFechas() {
         DefaultComboBoxModel<String> modelo = new DefaultComboBoxModel<>();
         modelo.addElement("Seleccione");
@@ -271,7 +267,7 @@ public class FrmReportes extends javax.swing.JInternalFrame {
         jcbxFecha.setEnabled(grupoElegido != null && jrbtnAsistencia.isSelected());
     }
 
-    // Fechas (yyyy-MM-dd) en las que ese grupo TIENE asistencias registradas. La mas reciente primero.
+    
     private List<String> fechasConAsistencia(int grupoId) {
         List<String> fechas = new ArrayList<>();
         Connection cc = new Conexion().conectar();
@@ -314,11 +310,7 @@ public class FrmReportes extends javax.swing.JInternalFrame {
         return true;
     }
 
-    // ---- Reportes (Jasper, como en clase) ----
-
-    // Compila el .jrxml hecho en el Report Wizard, le pasa los parametros y lo llena con la conexion.
-    // El nivel, la asignatura, el paralelo y el docente salen del SQL del reporte; solo se pasan
-    // P_GRUPO_ID (los dos reportes) y P_FECHA (solo asistencia_clase).
+    
     private JasperPrint armarReporte() {
         JasperPrint imprimir = null;
         Connection cc = new Conexion().conectar();
@@ -341,7 +333,7 @@ public class FrmReportes extends javax.swing.JInternalFrame {
             try {
                 cc.close();
             } catch (Exception ex) {
-                // la conexion ya estaba cerrada
+                
             }
         }
         return imprimir;
@@ -353,11 +345,11 @@ public class FrmReportes extends javax.swing.JInternalFrame {
         }
         JasperPrint imprimir = armarReporte();
         if (imprimir != null) {
-            JasperViewer.viewReport(imprimir, false);   // false: al cerrar el visor no se cierra todo el programa
+            JasperViewer.viewReport(imprimir, false);   
         }
     }
 
-    // Guarda el reporte en un PDF que el usuario elige
+
     private void guardarPdf() {
         if (!validarCampos()) {
             return;

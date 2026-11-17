@@ -13,7 +13,6 @@ import javax.swing.JOptionPane;
 
 public class AsistenciaDAO {
 
-    // true si el estudiante ya tiene asistencia en ese horario y fecha
     public static boolean existe(int estudianteId, int horarioId, Date fecha) {
         boolean existe = false;
         Conexion cn = new Conexion();
@@ -57,9 +56,7 @@ public class AsistenciaDAO {
             ok = ps.executeUpdate() > 0;
             cc.close();
         } catch (java.sql.SQLIntegrityConstraintViolationException ex) {
-            // Error 1062 = ya existe esa asistencia (otro puesto la guardó justo antes). No es un error
-            // para el usuario: devuelve false y el controlador vuelve a revisar con existe().
-            // Cualquier otro error de integridad (por ejemplo una clave foránea) sí se muestra.
+
             ok = false;
             if (ex.getErrorCode() != 1062) {
                 JOptionPane.showMessageDialog(null, ex);
@@ -70,7 +67,6 @@ public class AsistenciaDAO {
         return ok;
     }
 
-    // Asistencias de un horario en una fecha, con el nombre del estudiante ("Apellido Nombre")
     public static List<Asistencia> listarPorHorarioYFecha(int horarioId, Date fecha) {
         List<Asistencia> lista = new ArrayList<>();
         Conexion cn = new Conexion();
@@ -105,7 +101,7 @@ public class AsistenciaDAO {
         return lista;
     }
 
-    // Asistencias del estudiante en los horarios de ese grupo, entre dos fechas
+
     public static int contarPresentes(int estudianteId, int grupoId, Date desde, Date hasta) {
         int total = 0;
         Conexion cn = new Conexion();

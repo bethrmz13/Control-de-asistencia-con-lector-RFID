@@ -12,7 +12,6 @@ import javax.swing.JOptionPane;
 
 public class AsignaturaDAO {
 
-    // carreraId null = todas las carreras
     public static List<Asignatura> listar(Integer carreraId) {
         List<Asignatura> lista = new ArrayList<>();
         Conexion cn = new Conexion();

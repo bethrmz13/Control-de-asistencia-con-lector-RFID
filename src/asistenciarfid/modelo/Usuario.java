@@ -14,8 +14,8 @@ public class Usuario {
     private int id;
     private String username;
     private String nombre;
-    private String perfil;        // una constante de la clase Perfil (ADMIN, DOCENTE...)
-    private Integer carreraId;    // solo se usa si el perfil es COORDINADOR (si no, null)
+    private String perfil;       
+    private Integer carreraId;    
     private boolean activo;
 
     public Usuario() {

@@ -13,7 +13,7 @@ import javax.swing.JOptionPane;
 
 public class RegistroAcademicoDAO {
 
-    // Convierte la fila actual del ResultSet en un RegistroAcademico
+
     private static RegistroAcademico armarRegistro(ResultSet rs) throws SQLException {
         RegistroAcademico r = new RegistroAcademico();
         r.setEstudianteId(rs.getInt("estudiante_id"));
@@ -24,7 +24,7 @@ public class RegistroAcademicoDAO {
         return r;
     }
 
-    // Cierra la conexión sin que un error al cerrar tumbe el programa
+
     private static void cerrar(Connection cc) {
         try {
             if (cc != null) {
@@ -35,7 +35,7 @@ public class RegistroAcademicoDAO {
         }
     }
 
-    // Materias del estudiante (su récord académico), ordenadas por nivel
+
     public static List<RegistroAcademico> listarPorEstudiante(int estudianteId) {
         List<RegistroAcademico> lista = new ArrayList<>();
         Connection cc = new Conexion().conectar();
@@ -95,7 +95,7 @@ public class RegistroAcademicoDAO {
         return lista;
     }
 
-    // null si no existe la fila
+ 
     public static String estadoDe(int estudianteId, int asignaturaId) {
         String estado = null;
         Connection cc = new Conexion().conectar();

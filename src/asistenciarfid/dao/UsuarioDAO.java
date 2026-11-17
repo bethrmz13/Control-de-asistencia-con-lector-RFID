@@ -12,7 +12,7 @@ import javax.swing.JOptionPane;
 
 public class UsuarioDAO {
 
-    // Convierte la fila actual del ResultSet en un Usuario (sin la clave)
+    
     private static Usuario armarUsuario(ResultSet rs) throws SQLException {
         Usuario u = new Usuario();
         u.setId(rs.getInt("id"));
@@ -29,7 +29,7 @@ public class UsuarioDAO {
         return u;
     }
 
-    // Devuelve el usuario (sin clave) o null si el usuario o la clave son incorrectos
+    
     public static Usuario validar(String username, String passwordPlano) {
         Usuario u = null;
         Connection cc = new Conexion().conectar();
@@ -59,9 +59,7 @@ public class UsuarioDAO {
             return lista;
         }
         try {
-            // La carrera de un ESTUDIANTE no está en usuario.carrera_id (solo se usa para
-            // COORDINADOR) sino en estudiante.carrera_id, por eso se une con esa tabla.
-            // El alias carrera_id permite reutilizar armarUsuario sin cambios.
+            
             String sql = "SELECT u.id, u.username, u.nombre, u.perfil, u.activo, "
                     + "CASE WHEN u.perfil = 'ESTUDIANTE' THEN e.carrera_id ELSE u.carrera_id END AS carrera_id "
                     + "FROM usuario u LEFT JOIN estudiante e ON e.usuario_id = u.id "
@@ -78,7 +76,7 @@ public class UsuarioDAO {
         return lista;
     }
 
-    // Ej. todos los DOCENTE
+    
     public static List<Usuario> listarPorPerfil(String perfil) {
         List<Usuario> lista = new ArrayList<>();
         Connection cc = new Conexion().conectar();
@@ -128,7 +126,7 @@ public class UsuarioDAO {
         return ok;
     }
 
-    // Si passwordPlano es null o vacío, no cambia la clave
+    
     public static boolean actualizar(Usuario u, String passwordPlano) {
         boolean ok = false;
         Connection cc = new Conexion().conectar();

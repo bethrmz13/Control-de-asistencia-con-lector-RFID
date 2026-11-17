@@ -12,7 +12,6 @@ import javax.swing.JOptionPane;
 
 public class PeriodoDAO {
 
-    // null si no hay periodo activo
     public static Periodo obtenerActivo() {
         Periodo periodo = null;
         Conexion cn = new Conexion();
@@ -143,7 +142,6 @@ public class PeriodoDAO {
         return ok;
     }
 
-    // Deja solo este periodo con activo = 1 y los demás con 0
     public static boolean activar(int id) {
         boolean ok = false;
         Conexion cn = new Conexion();
@@ -162,7 +160,6 @@ public class PeriodoDAO {
                 return false;
             }
 
-            // Se comprueba la existencia antes de desactivar los periodos.
             ps = cc.prepareStatement("UPDATE periodo SET activo = 0");
             ps.executeUpdate();
             ps.close();

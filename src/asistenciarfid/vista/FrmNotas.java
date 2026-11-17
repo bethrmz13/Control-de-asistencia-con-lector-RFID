@@ -40,11 +40,11 @@ public class FrmNotas extends javax.swing.JInternalFrame {
     }
     
     private Usuario usuario;
-    private List<Grupo> listaGrupos = new ArrayList<>();          // todos los grupos que este usuario puede ver
-    private List<Matricula> listaMatriculas = new ArrayList<>();  // paralela a las filas de la tabla
-    private boolean cargando = false;                             // true mientras se llenan los combos por codigo (ignora sus eventos)
-    private int[] cadena = {4, 0, 1, 2, 3};                // 4 carrera, 0 nivel, 1 asignatura, 2 paralelo, 3 docente
-    private Map<Integer, String> carreraDeAsignatura = new HashMap<>();   // id de asignatura -> nombre de su carrera
+    private List<Grupo> listaGrupos = new ArrayList<>();          
+    private List<Matricula> listaMatriculas = new ArrayList<>();  
+    private boolean cargando = false;                             
+    private int[] cadena = {4, 0, 1, 2, 3};                
+    private Map<Integer, String> carreraDeAsignatura = new HashMap<>();   
 
 
     public FrmNotas(Usuario usuario) {
@@ -52,6 +52,11 @@ public class FrmNotas extends javax.swing.JInternalFrame {
         this.usuario = usuario;
         setClosable(true);
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
+        if (!tienePermiso()) {
+            JOptionPane.showMessageDialog(this, "Solo ADMIN o DOCENTE pueden registrar notas.");
+            jbtnGuardar.setEnabled(false);
+            return;
+        }
         cargarGrupos();
         if (usuario != null && Perfil.DOCENTE.equals(usuario.getPerfil())) {
             jlblDocente.setVisible(false);
@@ -72,7 +77,7 @@ public class FrmNotas extends javax.swing.JInternalFrame {
 
     }
 
-    // DOCENTE: solo sus grupos. COORDINADOR: los de su carrera. ADMIN: todos.
+    
     private void cargarGrupos() {
          carreraDeAsignatura.clear();
         Map<Integer, String> carreras = new HashMap<>();
@@ -91,10 +96,14 @@ public class FrmNotas extends javax.swing.JInternalFrame {
             listaGrupos = GrupoDAO.listar(null, null);
         }
     }
+    
+        
+    private boolean tienePermiso() {
+        return usuario != null && (Perfil.ADMIN.equals(usuario.getPerfil())
+                || Perfil.DOCENTE.equals(usuario.getPerfil()));
+    }
 
-    // ---- Filtros en cadena ----
-    // Cada filtro tiene un numero: 0 = nivel, 1 = asignatura, 2 = paralelo, 3 = docente
-    // "cadena" dice en que orden se usan (el docente solo usa 1 y 2)
+    
 
     private JComboBox<String> comboDe(int campo) {
         if (campo == 4) {
@@ -112,7 +121,7 @@ public class FrmNotas extends javax.swing.JInternalFrame {
         return jcbxDocente;
     }
 
-    // En que posicion de la cadena esta un filtro
+    
     private int posicionDe(int campo) {
         for (int i = 0; i < cadena.length; i++) {
             if (cadena[i] == campo) {
@@ -122,7 +131,7 @@ public class FrmNotas extends javax.swing.JInternalFrame {
         return -1;
     }
 
-    // El texto que tiene un grupo para ese filtro
+    
     private String textoCampo(Grupo g, int campo) {
         if (campo == 4) {
             String carrera = carreraDeAsignatura.get(g.getAsignaturaId());
@@ -147,7 +156,7 @@ public class FrmNotas extends javax.swing.JInternalFrame {
         return docente;
     }
 
-    // Lo que esta elegido en un filtro; null si esta en "Seleccione"
+    
     private String elegido(int campo) {
         JComboBox<String> combo = comboDe(campo);
         if (combo.getSelectedIndex() <= 0) {
@@ -156,7 +165,7 @@ public class FrmNotas extends javax.swing.JInternalFrame {
         return String.valueOf(combo.getSelectedItem());
     }
 
-    // Un grupo coincide si cumple los filtros elegidos de las primeras "hasta" posiciones de la cadena
+   
     private boolean coincide(Grupo g, int hasta) {
         for (int pos = 0; pos < hasta; pos++) {
             String valor = elegido(cadena[pos]);
@@ -167,7 +176,7 @@ public class FrmNotas extends javax.swing.JInternalFrame {
         return true;
     }
 
-    // Opciones de la posicion "pos": solo lo que existe con lo elegido ANTES en la cadena
+   
     private List<String> opciones(int pos) {
         List<String> lista = new ArrayList<>();
         for (Grupo g : listaGrupos) {
@@ -179,13 +188,12 @@ public class FrmNotas extends javax.swing.JInternalFrame {
             }
         }
         if (cadena[pos] >= 2) {
-            Collections.sort(lista);   // paralelos y docentes en orden alfabetico
+            Collections.sort(lista);   
         }
         return lista;
     }
 
-    // Vuelve a llenar los combos desde la posicion "desde" en adelante.
-    // Un combo queda habilitado solo si el anterior ya tiene algo elegido.
+    
     private void reconstruir(int desde) {
         cargando = true;
         for (int pos = desde; pos < cadena.length; pos++) {
@@ -204,17 +212,16 @@ public class FrmNotas extends javax.swing.JInternalFrame {
         cargando = false;
     }
 
-    // Lo llaman los 4 combos cuando el usuario elige algo
+    
     private void filtroCambio(int campo) {
         if (cargando) {
             return;
         }
-        reconstruir(posicionDe(campo) + 1);   // se reinician los pasos siguientes
+        reconstruir(posicionDe(campo) + 1);   
         cargarTabla();
     }
 
-    // ---- Tabla ----
-    // Muestra los estudiantes de los grupos que cumplen lo elegido. Solo la columna Nota se edita.
+    
     private void cargarTabla() {
         String titulos[] = {"Estudiante", "Asignatura", "Paralelo", "Nota"};
         DefaultTableModel modelo = new DefaultTableModel(null, titulos) {
@@ -224,7 +231,7 @@ public class FrmNotas extends javax.swing.JInternalFrame {
             }
         };
         listaMatriculas = new ArrayList<>();
-        // Hasta elegir el primer filtro no se muestra nada
+        
         if (elegido(cadena[0]) != null) {
             for (Grupo g : listaGrupos) {
                 if (coincide(g, cadena.length)) {
@@ -244,7 +251,11 @@ public class FrmNotas extends javax.swing.JInternalFrame {
     }
 
     private void guardarNotas() {
-        // Si el usuario todavia esta escribiendo en una celda, se termina la edicion
+        if (!tienePermiso()) {
+            JOptionPane.showMessageDialog(this, "Su perfil no permite registrar notas.");
+            return;
+        }
+       
         if (jtblNotas.isEditing()) {
             jtblNotas.getCellEditor().stopCellEditing();
         }
@@ -253,7 +264,7 @@ public class FrmNotas extends javax.swing.JInternalFrame {
             return;
         }
 
-        // 1) Primero se validan TODAS las notas (vacia, o numero entre 0 y 10)
+      
         Double[] notas = new Double[listaMatriculas.size()];
         for (int i = 0; i < listaMatriculas.size(); i++) {
             Object valor = jtblNotas.getValueAt(i, 3);
@@ -282,15 +293,41 @@ public class FrmNotas extends javax.swing.JInternalFrame {
             }
         }
 
-        // 2) Si todo esta bien, se guarda fila por fila
+     
         int guardadas = 0;
+        int falla = -1;
         for (int i = 0; i < listaMatriculas.size(); i++) {
             Matricula m = listaMatriculas.get(i);
-            if (MatriculaDAO.actualizarNota(m.getEstudianteId(), m.getGrupoId(), notas[i])) {
-                guardadas++;
+            if (!MatriculaDAO.actualizarNota(m.getEstudianteId(), m.getGrupoId(), notas[i])) {
+                falla = i;
+                break;
             }
+            guardadas++;
         }
-        JOptionPane.showMessageDialog(this, "Se guardaron " + guardadas + " de " + listaMatriculas.size() + " notas");
+
+        if (falla != -1) {
+         
+            int noDevueltas = 0;
+            for (int i = guardadas - 1; i >= 0; i--) {
+                Matricula m = listaMatriculas.get(i);
+                if (!MatriculaDAO.actualizarNota(m.getEstudianteId(), m.getGrupoId(), m.getNota())) {
+                    noDevueltas++;
+                }
+            }
+            String quien = jtblNotas.getValueAt(falla, 0) + " (" + jtblNotas.getValueAt(falla, 1)
+                    + " " + jtblNotas.getValueAt(falla, 2) + ")";
+            String mensaje = "No se pudo guardar la nota de " + quien + ".";
+            if (noDevueltas == 0) {
+                mensaje += "\nSe devolvieron las notas ya guardadas, no se cambió ninguna. Intente de nuevo.";
+            } else {
+                mensaje += "\nNo se pudieron devolver " + noDevueltas
+                        + " notas. Revise la tabla antes de volver a guardar.";
+            }
+            JOptionPane.showMessageDialog(this, mensaje);
+            cargarTabla();
+            return;
+        }
+        JOptionPane.showMessageDialog(this, "Se guardaron las " + guardadas + " notas");
         cargarTabla();
     }
 

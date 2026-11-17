@@ -46,7 +46,7 @@ public class FrmMatricula extends javax.swing.JInternalFrame {
         cargarDatos();
     }
 
-    // Busca al estudiante, revisa si la matrícula está abierta y llena todo
+    
     private void cargarDatos() {
         estudiante = EstudianteDAO.buscarPorUsuarioId(usuario.getId());
         if (estudiante == null) {
@@ -75,13 +75,13 @@ public class FrmMatricula extends javax.swing.JInternalFrame {
         actualizarContador();
     }
 
-    // Los botones solo funcionan con la matrícula abierta
+
     private void actualizarBotones() {
         jbtnMatricular.setEnabled(abierta);
         jbtnAnular.setEnabled(abierta);
     }
 
-    // Tabla 1: grupos que el estudiante puede escoger ahora (lo decide MatriculaControlador)
+    
     private void cargarDisponibles() {
         if (estudiante == null) {
             return;
@@ -100,7 +100,7 @@ public class FrmMatricula extends javax.swing.JInternalFrame {
         jtblDisponibles.setModel(modelo);
     }
 
-    // Tabla 2: las materias que ya tiene matriculadas en el periodo activo
+    
     private void cargarMatriculadas() {
         if (estudiante == null) {
             return;
@@ -120,7 +120,7 @@ public class FrmMatricula extends javax.swing.JInternalFrame {
         jtblMatriculadas.setModel(modelo);
     }
 
-    // "Matriculadas: X de 5" y la barra de progreso
+    
     private void actualizarContador() {
         if (estudiante == null) {
             return;
@@ -135,7 +135,7 @@ public class FrmMatricula extends javax.swing.JInternalFrame {
         JOptionPane.showMessageDialog(this, texto);
     }
 
-    // Matricula en el grupo elegido. La regla la revisa el controlador, esta ventana solo muestra el resultado
+    
     private void accionMatricular() {
         int fila = jtblDisponibles.getSelectedRow();
         if (fila < 0) {

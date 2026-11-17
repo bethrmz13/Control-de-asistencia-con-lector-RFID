@@ -33,13 +33,13 @@ public class VentanaPrincipal extends javax.swing.JFrame {
         setExtendedState(javax.swing.JFrame.MAXIMIZED_BOTH);
         configurarMenuSegunPerfil();
         agregarMenuMiHorario();
+        agregarMenuInscritos();
         if (usuario.getPerfil().equals(Perfil.REGISTRO)) {
             iniciarModoRegistro();
         } 
     }
     
-    // Modo puesto de lectura: sin menú y con la pantalla de registro fija, para que quien pase la
-    // tarjeta no pueda entrar a nada más del sistema
+
     private void iniciarModoRegistro() {
         getJMenuBar().setVisible(false);
 
@@ -48,7 +48,7 @@ public class VentanaPrincipal extends javax.swing.JFrame {
         jdskPrincipal.add(ventana);
         ventana.setVisible(true);
 
-        // Se maximiza cuando la ventana principal ya se mostró; si no, queda con tamaño cero
+       
         javax.swing.SwingUtilities.invokeLater(() -> {
             try {
                 ventana.setMaximum(true);
@@ -58,11 +58,11 @@ public class VentanaPrincipal extends javax.swing.JFrame {
         });
     }
     
-    // Muestra solo las opciones que le corresponden a cada perfil
+
     public void configurarMenuSegunPerfil() {
         String perfil = usuario.getPerfil();
 
-        // 1. Se oculta todo
+
         jmnuAdministracion.setVisible(false);
         jmnuAsistencia.setVisible(false);
         jmnuMatricula.setVisible(false);
@@ -77,7 +77,7 @@ public class VentanaPrincipal extends javax.swing.JFrame {
         jmniReportes.setVisible(false);
                 jmniConsulta.setVisible(false);
 
-        // 2. Se muestra lo que corresponde
+ 
         if (perfil.equals(Perfil.ADMIN)) {
             jmnuAdministracion.setVisible(true);
             jmnuAsistencia.setVisible(true);
@@ -111,8 +111,7 @@ public class VentanaPrincipal extends javax.swing.JFrame {
         }
     }
 
-    // "Mi horario": solo lectura, para el docente (en su menú Asistencia) y el estudiante (en su
-    // menú Matrícula). Se agrega por código para no tocar el bloque generado por NetBeans.
+
     private void agregarMenuMiHorario() {
         javax.swing.JMenu menu = null;
         if (usuario.getPerfil().equals(Perfil.DOCENTE)) {
@@ -124,11 +123,31 @@ public class VentanaPrincipal extends javax.swing.JFrame {
             return;
         }
         javax.swing.JMenuItem jmniMiHorario = new javax.swing.JMenuItem("Mi horario");
-        jmniMiHorario.addActionListener(e -> abrirVentana(new FrmMiHorario(usuario)));
+        jmniMiHorario.addActionListener(e -> {
+            if (puedeAbrir("MI_HORARIO")) {
+                abrirVentana(new FrmMiHorario(usuario));
+            }
+        });
         menu.add(jmniMiHorario);
     }
+    
+        
+    private void agregarMenuInscritos() {
+        String perfil = usuario.getPerfil();
+        if (!perfil.equals(Perfil.ADMIN) && !perfil.equals(Perfil.COORDINADOR)
+                && !perfil.equals(Perfil.DOCENTE)) {
+            return;
+        }
+        javax.swing.JMenuItem jmniInscritos = new javax.swing.JMenuItem("Inscritos");
+        jmniInscritos.addActionListener(e -> {
+            if (puedeAbrir("INSCRITOS")) {
+                abrirVentana(new FrmInscritos(usuario));
+            }
+        });
+        jmnuAsistencia.add(jmniInscritos);
+    }
 
-    // Abre una ventana interna en el escritorio. Si ya hay una de la misma clase, la trae al frente.
+   
     public void abrirVentana(JInternalFrame ventana) {
         for (JInternalFrame f : jdskPrincipal.getAllFrames()) {
             if (f.getClass() == ventana.getClass() && !f.isClosed()) {
@@ -144,6 +163,44 @@ public class VentanaPrincipal extends javax.swing.JFrame {
         jdskPrincipal.add(ventana);
         ventana.setVisible(true);
     }
+    
+       
+    private boolean tienePermiso(String ventana) {
+        if (usuario == null) {
+            return false;
+        }
+        String perfil = usuario.getPerfil();
+        String[] permitidas = {};
+        if (perfil.equals(Perfil.ADMIN)) {
+            permitidas = new String[]{"USUARIOS", "ESTUDIANTES", "PERIODOS", "ASIGNATURAS",
+                "GRUPOS", "HORARIOS", "REGISTRO", "NOTAS", "REPORTES", "INSCRITOS"};
+        } else if (perfil.equals(Perfil.COORDINADOR)) {
+            permitidas = new String[]{"ESTUDIANTES", "ASIGNATURAS", "GRUPOS", "HORARIOS", "REPORTES", "INSCRITOS"};
+        } else if (perfil.equals(Perfil.DOCENTE)) {
+            permitidas = new String[]{"NOTAS", "REPORTES", "MI_HORARIO", "INSCRITOS"};
+        } else if (perfil.equals(Perfil.REGISTRO)) {
+            permitidas = new String[]{"REGISTRO"};
+        } else if (perfil.equals(Perfil.ESTUDIANTE)) {
+            permitidas = new String[]{"MATRICULA", "CONSULTA", "MI_HORARIO"};
+        }
+        for (String p : permitidas) {
+            if (p.equals(ventana)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    
+    private boolean puedeAbrir(String ventana) {
+        if (tienePermiso(ventana)) {
+            return true;
+        }
+        JOptionPane.showMessageDialog(this, "Su perfil no tiene permiso para abrir esta ventana.");
+        return false;
+    }
+    
+    
 
     /**
      * This method is called from within the constructor to initialize the form.
@@ -272,7 +329,9 @@ public class VentanaPrincipal extends javax.swing.JFrame {
     }// </editor-fold>//GEN-END:initComponents
 
     private void jmniMatriculaActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jmniMatriculaActionPerformed
-        abrirVentana(new FrmMatricula(usuario));
+        if (puedeAbrir("MATRICULA")) {
+            abrirVentana(new FrmMatricula(usuario));
+        }
     }//GEN-LAST:event_jmniMatriculaActionPerformed
 
     private void jmniCerrarSesionActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jmniCerrarSesionActionPerformed
@@ -288,43 +347,63 @@ public class VentanaPrincipal extends javax.swing.JFrame {
     }//GEN-LAST:event_jmniSalirActionPerformed
 
     private void jmniUsuariosActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jmniUsuariosActionPerformed
-        abrirVentana(new FrmUsuarios(usuario));
+        if (puedeAbrir("USUARIOS")) {
+            abrirVentana(new FrmUsuarios(usuario));
+        }
     }//GEN-LAST:event_jmniUsuariosActionPerformed
 
     private void jmniEstudiantesActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jmniEstudiantesActionPerformed
-        abrirVentana(new FrmEstudiantes(usuario));
+        if (puedeAbrir("ESTUDIANTES")) {
+            abrirVentana(new FrmEstudiantes(usuario));
+        }
     }//GEN-LAST:event_jmniEstudiantesActionPerformed
 
     private void jmniPeriodosActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jmniPeriodosActionPerformed
-        abrirVentana(new FrmPeriodos(usuario));
+        if (puedeAbrir("PERIODOS")) {
+            abrirVentana(new FrmPeriodos(usuario));
+        }
     }//GEN-LAST:event_jmniPeriodosActionPerformed
 
     private void jmniAsignaturasActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jmniAsignaturasActionPerformed
-        abrirVentana(new FrmAsignaturas(usuario));
+        if (puedeAbrir("ASIGNATURAS")) {
+            abrirVentana(new FrmAsignaturas(usuario));
+        }
     }//GEN-LAST:event_jmniAsignaturasActionPerformed
 
     private void jmniGruposActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jmniGruposActionPerformed
-        abrirVentana(new FrmGrupos(usuario));
+        if (puedeAbrir("GRUPOS")) {
+            abrirVentana(new FrmGrupos(usuario));
+        }
     }//GEN-LAST:event_jmniGruposActionPerformed
 
     private void jmniHorariosActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jmniHorariosActionPerformed
-        abrirVentana(new FrmHorarios(usuario));
+        if (puedeAbrir("HORARIOS")) {
+            abrirVentana(new FrmHorarios(usuario));
+        }
     }//GEN-LAST:event_jmniHorariosActionPerformed
 
     private void jmniRegistroActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jmniRegistroActionPerformed
-        abrirVentana(new FrmRegistro(usuario));
+        if (puedeAbrir("REGISTRO")) {
+            abrirVentana(new FrmRegistro(usuario));
+        }
     }//GEN-LAST:event_jmniRegistroActionPerformed
 
     private void jmniNotasActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jmniNotasActionPerformed
-        abrirVentana(new FrmNotas(usuario));
+        if (puedeAbrir("NOTAS")) {
+            abrirVentana(new FrmNotas(usuario));
+        }
     }//GEN-LAST:event_jmniNotasActionPerformed
 
     private void jmniReportesActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jmniReportesActionPerformed
-        abrirVentana(new FrmReportes(usuario));
+        if (puedeAbrir("REPORTES")) {
+            abrirVentana(new FrmReportes(usuario));
+        }
     }//GEN-LAST:event_jmniReportesActionPerformed
 
     private void jmniConsultaActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jmniConsultaActionPerformed
-        abrirVentana(new FrmConsultaEstudiante(usuario));
+        if (puedeAbrir("CONSULTA")) {
+            abrirVentana(new FrmConsultaEstudiante(usuario));
+        }
     }//GEN-LAST:event_jmniConsultaActionPerformed
 
     /**

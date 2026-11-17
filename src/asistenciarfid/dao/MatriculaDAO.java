@@ -12,8 +12,6 @@ import javax.swing.JOptionPane;
 
 public class MatriculaDAO {
 
-    // Consulta base: cada matrícula trae el estudiante ("Apellido Nombre"), la asignatura,
-    // el paralelo y la nota (null si está vacía)
     private static final String SELECT_BASE
             = "SELECT m.estudiante_id, m.grupo_id, m.nota, "
             + "CONCAT(e.apellido, ' ', e.nombre) AS estudiante, "
@@ -24,7 +22,6 @@ public class MatriculaDAO {
             + "JOIN asignatura a ON a.id = g.asignatura_id "
             + "JOIN periodo p ON p.id = g.periodo_id ";
 
-    // Arma una Matricula con la fila actual del ResultSet
     private static Matricula armarMatricula(ResultSet rs) throws Exception {
         Matricula m = new Matricula();
         m.setEstudianteId(rs.getInt("estudiante_id"));
@@ -81,7 +78,7 @@ public class MatriculaDAO {
         return ok;
     }
 
-    // Del periodo activo
+  
     public static List<Matricula> listarPorEstudiante(int estudianteId) {
         List<Matricula> lista = new ArrayList<>();
         Conexion cn = new Conexion();
@@ -104,7 +101,7 @@ public class MatriculaDAO {
         return lista;
     }
 
-    // Con el nombre del estudiante y su nota
+
     public static List<Matricula> listarPorGrupo(int grupoId) {
         List<Matricula> lista = new ArrayList<>();
         Conexion cn = new Conexion();
@@ -152,7 +149,7 @@ public class MatriculaDAO {
         return total;
     }
 
-    // true si ya está matriculado en algún paralelo de esa asignatura (periodo activo)
+
     public static boolean existeEnAsignatura(int estudianteId, int asignaturaId) {
         boolean existe = false;
         Conexion cn = new Conexion();
@@ -179,7 +176,7 @@ public class MatriculaDAO {
         return existe;
     }
 
-    // nota null = borrar la nota
+ 
     public static boolean actualizarNota(int estudianteId, int grupoId, Double nota) {
         boolean ok = false;
         Conexion cn = new Conexion();
@@ -197,7 +194,7 @@ public class MatriculaDAO {
             }
             ps.setInt(2, estudianteId);
             ps.setInt(3, grupoId);
-            // MySQL cuenta las filas encontradas (aunque la nota sea igual): 0 = esa matrícula no existe
+            
             ok = ps.executeUpdate() > 0;
             cc.close();
         } catch (Exception ex) {
@@ -206,7 +203,6 @@ public class MatriculaDAO {
         return ok;
     }
 
-    // Matrículas del periodo activo que todavía no tienen nota
     public static List<Matricula> listarSinNota() {
         List<Matricula> lista = new ArrayList<>();
         Conexion cn = new Conexion();
