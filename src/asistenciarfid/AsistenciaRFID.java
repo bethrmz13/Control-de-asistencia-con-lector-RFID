@@ -3,6 +3,7 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Main.java to edit this template
  */
 package asistenciarfid;
+import asistenciarfid.util.RelojSeguro;
 import asistenciarfid.vista.VentanaLogin;
 
 /**
@@ -17,6 +18,7 @@ public class AsistenciaRFID {
     public static void main(String[] args) {
         VentanaLogin v1=new VentanaLogin();
         v1.setVisible(true);
+        RelojSeguro.iniciar();
     }
     
 }

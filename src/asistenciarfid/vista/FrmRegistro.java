@@ -16,6 +16,7 @@ import javax.swing.JOptionPane;
 import asistenciarfid.dao.CarreraDAO;
 import asistenciarfid.modelo.Carrera;
 import asistenciarfid.modelo.Estudiante;
+import asistenciarfid.util.RelojSeguro;
 
 
 /**
@@ -57,7 +58,7 @@ public class FrmRegistro extends javax.swing.JInternalFrame {
             return;
         }
 
-        Date ahora = new Date();
+        Date ahora = RelojSeguro.ahora();
         if (jchkSimular.isSelected()) {
             try {
                 SimpleDateFormat formato = new SimpleDateFormat("yyyy-MM-dd HH:mm");
