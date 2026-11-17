@@ -13,6 +13,10 @@ import java.awt.Color;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import javax.swing.JOptionPane;
+import asistenciarfid.dao.CarreraDAO;
+import asistenciarfid.modelo.Carrera;
+import asistenciarfid.modelo.Estudiante;
+import asistenciarfid.util.RelojSeguro;
 
 
 /**
@@ -54,7 +58,7 @@ public class FrmRegistro extends javax.swing.JInternalFrame {
             return;
         }
 
-        Date ahora = new Date();
+        Date ahora = RelojSeguro.ahora();
         if (jchkSimular.isSelected()) {
             try {
                 SimpleDateFormat formato = new SimpleDateFormat("yyyy-MM-dd HH:mm");
@@ -79,8 +83,10 @@ public class FrmRegistro extends javax.swing.JInternalFrame {
 
         if (res.getEstudiante() != null) {
             jlblNombre.setText(res.getEstudiante().getNombre() + " " + res.getEstudiante().getApellido());
+            jlblCarrera.setText(textoCarreraYNivel(res.getEstudiante()));
         } else {
             jlblNombre.setText("");
+            jlblCarrera.setText("");
         }
 
         if (res.getHorario() != null) {
@@ -105,8 +111,19 @@ public class FrmRegistro extends javax.swing.JInternalFrame {
     private void limpiarResultado() {
         jlblNombre.setText("");
         jlblDetalle.setText("");
+        jlblCarrera.setText("");
         jlblEstado.setText("");
         jpnlResultado.setBackground(Color.WHITE);
+    }
+    
+    
+    private String textoCarreraYNivel(Estudiante est) {
+        String carrera = "";
+        Carrera c = CarreraDAO.buscarPorId(est.getCarreraId());
+        if (c != null) {
+            carrera = c.getNombre();
+        }
+        return carrera + " - Nivel " + est.getNivel();
     }
 
     /**
@@ -124,6 +141,7 @@ public class FrmRegistro extends javax.swing.JInternalFrame {
         jlblNombre = new javax.swing.JLabel();
         jlblDetalle = new javax.swing.JLabel();
         jlblEstado = new javax.swing.JLabel();
+        jlblCarrera = new javax.swing.JLabel();
         jchkSimular = new javax.swing.JCheckBox();
         jtxtFechaSimulada = new javax.swing.JTextField();
 
@@ -153,7 +171,7 @@ public class FrmRegistro extends javax.swing.JInternalFrame {
         jtxtCodigo.addActionListener(this::jtxtCodigoActionPerformed);
 
         jpnlResultado.setBorder(javax.swing.BorderFactory.createBevelBorder(javax.swing.border.BevelBorder.RAISED));
-        jpnlResultado.setPreferredSize(new java.awt.Dimension(560, 160));
+        jpnlResultado.setPreferredSize(new java.awt.Dimension(560, 210));
 
         jlblNombre.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
         jlblNombre.setText("jLabel1");
@@ -164,6 +182,8 @@ public class FrmRegistro extends javax.swing.JInternalFrame {
         jlblEstado.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
         jlblEstado.setText("jLabel3");
 
+        jlblCarrera.setText("jLabel1");
+
         javax.swing.GroupLayout jpnlResultadoLayout = new javax.swing.GroupLayout(jpnlResultado);
         jpnlResultado.setLayout(jpnlResultadoLayout);
         jpnlResultadoLayout.setHorizontalGroup(
@@ -171,6 +191,7 @@ public class FrmRegistro extends javax.swing.JInternalFrame {
             .addGroup(jpnlResultadoLayout.createSequentialGroup()
                 .addGap(34, 34, 34)
                 .addGroup(jpnlResultadoLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(jlblCarrera)
                     .addComponent(jlblEstado)
                     .addComponent(jlblDetalle)
                     .addComponent(jlblNombre))
@@ -182,10 +203,12 @@ public class FrmRegistro extends javax.swing.JInternalFrame {
                 .addGap(23, 23, 23)
                 .addComponent(jlblNombre)
                 .addGap(18, 18, 18)
+                .addComponent(jlblCarrera)
+                .addGap(18, 18, 18)
                 .addComponent(jlblDetalle)
                 .addGap(18, 18, 18)
                 .addComponent(jlblEstado)
-                .addContainerGap(49, Short.MAX_VALUE))
+                .addContainerGap(32, Short.MAX_VALUE))
         );
 
         jchkSimular.setText("Simular fecha y hora");
@@ -208,10 +231,9 @@ public class FrmRegistro extends javax.swing.JInternalFrame {
                     .addGroup(layout.createSequentialGroup()
                         .addGap(213, 213, 213)
                         .addComponent(jtxtCodigo, javax.swing.GroupLayout.PREFERRED_SIZE, 196, javax.swing.GroupLayout.PREFERRED_SIZE))
-                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                        .addContainerGap()
-                        .addComponent(jlblTitulo, javax.swing.GroupLayout.PREFERRED_SIZE, 160, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(192, 192, 192)))
+                    .addGroup(layout.createSequentialGroup()
+                        .addGap(230, 230, 230)
+                        .addComponent(jlblTitulo, javax.swing.GroupLayout.PREFERRED_SIZE, 160, javax.swing.GroupLayout.PREFERRED_SIZE)))
                 .addContainerGap(38, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
@@ -221,13 +243,13 @@ public class FrmRegistro extends javax.swing.JInternalFrame {
                 .addComponent(jlblTitulo)
                 .addGap(18, 18, 18)
                 .addComponent(jtxtCodigo, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(28, 28, 28)
-                .addComponent(jpnlResultado, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(18, 18, 18)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 28, Short.MAX_VALUE)
+                .addComponent(jpnlResultado, javax.swing.GroupLayout.PREFERRED_SIZE, 177, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(27, 27, 27)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jchkSimular)
                     .addComponent(jtxtFechaSimulada, javax.swing.GroupLayout.PREFERRED_SIZE, 20, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addContainerGap(45, Short.MAX_VALUE))
+                .addGap(22, 22, 22))
         );
 
         pack();
@@ -276,6 +298,7 @@ public class FrmRegistro extends javax.swing.JInternalFrame {
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JCheckBox jchkSimular;
+    private javax.swing.JLabel jlblCarrera;
     private javax.swing.JLabel jlblDetalle;
     private javax.swing.JLabel jlblEstado;
     private javax.swing.JLabel jlblNombre;

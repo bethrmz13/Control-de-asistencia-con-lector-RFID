@@ -173,4 +173,40 @@ public class HorarioDAO {
         }
         return ok;
     }
+    
+        // Primer estudiante matriculado en el grupo que quedaría con choque si se guarda este horario.
+    // Devuelve un texto como "Torres María (choca con Base de Datos)" o null si no hay choques.
+    public static String buscarChoqueConMatriculados(Horario n) {
+        String resultado = null;
+        Conexion cn = new Conexion();
+        Connection cc = cn.conectar();
+        if (cc == null) {
+            return null;
+        }
+        try {
+            PreparedStatement ps = cc.prepareStatement(
+                    "SELECT CONCAT(e.apellido, ' ', e.nombre) AS estudiante, a.nombre AS asignatura "
+                    + "FROM matricula m1 "
+                    + "JOIN estudiante e ON e.id = m1.estudiante_id "
+                    + "JOIN matricula m2 ON m2.estudiante_id = m1.estudiante_id AND m2.grupo_id <> m1.grupo_id "
+                    + "JOIN grupo g2 ON g2.id = m2.grupo_id "
+                    + "JOIN periodo p ON p.id = g2.periodo_id AND p.activo = 1 "
+                    + "JOIN asignatura a ON a.id = g2.asignatura_id "
+                    + "JOIN horario h2 ON h2.grupo_id = g2.id "
+                    + "WHERE m1.grupo_id = ? AND h2.dia_semana = ? "
+                    + "AND h2.hora_inicio < ? AND ? < h2.hora_fin LIMIT 1");
+            ps.setInt(1, n.getGrupoId());
+            ps.setInt(2, n.getDiaSemana());
+            ps.setTime(3, n.getHoraFin());
+            ps.setTime(4, n.getHoraInicio());
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                resultado = rs.getString("estudiante") + " (choca con " + rs.getString("asignatura") + ")";
+            }
+            cc.close();
+        } catch (Exception ex) {
+            JOptionPane.showMessageDialog(null, ex);
+        }
+        return resultado;
+    }
 }
