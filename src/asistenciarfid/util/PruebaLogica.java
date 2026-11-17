@@ -2,6 +2,7 @@ package asistenciarfid.util;
 
 import asistenciarfid.controlador.AsistenciaControlador;
 import asistenciarfid.controlador.MatriculaControlador;
+import asistenciarfid.dao.AsistenciaDAO;
 import asistenciarfid.dao.EstudianteDAO;
 import asistenciarfid.dao.MatriculaDAO;
 import asistenciarfid.dao.PeriodoDAO;
@@ -30,6 +31,7 @@ public class PruebaLogica {
         limpiarAsistencias();
         probarAsistencia();
         probarMatricula();
+        probarArreglos();
         System.out.println();
         System.out.println("Resultado: " + correctos + " OK, " + fallas + " FALLA");
     }
@@ -77,8 +79,10 @@ public class PruebaLogica {
         comparar("María 15:55", "FUERA_DE_HORARIO", estadoAsistencia(maria, Fechas.crear(2026, 11, 9, 15, 55)));
         comparar("María 16:15", "REGISTRADO", estadoAsistencia(maria, Fechas.crear(2026, 11, 9, 16, 15)));
         comparar("María 18:05", "REGISTRADO", estadoAsistencia(maria, Fechas.crear(2026, 11, 9, 18, 5)));
-        comparar("Luis 16:16", "FUERA_DE_HORARIO", estadoAsistencia(luis, Fechas.crear(2026, 11, 9, 16, 16)));
+        // El registro vale durante toda la clase (de la hora de inicio hasta antes de la hora de fin)
+        comparar("Luis 16:16 (dentro de la clase)", "REGISTRADO", estadoAsistencia(luis, Fechas.crear(2026, 11, 9, 16, 16)));
         comparar("Luis 08:05", "FUERA_DE_HORARIO", estadoAsistencia(luis, Fechas.crear(2026, 11, 9, 8, 5)));
+        comparar("María 20:00 (la clase ya terminó)", "FUERA_DE_HORARIO", estadoAsistencia(maria, Fechas.crear(2026, 11, 9, 20, 0)));
         comparar("Código 9999999999", "NO_ENCONTRADO", estadoAsistencia("9999999999", Fechas.crear(2026, 11, 9, 8, 10)));
         comparar("María martes", "SIN_CLASES_HOY", estadoAsistencia(maria, Fechas.crear(2026, 11, 10, 8, 10)));
     }
@@ -145,5 +149,37 @@ public class PruebaLogica {
         MatriculaDAO.anular(maria.getId(), estadistica);
         MatriculaDAO.anular(maria.getId(), redes);
         comparar("María vuelve a 3 materias", 3, MatriculaDAO.contarEnPeriodoActivo(maria.getId()));
+    }
+
+    // Casos de los arreglos: nota de una matrícula que no existe, asistencia repetida
+    // y grupos disponibles con la matrícula cerrada
+    static void probarArreglos() {
+        System.out.println();
+        System.out.println("=== ARREGLOS ===");
+        Estudiante maria = EstudianteDAO.buscarPorCodigo("0001234567");
+        int calculo = grupoDe("Cálculo");
+        int estadistica = grupoDe("Estadística");
+
+        // Luis no está matriculado en Estadística: no hay fila que actualizar
+        Estudiante luis = EstudianteDAO.buscarPorCodigo("0007654321");
+        comparar("actualizarNota de una matrícula que no existe", false,
+                MatriculaDAO.actualizarNota(luis.getId(), estadistica, 8.0));
+        comparar("actualizarNota de una matrícula que existe", true,
+                MatriculaDAO.actualizarNota(maria.getId(), calculo, 8.0));
+        MatriculaDAO.actualizarNota(maria.getId(), calculo, null);   // se deja vacía
+
+        // La base no permite dos asistencias iguales: la segunda devuelve false sin aviso
+        java.sql.Date fecha = java.sql.Date.valueOf("2026-11-10");
+        java.sql.Time hora = java.sql.Time.valueOf("08:00:00");
+        comparar("registrar asistencia nueva", true, AsistenciaDAO.registrar(maria.getId(), 1, fecha, hora));
+        comparar("registrar asistencia repetida", false, AsistenciaDAO.registrar(maria.getId(), 1, fecha, hora));
+
+        // Grupos disponibles: con la matrícula abierta hay, cerrada no hay ninguno
+        Periodo periodo = PeriodoDAO.obtenerActivo();
+        comparar("gruposDisponibles con matrícula abierta (hay alguno)", true,
+                MatriculaControlador.gruposDisponibles(maria).size() > 0);
+        PeriodoDAO.cambiarMatricula(periodo.getId(), false);
+        comparar("gruposDisponibles con matrícula cerrada", 0, MatriculaControlador.gruposDisponibles(maria).size());
+        PeriodoDAO.cambiarMatricula(periodo.getId(), true);
     }
 }
