@@ -17,6 +17,12 @@ import javax.swing.DefaultComboBoxModel;
 import javax.swing.JComboBox;
 import javax.swing.JOptionPane;
 import javax.swing.table.DefaultTableModel;
+import asistenciarfid.dao.AsignaturaDAO;
+import asistenciarfid.dao.CarreraDAO;
+import asistenciarfid.modelo.Asignatura;
+import asistenciarfid.modelo.Carrera;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  *
@@ -36,8 +42,10 @@ public class FrmNotas extends javax.swing.JInternalFrame {
     private Usuario usuario;
     private List<Grupo> listaGrupos = new ArrayList<>();          // todos los grupos que este usuario puede ver
     private List<Matricula> listaMatriculas = new ArrayList<>();  // paralela a las filas de la tabla
-    private int[] cadena = {0, 1, 2, 3};                          // orden de los filtros: 0 nivel, 1 asignatura, 2 paralelo, 3 docente
     private boolean cargando = false;                             // true mientras se llenan los combos por codigo (ignora sus eventos)
+    private int[] cadena = {4, 0, 1, 2, 3};                // 4 carrera, 0 nivel, 1 asignatura, 2 paralelo, 3 docente
+    private Map<Integer, String> carreraDeAsignatura = new HashMap<>();   // id de asignatura -> nombre de su carrera
+
 
     public FrmNotas(Usuario usuario) {
         initComponents();
@@ -46,11 +54,15 @@ public class FrmNotas extends javax.swing.JInternalFrame {
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
         cargarGrupos();
         if (usuario != null && Perfil.DOCENTE.equals(usuario.getPerfil())) {
-            // El docente filtra por nivel, asignatura y paralelo (solo ve sus grupos)
             jlblDocente.setVisible(false);
             jcbxDocente.setVisible(false);
-            cadena = new int[]{0, 1, 2};
+            cadena = new int[]{4, 0, 1, 2};
+        } else if (usuario != null && Perfil.COORDINADOR.equals(usuario.getPerfil())) {
+            jlblCarrera.setVisible(false);
+            jcbxCarrera.setVisible(false);
+            cadena = new int[]{0, 1, 2, 3};
         }
+        jcbxCarrera.addActionListener(e -> filtroCambio(4));
         jcbxNivel.addActionListener(e -> filtroCambio(0));
         jcbxAsignatura.addActionListener(e -> filtroCambio(1));
         jcbxParalelo.addActionListener(e -> filtroCambio(2));
@@ -62,6 +74,15 @@ public class FrmNotas extends javax.swing.JInternalFrame {
 
     // DOCENTE: solo sus grupos. COORDINADOR: los de su carrera. ADMIN: todos.
     private void cargarGrupos() {
+         carreraDeAsignatura.clear();
+        Map<Integer, String> carreras = new HashMap<>();
+        for (Carrera c : CarreraDAO.listar()) {
+            carreras.put(c.getId(), c.getNombre());
+        }
+        for (Asignatura a : AsignaturaDAO.listar(null)) {
+            carreraDeAsignatura.put(a.getId(), carreras.get(a.getCarreraId()));
+        }
+
         if (usuario != null && Perfil.DOCENTE.equals(usuario.getPerfil())) {
             listaGrupos = GrupoDAO.listar(null, usuario.getId());
         } else if (usuario != null && Perfil.COORDINADOR.equals(usuario.getPerfil())) {
@@ -76,6 +97,9 @@ public class FrmNotas extends javax.swing.JInternalFrame {
     // "cadena" dice en que orden se usan (el docente solo usa 1 y 2)
 
     private JComboBox<String> comboDe(int campo) {
+        if (campo == 4) {
+            return jcbxCarrera;
+        }
         if (campo == 0) {
             return jcbxNivel;
         }
@@ -100,6 +124,13 @@ public class FrmNotas extends javax.swing.JInternalFrame {
 
     // El texto que tiene un grupo para ese filtro
     private String textoCampo(Grupo g, int campo) {
+        if (campo == 4) {
+            String carrera = carreraDeAsignatura.get(g.getAsignaturaId());
+            if (carrera == null) {
+                carrera = "Sin carrera";
+            }
+            return carrera;
+        }
         if (campo == 0) {
             return String.valueOf(g.getAsignaturaNivel());
         }
@@ -283,6 +314,8 @@ public class FrmNotas extends javax.swing.JInternalFrame {
         jcbxParalelo = new javax.swing.JComboBox<>();
         jlblDocente = new javax.swing.JLabel();
         jcbxDocente = new javax.swing.JComboBox<>();
+        jlblCarrera = new javax.swing.JLabel();
+        jcbxCarrera = new javax.swing.JComboBox<>();
         jScrollPanel1 = new javax.swing.JScrollPane();
         jtblNotas = new javax.swing.JTable();
         jbtnGuardar = new javax.swing.JButton();
@@ -315,6 +348,11 @@ public class FrmNotas extends javax.swing.JInternalFrame {
 
         jcbxDocente.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Item 1", "Item 2", "Item 3", "Item 4" }));
 
+        jlblCarrera.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
+        jlblCarrera.setText("Carrera");
+
+        jcbxCarrera.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Item 1", "Item 2", "Item 3", "Item 4" }));
+
         javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
         jPanel1.setLayout(jPanel1Layout);
         jPanel1Layout.setHorizontalGroup(
@@ -322,10 +360,6 @@ public class FrmNotas extends javax.swing.JInternalFrame {
             .addGroup(jPanel1Layout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                    .addGroup(jPanel1Layout.createSequentialGroup()
-                        .addComponent(jlblNivel)
-                        .addGap(45, 45, 45)
-                        .addComponent(jcbxNivel, 0, 250, Short.MAX_VALUE))
                     .addGroup(jPanel1Layout.createSequentialGroup()
                         .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(jlblAsignatura)
@@ -335,13 +369,25 @@ public class FrmNotas extends javax.swing.JInternalFrame {
                         .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
                             .addComponent(jcbxAsignatura, 0, 250, Short.MAX_VALUE)
                             .addComponent(jcbxParalelo, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                            .addComponent(jcbxDocente, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))))
+                            .addComponent(jcbxDocente, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
+                    .addGroup(jPanel1Layout.createSequentialGroup()
+                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(jlblNivel)
+                            .addComponent(jlblCarrera))
+                        .addGap(33, 33, 33)
+                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(jcbxNivel, 0, 250, Short.MAX_VALUE)
+                            .addComponent(jcbxCarrera, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))))
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
         jPanel1Layout.setVerticalGroup(
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel1Layout.createSequentialGroup()
-                .addContainerGap()
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel1Layout.createSequentialGroup()
+                .addContainerGap(16, Short.MAX_VALUE)
+                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jlblCarrera)
+                    .addComponent(jcbxCarrera, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jlblNivel)
                     .addComponent(jcbxNivel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
@@ -357,7 +403,7 @@ public class FrmNotas extends javax.swing.JInternalFrame {
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jlblDocente)
                     .addComponent(jcbxDocente, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addContainerGap(18, Short.MAX_VALUE))
+                .addGap(18, 18, 18))
         );
 
         jtblNotas.setModel(new javax.swing.table.DefaultTableModel(
@@ -403,15 +449,13 @@ public class FrmNotas extends javax.swing.JInternalFrame {
                 .addComponent(jLabel1)
                 .addGap(4, 4, 4)
                 .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(jScrollPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE)
                     .addGroup(layout.createSequentialGroup()
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jScrollPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE)
-                        .addContainerGap())
-                    .addGroup(layout.createSequentialGroup()
-                        .addGap(20, 20, 20)
                         .addComponent(jbtnGuardar)
-                        .addContainerGap(189, Short.MAX_VALUE))))
+                        .addGap(0, 159, Short.MAX_VALUE)))
+                .addContainerGap())
         );
 
         pack();
@@ -457,10 +501,12 @@ public class FrmNotas extends javax.swing.JInternalFrame {
     private javax.swing.JScrollPane jScrollPanel1;
     private javax.swing.JButton jbtnGuardar;
     private javax.swing.JComboBox<String> jcbxAsignatura;
+    private javax.swing.JComboBox<String> jcbxCarrera;
     private javax.swing.JComboBox<String> jcbxDocente;
     private javax.swing.JComboBox<String> jcbxNivel;
     private javax.swing.JComboBox<String> jcbxParalelo;
     private javax.swing.JLabel jlblAsignatura;
+    private javax.swing.JLabel jlblCarrera;
     private javax.swing.JLabel jlblDocente;
     private javax.swing.JLabel jlblNivel;
     private javax.swing.JLabel jlblParalelo;

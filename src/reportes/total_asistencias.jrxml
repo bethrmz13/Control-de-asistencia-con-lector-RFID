@@ -1,0 +1,183 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="null" language="groovy" pageWidth="595" pageHeight="842" columnWidth="555" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" uuid="2eb9809f-deef-47f3-83e8-a1c705a4f065">
+	<property name="ireport.zoom" value="1.0"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<parameter name="P_GRUPO_ID" class="java.lang.String"/>
+	<queryString>
+		<![CDATA[SELECT c.nombre AS carrera,
+       s.nivel AS nivel, 
+       s.nombre AS asignatura, 
+       g.paralelo AS paralelo,
+       COALESCE(u.nombre, 'Sin docente') AS docente,
+       e.apellido, 
+       e.nombre, 
+       COUNT(a.id) AS asistencias
+FROM grupo g
+JOIN asignatura s ON s.id = g.asignatura_id
+JOIN carrera c ON c.id = s.carrera_id
+LEFT JOIN usuario u ON u.id = g.docente_id
+JOIN matricula m ON m.grupo_id = g.id
+JOIN estudiante e ON e.id = m.estudiante_id
+LEFT JOIN horario h ON h.grupo_id = g.id
+LEFT JOIN asistencia a ON a.horario_id = h.id AND a.estudiante_id = e.id
+WHERE g.id = $P{P_GRUPO_ID}
+GROUP BY g.id, c.nombre, s.nivel, s.nombre, g.paralelo, u.nombre, e.id, e.apellido, e.nombre
+ORDER BY e.apellido, e.nombre;]]>
+	</queryString>
+	<field name="carrera" class="java.lang.String"/>
+	<field name="nivel" class="java.lang.Integer">
+		<fieldDescription><![CDATA[]]></fieldDescription>
+	</field>
+	<field name="asignatura" class="java.lang.String"/>
+	<field name="paralelo" class="java.lang.String">
+		<fieldDescription><![CDATA[]]></fieldDescription>
+	</field>
+	<field name="docente" class="java.lang.String"/>
+	<field name="apellido" class="java.lang.String">
+		<fieldDescription><![CDATA[]]></fieldDescription>
+	</field>
+	<field name="nombre" class="java.lang.String">
+		<fieldDescription><![CDATA[]]></fieldDescription>
+	</field>
+	<field name="asistencias" class="java.lang.Long"/>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<title>
+		<band height="22" splitType="Stretch">
+			<staticText>
+				<reportElement x="0" y="0" width="229" height="20" uuid="ebd7db2e-6755-446f-b81b-b1a720c230fd"/>
+				<textElement>
+					<font size="12" isBold="true" isItalic="true" isUnderline="false"/>
+				</textElement>
+				<text><![CDATA[Total de asistencias por estudiante]]></text>
+			</staticText>
+		</band>
+	</title>
+	<pageHeader>
+		<band height="104" splitType="Stretch">
+			<staticText>
+				<reportElement x="0" y="28" width="61" height="20" uuid="e60f5889-680e-41e5-abc4-6103330f3ae5"/>
+				<textElement>
+					<font isBold="true" isItalic="true"/>
+				</textElement>
+				<text><![CDATA[Asignatura:]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="0" y="48" width="61" height="20" uuid="3497c1a7-c2c9-499a-8a84-7548781d1cba"/>
+				<textElement>
+					<font isBold="true" isItalic="true"/>
+				</textElement>
+				<text><![CDATA[Docente:]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="253" y="28" width="34" height="20" uuid="3dcdf13c-2aff-4dea-80ca-2d3d96b77ff3"/>
+				<textElement>
+					<font isBold="true" isItalic="true"/>
+				</textElement>
+				<text><![CDATA[Nivel:]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="253" y="48" width="46" height="20" uuid="9f2c088f-1844-42c8-baf2-fe53ea815375"/>
+				<textElement>
+					<font isBold="true" isItalic="true"/>
+				</textElement>
+				<text><![CDATA[Paralelo:]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="414" y="28" width="44" height="20" uuid="ac87f6bf-aaa1-496a-8ca3-b0a602950a03"/>
+				<textElement>
+					<font isBold="true" isItalic="true"/>
+				</textElement>
+				<text><![CDATA[Grupo:]]></text>
+			</staticText>
+			<textField>
+				<reportElement x="455" y="28" width="100" height="20" uuid="0e672f99-f438-4bae-8f38-7e626616ad52"/>
+				<textFieldExpression><![CDATA[$P{P_GRUPO_ID}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="299" y="28" width="100" height="20" uuid="6662d473-9460-4d78-9e8d-ae96b51464aa"/>
+				<textFieldExpression><![CDATA[$F{nivel}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="61" y="28" width="168" height="20" uuid="00bdc053-e06a-4892-bb41-7b79c4c5a064"/>
+				<textFieldExpression><![CDATA[$F{asignatura}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="299" y="48" width="100" height="20" uuid="96977485-b4d7-4fc1-ad63-c8a580b93332"/>
+				<textFieldExpression><![CDATA[$F{paralelo}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="61" y="48" width="168" height="20" uuid="f35c417d-231c-4e63-ab7f-4c817fc24c6c"/>
+				<textFieldExpression><![CDATA[$F{docente}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="0" y="8" width="61" height="20" uuid="9c603217-225c-41e9-be6c-2d0e786b8978"/>
+				<textElement>
+					<font isBold="true" isItalic="true"/>
+				</textElement>
+				<text><![CDATA[Carrera:]]></text>
+			</staticText>
+			<textField>
+				<reportElement x="61" y="8" width="100" height="20" uuid="8dc1eb5b-3e8b-4a00-a82f-bdea795a9d2d"/>
+				<textFieldExpression><![CDATA[$F{carrera}]]></textFieldExpression>
+			</textField>
+		</band>
+	</pageHeader>
+	<columnHeader>
+		<band height="21" splitType="Stretch">
+			<staticText>
+				<reportElement x="60" y="1" width="156" height="20" uuid="8ac4ab07-173f-4860-8aa0-be5b30ee977c"/>
+				<textElement>
+					<font isBold="true" isItalic="true" isUnderline="false"/>
+				</textElement>
+				<text><![CDATA[Apellido]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="216" y="1" width="172" height="20" uuid="91f3517a-b3bc-405d-b5a8-621afc469be6"/>
+				<textElement>
+					<font isBold="true" isItalic="true"/>
+				</textElement>
+				<text><![CDATA[Nombre]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="388" y="1" width="100" height="20" uuid="e8bf1689-a3ed-4f87-a837-f7a0db383024"/>
+				<textElement>
+					<font isBold="true" isItalic="true"/>
+				</textElement>
+				<text><![CDATA[Asistencias]]></text>
+			</staticText>
+		</band>
+	</columnHeader>
+	<detail>
+		<band height="23" splitType="Stretch">
+			<textField>
+				<reportElement x="60" y="0" width="156" height="20" uuid="cdd1171f-f405-4c7c-8725-42aa7eff9152"/>
+				<textFieldExpression><![CDATA[$F{apellido}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="216" y="0" width="172" height="20" uuid="0be0d3fb-bf48-4d8d-8795-44eeef272274"/>
+				<textFieldExpression><![CDATA[$F{nombre}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="388" y="0" width="100" height="20" uuid="0e005f50-b47e-46be-93a8-6f2fd98de1d7"/>
+				<textFieldExpression><![CDATA[$F{asistencias}]]></textFieldExpression>
+			</textField>
+		</band>
+	</detail>
+	<columnFooter>
+		<band height="45" splitType="Stretch"/>
+	</columnFooter>
+	<pageFooter>
+		<band height="54" splitType="Stretch"/>
+	</pageFooter>
+	<summary>
+		<band height="42" splitType="Stretch">
+			<textField>
+				<reportElement x="0" y="0" width="253" height="20" uuid="bfda5293-eb50-431a-a5af-726eff23bd57"/>
+				<textFieldExpression><![CDATA["Total de estudiantes: " + $V{REPORT_COUNT}]]></textFieldExpression>
+			</textField>
+		</band>
+	</summary>
+</jasperReport>
