@@ -197,8 +197,8 @@ public class MatriculaDAO {
             }
             ps.setInt(2, estudianteId);
             ps.setInt(3, grupoId);
-            ps.executeUpdate();
-            ok = true;   // si la nota no cambia, MySQL cuenta 0 filas: no es un error
+            // MySQL cuenta las filas encontradas (aunque la nota sea igual): 0 = esa matrícula no existe
+            ok = ps.executeUpdate() > 0;
             cc.close();
         } catch (Exception ex) {
             JOptionPane.showMessageDialog(null, ex);
