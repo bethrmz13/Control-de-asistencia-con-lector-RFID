@@ -202,7 +202,7 @@ ORDER BY e.apellido, e.nombre;]]>
 				<reportElement x="121" y="0" width="100" height="20" uuid="8dad2de6-0371-4666-9e09-df63b4de6914"/>
 				<textFieldExpression><![CDATA[$F{nombre}]]></textFieldExpression>
 			</textField>
-			<textField>
+			<textField pattern="h.mm a">
 				<reportElement x="221" y="0" width="100" height="20" uuid="a0cefe19-45f5-4aeb-838e-f417a46f3130"/>
 				<textFieldExpression><![CDATA[$F{hora_inicio}]]></textFieldExpression>
 			</textField>
@@ -210,7 +210,7 @@ ORDER BY e.apellido, e.nombre;]]>
 				<reportElement x="421" y="0" width="100" height="20" uuid="a48050b1-e4ed-424e-b5a5-f5b95d4e616b"/>
 				<textFieldExpression><![CDATA[$F{estado}]]></textFieldExpression>
 			</textField>
-			<textField>
+			<textField pattern="h.mm a">
 				<reportElement x="321" y="0" width="100" height="20" uuid="3991a735-db22-45f6-a7f0-0aad2072004f"/>
 				<textFieldExpression><![CDATA[$F{hora_llegada}]]></textFieldExpression>
 			</textField>
