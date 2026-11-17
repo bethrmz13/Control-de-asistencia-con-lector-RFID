@@ -32,6 +32,7 @@ public class VentanaPrincipal extends javax.swing.JFrame {
         setTitle("Control de asistencia - " + usuario.getNombre() + " (" + usuario.getPerfil() + ")");
         setExtendedState(javax.swing.JFrame.MAXIMIZED_BOTH);
         configurarMenuSegunPerfil();
+        agregarMenuMiHorario();
         if (usuario.getPerfil().equals(Perfil.REGISTRO)) {
             iniciarModoRegistro();
         } 
@@ -108,6 +109,23 @@ public class VentanaPrincipal extends javax.swing.JFrame {
             jmnuMatricula.setVisible(true);
             jmniConsulta.setVisible(true);
         }
+    }
+
+    // "Mi horario": solo lectura, para el docente (en su menú Asistencia) y el estudiante (en su
+    // menú Matrícula). Se agrega por código para no tocar el bloque generado por NetBeans.
+    private void agregarMenuMiHorario() {
+        javax.swing.JMenu menu = null;
+        if (usuario.getPerfil().equals(Perfil.DOCENTE)) {
+            menu = jmnuAsistencia;
+        } else if (usuario.getPerfil().equals(Perfil.ESTUDIANTE)) {
+            menu = jmnuMatricula;
+        }
+        if (menu == null) {
+            return;
+        }
+        javax.swing.JMenuItem jmniMiHorario = new javax.swing.JMenuItem("Mi horario");
+        jmniMiHorario.addActionListener(e -> abrirVentana(new FrmMiHorario(usuario)));
+        menu.add(jmniMiHorario);
     }
 
     // Abre una ventana interna en el escritorio. Si ya hay una de la misma clase, la trae al frente.

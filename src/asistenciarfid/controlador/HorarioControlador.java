@@ -2,42 +2,111 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
  * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
  */
+
 package asistenciarfid.controlador;
 
+import asistenciarfid.dao.GrupoDAO;
 import asistenciarfid.dao.HorarioDAO;
+import asistenciarfid.modelo.Grupo;
 import asistenciarfid.modelo.Horario;
-import java.util.List;
 
 public class HorarioControlador {
 
-    // Devuelve null si el horario se puede guardar, o el mensaje del primer problema encontrado.
-    // Se llama antes de insertar o actualizar un horario.
+    /**
+     * Valida si un horario puede ser creado o modificado.
+     *
+     * Devuelve:
+     *   null = el horario es válido.
+     *   texto = existe algún conflicto.
+     */
     public static String validarChoques(Horario nuevo) {
-        // 1. Que no se cruce con otro horario del mismo grupo
-        List<Horario> delGrupo = HorarioDAO.listarPorGrupo(nuevo.getGrupoId());
-        for (Horario h : delGrupo) {
-            if (h.getId() == nuevo.getId()) {
-                continue;   // es el mismo horario que se está modificando
-            }
-            if (seCruzan(nuevo, h)) {
-                return "Se cruza con otro horario de este grupo (" + h.getNombreDia() + " "
-                        + h.getHoraInicio().toString().substring(0, 5) + " a "
-                        + h.getHoraFin().toString().substring(0, 5) + ")";
-            }
+
+        if (nuevo == null) {
+            return "El horario no puede ser nulo";
         }
 
-        // 2. Que no deje con choque a un estudiante que ya está matriculado en el grupo
-        String choque = HorarioDAO.buscarChoqueConMatriculados(nuevo);
+        // --------------------------------------------------------
+        // 1. Validar datos básicos
+        // --------------------------------------------------------
+
+        if (nuevo.getHoraInicio() == null
+                || nuevo.getHoraFin() == null) {
+
+            return "Debe indicar la hora de inicio y la hora de fin";
+        }
+
+        if (!nuevo.getHoraInicio().before(nuevo.getHoraFin())) {
+
+            return "La hora de inicio debe ser anterior a la hora de fin";
+        }
+
+        if (nuevo.getDiaSemana() < 1
+                || nuevo.getDiaSemana() > 7) {
+
+            return "El día de la semana no es válido";
+        }
+
+        // --------------------------------------------------------
+        // 2. Buscar el grupo
+        // --------------------------------------------------------
+
+        Grupo grupo = GrupoDAO.buscarPorId(nuevo.getGrupoId());
+
+        if (grupo == null) {
+            return "El grupo no existe";
+        }
+
+        // --------------------------------------------------------
+        // 3. Obtener el docente del grupo
+        // --------------------------------------------------------
+
+        Integer docenteId = grupo.getDocenteId();
+
+        // --------------------------------------------------------
+        // 4. Validar choque de:
+        //
+        //    - mismo grupo
+        //    - mismo docente
+        //    - misma aula
+        //
+        // El DAO ignora el propio horario cuando se está
+        // modificando.
+        // --------------------------------------------------------
+
+        String choque = HorarioDAO.buscarChoque(
+                nuevo.getGrupoId(),
+                docenteId,
+                nuevo.getAula(),
+                nuevo.getDiaSemana(),
+                nuevo.getHoraInicio(),
+                nuevo.getHoraFin(),
+                nuevo.getId()
+        );
+
         if (choque != null) {
-            return "Este horario dejaría con choque a un estudiante matriculado:\n" + choque;
+            return choque;
         }
-        return null;
-    }
 
-    // Dos horarios se cruzan si son el mismo día y cada uno empieza antes de que termine el otro
-    private static boolean seCruzan(Horario a, Horario b) {
-        return a.getDiaSemana() == b.getDiaSemana()
-                && a.getHoraInicio().before(b.getHoraFin())
-                && b.getHoraInicio().before(a.getHoraFin());
+        // --------------------------------------------------------
+        // 5. Si el grupo ya tiene estudiantes matriculados,
+        //    comprobar que este cambio no les cree un choque
+        //    con otra materia.
+        // --------------------------------------------------------
+
+        String choqueEstudiante
+                = HorarioDAO.buscarChoqueConMatriculados(nuevo);
+
+        if (choqueEstudiante != null) {
+
+            return "Este horario dejaría con choque a un estudiante "
+                    + "matriculado:\n"
+                    + choqueEstudiante;
+        }
+
+        // --------------------------------------------------------
+        // 6. Todo correcto
+        // --------------------------------------------------------
+
+        return null;
     }
 }
